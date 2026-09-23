@@ -1,5 +1,7 @@
 # Reliability validation results
 
+> Historical record for the source named below. See [current findings and readiness](FINDINGS.md) for current deployment status and deferred work.
+
 Candidate `5ab2ebfd8cda7b96a86688840e76ec15951c42dd` recorded **36/38 supported completions** in the [declared validation](RELIABILITY_EXPERIMENT.md). All 38 trials were attempted once on unchanged executable source. No failed trial was retried or replaced, and no scorer or budget was relaxed.
 
 | Phase | Supported completion | Reported tokens | Cleanup |

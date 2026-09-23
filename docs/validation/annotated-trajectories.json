@@ -1,0 +1,309 @@
+{
+  "schema_version": 1,
+  "selection": "Three real retained executions; no model reasoning or raw payloads exported. Hashes identify private originals; this selected record is not independent authentication.",
+  "cases": [
+    {
+      "source_commit": "5ab2ebfd8cda7b96a86688840e76ec15951c42dd",
+      "trial": "artifacts/experiment-d1a6621e/trial-006",
+      "scenario": "lost_ack",
+      "variant": "structured",
+      "agent_status": "completed",
+      "reason": "toolbox_terminal_recorded",
+      "generation_requests": 5,
+      "tool_calls": 9,
+      "reported_tokens": 23531,
+      "resume_count": 1,
+      "tools_in_durable_order": [
+        {
+          "name": "observe_service",
+          "phase": "completed"
+        },
+        {
+          "name": "probe_backend",
+          "phase": "completed"
+        },
+        {
+          "name": "probe_application",
+          "phase": "completed"
+        },
+        {
+          "name": "observe_events",
+          "phase": "completed"
+        },
+        {
+          "name": "record_incident",
+          "phase": "completed"
+        },
+        {
+          "name": "propose_repair",
+          "phase": "completed"
+        },
+        {
+          "name": "get_operation",
+          "phase": "completed"
+        },
+        {
+          "name": "verify_recovery",
+          "phase": "completed"
+        },
+        {
+          "name": "finish",
+          "phase": "completed"
+        }
+      ],
+      "controller_events": [
+        {
+          "kind": "routing_fault",
+          "timestamp": "2026-09-23T19:07:41.922794+00:00"
+        },
+        {
+          "kind": "client_path_failure_established",
+          "timestamp": "2026-09-23T19:07:43.404879+00:00"
+        },
+        {
+          "kind": "agent_checkpoint_interruption",
+          "timestamp": "2026-09-23T19:07:49.227362+00:00"
+        },
+        {
+          "kind": "real_mutation_completed_response_withheld",
+          "timestamp": "2026-09-23T19:08:55.356173+00:00"
+        }
+      ],
+      "task_success": true,
+      "environment_recovered": true,
+      "false_completion": false,
+      "verifications": [
+        {
+          "verdict": "verified_success",
+          "window_seconds": 30,
+          "elapsed_seconds": 30.126426
+        },
+        {
+          "verdict": "verified_success",
+          "window_seconds": 30,
+          "elapsed_seconds": 30.126426
+        },
+        {
+          "verdict": "verified_success",
+          "window_seconds": 30,
+          "elapsed_seconds": 30.152313
+        }
+      ],
+      "original_sha256": {
+        "trial.json": "c4da1191d7fc17388c4ef88aca581ed5c2a0d05af9b87021cd5152ff88b6752d",
+        "agent-state.json": "228406ebda774539f80c244bece788f725bd08e87a835c51750cd1f4ad30bd8d",
+        "final-verification.json": "b284947d729a5a43aba65bacf21a6b19862c47bf6eadf2c0e53cb21eaa11a1bb",
+        "verification-142e7f3fea4447e98d9e8e11aa2d9ef2.json": "b284947d729a5a43aba65bacf21a6b19862c47bf6eadf2c0e53cb21eaa11a1bb",
+        "verification-e201008ceda74be5a4349b975ecb964d.json": "f6802cae8261612fe1dc4ee1413ef859d4d7ab0e11d19365e390aacb8cc8efc6"
+      },
+      "preflights": [
+        {
+          "remaining_total_tokens": 32000,
+          "reserved_input_tokens": 1470,
+          "reserved_output_tokens": 2048
+        },
+        {
+          "remaining_total_tokens": 30490,
+          "reserved_input_tokens": 3955,
+          "reserved_output_tokens": 2048
+        },
+        {
+          "remaining_total_tokens": 26043,
+          "reserved_input_tokens": 5411,
+          "reserved_output_tokens": 2048
+        },
+        {
+          "remaining_total_tokens": 20604,
+          "reserved_input_tokens": 5950,
+          "reserved_output_tokens": 2048
+        },
+        {
+          "remaining_total_tokens": 14644,
+          "reserved_input_tokens": 6043,
+          "reserved_output_tokens": 2048
+        }
+      ]
+    },
+    {
+      "source_commit": "5ab2ebfd8cda7b96a86688840e76ec15951c42dd",
+      "trial": "artifacts/experiment-f7f0b725/trial-006",
+      "scenario": "lost_ack_changed",
+      "variant": "basic",
+      "agent_status": "budget_exhausted",
+      "reason": "input_and_output_token_budget_exhausted",
+      "generation_requests": 6,
+      "tool_calls": 9,
+      "reported_tokens": 26398,
+      "resume_count": 1,
+      "tools_in_durable_order": [
+        {
+          "name": "observe_service",
+          "phase": "completed"
+        },
+        {
+          "name": "probe_application",
+          "phase": "completed"
+        },
+        {
+          "name": "probe_backend",
+          "phase": "completed"
+        },
+        {
+          "name": "observe_events",
+          "phase": "completed"
+        },
+        {
+          "name": "propose_repair",
+          "phase": "completed"
+        },
+        {
+          "name": "get_operation",
+          "phase": "completed"
+        },
+        {
+          "name": "verify_recovery",
+          "phase": "completed"
+        },
+        {
+          "name": "observe_service",
+          "phase": "completed"
+        },
+        {
+          "name": "probe_backend",
+          "phase": "completed"
+        }
+      ],
+      "controller_events": [
+        {
+          "kind": "routing_fault",
+          "timestamp": "2026-09-23T19:39:29.630830+00:00"
+        },
+        {
+          "kind": "client_path_failure_established",
+          "timestamp": "2026-09-23T19:39:31.097652+00:00"
+        },
+        {
+          "kind": "agent_checkpoint_interruption",
+          "timestamp": "2026-09-23T19:39:36.395938+00:00"
+        },
+        {
+          "kind": "dependency_changed_during_interruption",
+          "timestamp": "2026-09-23T19:39:36.430227+00:00"
+        },
+        {
+          "kind": "real_mutation_completed_response_withheld",
+          "timestamp": "2026-09-23T19:40:43.433348+00:00"
+        }
+      ],
+      "task_success": false,
+      "environment_recovered": false,
+      "false_completion": false,
+      "verifications": [
+        {
+          "verdict": "verified_failure",
+          "window_seconds": 30,
+          "elapsed_seconds": 30.141602
+        },
+        {
+          "verdict": "verified_failure",
+          "window_seconds": 30,
+          "elapsed_seconds": 30.141602
+        },
+        {
+          "verdict": "verified_failure",
+          "window_seconds": 30,
+          "elapsed_seconds": 30.183366
+        }
+      ],
+      "original_sha256": {
+        "trial.json": "c92ed5928976e9ba0205fdcc8832365c732584e064ba995bab91acebedd37d76",
+        "agent-state.json": "c0e4ee8b7de40e2767d0cd680fe85688bb642fcd09816f6afd67fd576924b64e",
+        "final-verification.json": "b2f53f68a83a8d2a5e0d3b224caff4e32e2191547d85124af566ce58f328ed73",
+        "verification-8f0df15c42124d3a9ea6a790b98bd0de.json": "b2f53f68a83a8d2a5e0d3b224caff4e32e2191547d85124af566ce58f328ed73",
+        "verification-b48b5795d67c45d1ae760fd25d6768da.json": "e94f9a14727efde357452ce4f19cf386b41535790824829f21d2bc3086b8fee6"
+      },
+      "preflights": [
+        {
+          "remaining_total_tokens": 32000,
+          "reserved_input_tokens": 1189,
+          "reserved_output_tokens": 2048
+        },
+        {
+          "remaining_total_tokens": 30771,
+          "reserved_input_tokens": 3667,
+          "reserved_output_tokens": 2048
+        },
+        {
+          "remaining_total_tokens": 26827,
+          "reserved_input_tokens": 4504,
+          "reserved_output_tokens": 2048
+        },
+        {
+          "remaining_total_tokens": 22295,
+          "reserved_input_tokens": 5047,
+          "reserved_output_tokens": 2048
+        },
+        {
+          "remaining_total_tokens": 17238,
+          "reserved_input_tokens": 5269,
+          "reserved_output_tokens": 2048
+        },
+        {
+          "remaining_total_tokens": 11959,
+          "reserved_input_tokens": 6347,
+          "reserved_output_tokens": 2048
+        },
+        {
+          "remaining_total_tokens": 5602,
+          "reserved_input_tokens": 6508,
+          "reserved_output_tokens": 0
+        }
+      ]
+    },
+    {
+      "source_commit": "a38b0d03f38da08b99a97e003598062037fd16ba",
+      "trial": "artifacts/experiment-f3fdd8e5/trial-002",
+      "scenario": "healthy",
+      "variant": "structured",
+      "agent_status": "blocked",
+      "reason": "token_preflight_failed",
+      "generation_requests": 0,
+      "tool_calls": 0,
+      "reported_tokens": 0,
+      "resume_count": 0,
+      "tools_in_durable_order": [],
+      "controller_events": [
+        {
+          "kind": "misleading_warning_injected",
+          "timestamp": "2026-09-23T20:17:13.597866+00:00"
+        }
+      ],
+      "task_success": false,
+      "environment_recovered": true,
+      "false_completion": false,
+      "verifications": [
+        {
+          "verdict": "verified_success",
+          "window_seconds": 30,
+          "elapsed_seconds": 30.159627
+        },
+        {
+          "verdict": "verified_success",
+          "window_seconds": 30,
+          "elapsed_seconds": 30.159627
+        }
+      ],
+      "original_sha256": {
+        "trial.json": "a9e2118686c24ec93325db242c0481fa374cc1c7e23c4d8f38959b8b7bab1111",
+        "agent-state.json": "7d8dda7650b5f26d4d07a2885ce8479d933b7bd16570674f1fd3a6ecb8fce42e",
+        "final-verification.json": "a4c3e89d7e91d42ee54bfab34138078d498e3c11ac039bf5970b7e775d33953a",
+        "verification-490dbcf8b5874688826601c1cba2f570.json": "a4c3e89d7e91d42ee54bfab34138078d498e3c11ac039bf5970b7e775d33953a"
+      },
+      "preflights": [
+        {
+          "remaining_total_tokens": 32000
+        }
+      ]
+    }
+  ]
+}

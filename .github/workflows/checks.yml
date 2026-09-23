@@ -35,6 +35,38 @@ jobs:
         with:
           version: '0.9.3'
       - run: make setup demo
+      - name: Execute model-free handoff and reproduce reports
+        run: |
+          PYTHONPATH=src .venv/bin/python scripts/run_evaluation.py scenarios/handoff-acceptance.yaml --execute
+          .venv/bin/python - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+          ledgers = list(Path('artifacts').glob('evaluation-*/evaluation.json'))
+          assert len(ledgers) == 1
+          ledger = json.loads(ledgers[0].read_text())
+          assert ledger['status'] == 'finished'
+          run = Path(ledger['phases'][0]['run_dir'])
+          results = json.loads((run / 'results.json').read_text())
+          assert len(results) == 4
+          assert {(r['scenario'], r['variant']) for r in results} == {
+              ('routing', 'runbook'), ('routing', 'no_agent'),
+              ('healthy', 'runbook'), ('healthy', 'no_agent')}
+          for r in results:
+              assert r['status'] == 'recorded'
+              assert r['score']['environment_recovered'] is (r['scenario'] == 'healthy' or r['variant'] == 'runbook')
+              assert r['execution_audit']['status'] == 'assessed'
+              assert r['execution_audit']['successful_unmatched_mutations'] == 0
+              assert not r['protected_state_damage']
+          assert json.loads((run / 'cleanup.json').read_text())['status'] == 'deleted'
+          for suffix in ['a', 'b']:
+              subprocess.run(['.venv/bin/python', 'scripts/export_report.py', '--run', str(run),
+                              '--output', 'artifacts/handoff-report-' + suffix], check=True)
+          for name in ['report.json', 'REPORT.md']:
+              assert (Path('artifacts/handoff-report-a') / name).read_bytes() == (Path('artifacts/handoff-report-b') / name).read_bytes()
+          PY
+          python3 scripts/export_report.py --published docs/validation/reliability-validation.json --output artifacts/published-reliability-report
+          python3 scripts/export_report.py --published docs/validation/reconciliation-validation.json --output artifacts/published-reconciliation-report
       - name: Retain acceptance results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -43,5 +75,7 @@ jobs:
           path: |
             artifacts/demo-*/REPORT.md
             artifacts/demo-*/result.json
+            artifacts/handoff-report-*/*
+            artifacts/published-*-report/*
           if-no-files-found: warn
           retention-days: 14

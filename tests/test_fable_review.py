@@ -51,6 +51,17 @@ def test_snapshot_only_includes_scoped_public_source(tmp_path):
     assert "assert True" not in result["prompt"]
 
 
+def test_handoff_scope_includes_only_explicit_scripts_and_manifest(tmp_path):
+    names = {"scripts/run_evaluation.py", "scripts/export_report.py", "scenarios/handoff-acceptance.yaml"}
+    for name in names:
+        put(tmp_path, name, "PUBLIC_SOURCE")
+    put(tmp_path, ".state/report_private.py", "OMITTED_PRIVATE_CONTENT")
+    snapshot = review.build_snapshot(tmp_path, "handoff")
+    assert {item["path"] for item in snapshot["files"]} == names
+    assert "OMITTED_PRIVATE_CONTENT" not in snapshot["prompt"]
+    assert review.cost_gate(1000, "handoff")["max_output_tokens"] == 12000
+
+
 def test_agents_scope_has_distinct_explicit_file_set(tmp_path):
     put(tmp_path, "src/autonomy_lab/agent.py", "AGENT_SOURCE")
     put(tmp_path, "src/autonomy_lab/broker.py", "BROKER_SOURCE")
@@ -87,7 +98,7 @@ def test_broker_profile_enforces_smaller_input_and_low_effort():
         review.cost_gate(15_000, "broker")
 
 
-@pytest.mark.parametrize("scope", list(review.COMPONENT_SCOPES))
+@pytest.mark.parametrize("scope", [scope for scope in review.COMPONENT_SCOPES if scope != "handoff"])
 def test_named_components_enforce_explicit_source_allowlists_and_budget(tmp_path, scope):
     modules = review.FOUNDATION | review.AGENTS
     for module in modules:

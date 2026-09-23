@@ -1,5 +1,7 @@
 # Autonomy Lab build and validation plan
 
+> Original implementation plan. See [current findings and readiness](docs/FINDINGS.md) and [handoff validation](docs/HANDOFF_VALIDATION.md) for completed gates and explicit deferrals.
+
 This is the implementation companion to [PLAN.md](PLAN.md). It defines the planned work and acceptance criteria. The implementation and runnable commands are described in [README.md](README.md); measured results belong in run reports. Complete each milestone's acceptance gate before using its output as evidence for the next.
 
 The first deliverable is one reproducible command that creates a real application, proves it healthy, injects a routing fault, proves it broken, repairs it, and proves sustained recovery. Add model-based decisions once that foundation and the execution boundary work.
