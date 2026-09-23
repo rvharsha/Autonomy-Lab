@@ -1,0 +1,106 @@
+{
+  "reviews": [
+    {
+      "status": "completed",
+      "snapshot": {
+        "files": [
+          {
+            "included": "complete_file",
+            "path": "infra/gcp/main.tf",
+            "sha256": "684555b12a51ce963263f6c27db062bb61bc3c915b054461d58a9eb03f414f93"
+          },
+          {
+            "included": "complete_file",
+            "path": "infra/gcp/bootstrap.sh",
+            "sha256": "0bf5c041d1b750a8fe4310284bc4091cb50258fdc91fc286d0063b09d74c48ed"
+          },
+          {
+            "included": "complete_file",
+            "path": "infra/gcp/README.md",
+            "sha256": "1ed3a1ac7a5a38b0688a645d1146dded300b3079287610f3c66818d7e05b468e"
+          },
+          {
+            "included": "complete_file",
+            "path": "scenarios/gcp-smoke.yaml",
+            "sha256": "c8a86c54c58a4345afafe0f5abf4ef1bbb136ce3872109b39cec3a7c8074ebc7"
+          }
+        ],
+        "prompt_sha256": "19a3f3e016f87a1bca3daa93f4ce41dd4ce4c8429f393e10836e13c6e926555f",
+        "scope": "gcp_deployment",
+        "snapshot_id": "6b7cbd13f2468125b2a80e4618e85da0a18cc45fccda1482ee3eafb6859d750d",
+        "source_bytes": 12597
+      },
+      "requested_model": "claude-fable-5-1",
+      "findings_text": "**Finding 1 \u2014 Retained boot disk collides with the next instance create (durability / data-loss risk)**\n\nFile: `infra/gcp/main.tf`, lines 66\u201380 (`google_compute_instance.lab`, `boot_disk { auto_delete = false; initialize_params {...} }`).\n\nTrigger: any lifecycle event that recreates the instance \u2014 `terraform destroy` followed by `apply`, or any change to `initialize_params` (e.g., bumping the pinned `image` on line 76, which forces replacement) \u2014 while the previously retained disk still exists.\n\nExecution trace:\n1. First `apply`: GCE creates the boot disk from `initialize_params` with no explicit disk name, so it is named after the instance: `autonomy-lab`. The disk is not a Terraform-managed resource; only the instance is in state.\n2. `destroy` (or replacement, since `create_before_destroy` is not set): the instance is deleted; because `auto_delete = false`, disk `autonomy-lab` remains, now orphaned from state.\n3. Next `apply`: the provider issues `instances.insert` with `initializeParams` again \u2192 GCE attempts to create disk `projects/autonomy-lab-509518/zones/us-central1-a/disks/autonomy-lab` \u2192 `409 alreadyExists`. Apply fails with the VM already gone.\n4. The obvious operator \"fix\" is `gcloud compute disks delete autonomy-lab`, which destroys exactly the evidence the retention was meant to preserve; the README (lines 58\u201359, 132\u2013135) does not warn of this collision. Replacement also has no `prevent_destroy` guard, so an image bump silently plans deletion of the running host.\n\nMinimal fix: manage the disk explicitly and make retention/evidence a state-tracked, guarded resource:\n\n```hcl\nresource \"google_compute_disk\" \"lab_boot\" {\n  name  = \"autonomy-lab-boot\"\n  zone  = \"${var.region}-a\"\n  image = \"ubuntu-os-cloud/ubuntu-2404-noble-amd64-v20260918\"\n  size  = 80\n  type  = \"pd-balanced\"\n  lifecycle { prevent_destroy = true }\n}\n\nresource \"google_compute_instance\" \"lab\" {\n  # ...\n  boot_disk {\n    source      = google_compute_disk.lab_boot.id\n    auto_delete = false\n  }\n  lifecycle { prevent_destroy = true }\n  # ...\n}\n```\n\nThen document in README \u00a7Operate: image changes are done by creating a new disk resource (or snapshot-and-recreate), and `terraform destroy` will refuse until `prevent_destroy` is deliberately removed. This keeps the retained disk visible in state instead of orphaned under a name the next apply must reuse.\n\n**Finding 2 \u2014 none substantiated.**\n\nItems checked and found consistent with actual provider/GCE semantics from source alone:\n- Omitting `service_account` in `google_compute_instance` attaches no service account (the API `serviceAccounts` field is simply absent), so the comment on line 88 and the README's \"no workload credential\" claim hold \u2014 pending the declared live check in gate 1.\n- `scheduling.max_run_duration` with `instance_termination_action = \"STOP\"` and `automatic_restart = false` is a valid combination for a STANDARD-provisioned VM; the README correctly states STOP retains disk charges and that each start resets the 12-hour interval.\n- `bootstrap.sh`: `set -euo pipefail`, lock acquired before the ready-marker check, checksum verification in a subshell (failure propagates under `set -e`), `--proto '=https'`, pinned uv artifact, and no credentials or autorun. Re-running on every boot is idempotent via the `bootstrap-ready` marker.\n- Scenario arithmetic (2 scenarios \u00d7 2 variants \u00d7 1 repetition = 4 trials \u00d7 32,000 = 128,000 tokens) matches README gate 4.\n\nThese are source-level observations only; nothing here substitutes for the live GCP API checks the README itself requires.\n\nSnapshot ID: 6b7cbd13f2468125b2a80e4618e85da0a18cc45fccda1482ee3eafb6859d750d",
+      "record_sha256": "1b58f61cae63e38fc7b3030b998b61060dc436b92ce372137d7ed34792350e8d",
+      "usage_cost_estimate_usd": 0.28695,
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 6340,
+        "output_tokens": 4471,
+        "output_tokens_details": {
+          "thinking_tokens": 3059
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "status": "completed",
+      "snapshot": {
+        "files": [
+          {
+            "included": "complete_file",
+            "path": "infra/gcp/main.tf",
+            "sha256": "b669004036e2298eb365cb1f5fdcc7aa180737713211d50722407c3de5a26017"
+          },
+          {
+            "included": "complete_file",
+            "path": "infra/gcp/bootstrap.sh",
+            "sha256": "0bf5c041d1b750a8fe4310284bc4091cb50258fdc91fc286d0063b09d74c48ed"
+          },
+          {
+            "included": "complete_file",
+            "path": "infra/gcp/README.md",
+            "sha256": "8a56ec9011d29adfb735c02f24a702a54992f8de3578abd1021daf49f66394ce"
+          },
+          {
+            "included": "complete_file",
+            "path": "scenarios/gcp-smoke.yaml",
+            "sha256": "c8a86c54c58a4345afafe0f5abf4ef1bbb136ce3872109b39cec3a7c8074ebc7"
+          }
+        ],
+        "prompt_sha256": "1f951c6d2d662b43a9365dcec13b642ec950eae467eadfbc84d8e075d5f8411a",
+        "scope": "gcp_deployment",
+        "snapshot_id": "d62d8df0caa4de0c3f0307c27f1df0c3a0db77f233d87843aa77c8c6b16a4412",
+        "source_bytes": 13118
+      },
+      "requested_model": "claude-fable-5-1",
+      "findings_text": "**Review result: no substantiated blocking defects.**\n\nI checked the items you asked about against actual Terraform/GCE semantics; findings below distinguish what source review can establish from what only live execution can.\n\n**Service-account default (main.tf:98):** Correct as written. The `google_compute_instance` resource passes exactly the `serviceAccounts` list it is given; when the block is omitted the API request carries none and the instance is created with no service account (the \"default compute SA\" behaviour is a `gcloud`/Console client convenience, not an API default). The README's gate 1 correctly requires confirming this on the real instance rather than inferring it.\n\n**Disk lifecycle (main.tf:66-90):** Consistent. Separate `google_compute_disk` with `prevent_destroy`, referenced via `boot_disk.source` with `auto_delete = false`. Any plan that would replace the VM (e.g. a `metadata_startup_script` change, which is ForceNew) or the disk (image change) is refused by Terraform before any API call, matching README lines 134-139. Zone is inherited from the provider for both, so they cannot diverge.\n\n**Bootstrap safety (bootstrap.sh):** `set -euo pipefail`, non-blocking flock, idempotency marker written only after all steps succeed, pinned uv URL with SHA-256 check before extraction, no credentials, no autorun. Rerun on every boot is harmless because of the marker at line 7. No injection surface from instance metadata.\n\n**Cost control (main.tf:111-117):** `max_run_duration` + `instance_termination_action = \"STOP\"` + `automatic_restart = false` is the supported combination for standard (non-Spot) VMs on the pinned provider line, and README lines 25-31 correctly state that STOP does not stop disk/IP charges and that this is not a spending cap.\n\n**Validation procedure (README.md:50-58):** With `-chdir=infra/gcp`, relative paths on the command line are resolved after the chdir, so `../../.state/gcp/deploy.tfplan` and the backend path `../../.state/gcp/terraform.tfstate` (main.tf:10) both land in the repo-root `.state/gcp`. `TF_DATA_DIR` is absolute. The sequence is coherent.\n\n**One minor, non-blocking observation (not a security/data-loss defect):**\n\n- `bootstrap.sh:4,35-37` \u2013 `umask 027` makes `host-packages.txt`, `uv-version.txt`, and `bootstrap-ready` mode `0640 root:root` in a `0755` directory. `autolab` (and any non-root gate script checking for `bootstrap-ready`) can `stat` the marker but cannot read the recorded versions, which the README (line 15, 73) presents as inspectable evidence. Minimal fix if desired: `chmod 0644 /var/lib/autonomy-lab/*.txt /var/lib/autonomy-lab/bootstrap-ready` after line 37, or write them via `install -m 0644`.\n\nNothing here is claimed to be verified against live GCP; all statements are from source and provider/API semantics, and the README's gate 1 remains the authoritative check.\n\nSnapshot ID d62d8df0caa4de0c3f0307c27f1df0c3a0db77f233d87843aa77c8c6b16a4412",
+      "record_sha256": "b6fa6612e2f43e793981862ca688cc7180d0f1f985721f4c0abf9f8a96db059c",
+      "usage_cost_estimate_usd": 0.3008,
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 6590,
+        "output_tokens": 4698,
+        "output_tokens_details": {
+          "thinking_tokens": 3587
+        },
+        "service_tier": "standard"
+      }
+    }
+  ],
+  "disposition": "Accepted retained implicit disk recreate collision: disk is now an explicit tracked resource, both disk and VM prevent destruction, and migration/deletion procedures are documented. Second complete-source review found no blocking defect. Root-owned mode-0640 host-version files are intentionally inspected through the authenticated OS Login administrator using sudo; the nonroot controller only needs to stat the ready marker. No source change is required for this non-blocking observation.",
+  "validation": "Terraform provider schema validation, formatting, shell syntax, saved-plan boundaries, and smoke-manifest validation passed. No cloud execution claimed by this source review."
+}
