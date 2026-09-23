@@ -46,7 +46,8 @@ def test_exact_request_and_lossless_response():
             "systemInstruction": {"parts": [{"text": "Use the permitted tools."}]},
             "tools": [{"functionDeclarations": DECLARATIONS}],
             "toolConfig": {"functionCallingConfig": {"mode": "AUTO"}},
-            "generationConfig": {"temperature": 1, "maxOutputTokens": 1024, "candidateCount": 1},
+            "generationConfig": {"temperature": 1, "maxOutputTokens": 1024, "candidateCount": 1,
+                                 "thinkingConfig": {"thinkingLevel": "low"}},
         }
         return httpx.Response(200, json=expected)
 
@@ -223,7 +224,8 @@ def test_count_tokens_sends_full_generation_input_and_preserves_signatures():
                 "systemInstruction": {"parts": [{"text": "System instruction is counted."}]},
                 "tools": [{"functionDeclarations": DECLARATIONS}],
                 "toolConfig": {"functionCallingConfig": {"mode": "AUTO"}},
-                "generationConfig": {"temperature": 1, "candidateCount": 1},
+                "generationConfig": {"temperature": 1, "candidateCount": 1,
+                                     "thinkingConfig": {"thinkingLevel": "low"}},
             }
         }
         return httpx.Response(200, json={"totalTokens": 1234})
@@ -288,3 +290,39 @@ def test_count_tokens_timeout_is_sanitized_and_not_retried():
             GeminiClient("unit-private-key", client=transport).count_tokens(CONTENTS, "System", [])
     assert len(requests) == 1
     assert "unit-private-key" not in str(raised.value)
+
+
+def test_other_model_does_not_receive_flash_thinking_option():
+    requests = []
+
+    def respond(request):
+        body = json.loads(request.content)
+        generation = body.get('generateContentRequest', body)
+        assert 'thinkingConfig' not in generation['generationConfig']
+        requests.append(body)
+        return httpx.Response(200, json={'totalTokens': 19} if len(requests) == 1 else provider_response())
+
+    with httpx.Client(transport=httpx.MockTransport(respond)) as transport:
+        client = GeminiClient('unit-test-key', model='gemini-2.5-flash', client=transport)
+        assert client.count_tokens(CONTENTS, 'System', DECLARATIONS) == 19
+        client.generate(CONTENTS, 'System', DECLARATIONS)
+    assert len(requests) == 2
+
+
+@pytest.mark.parametrize('method', ['count_tokens', 'generate'])
+@pytest.mark.parametrize('status', [200, 503])
+def test_oversize_response_retains_status_without_inventing_usage(method, status):
+    from autonomy_lab.bounded_http import ResponseTooLarge
+    calls = []
+
+    class OversizeClient(GeminiClient):
+        def _post(self, client, provider_method, payload):
+            calls.append(provider_method)
+            raise ResponseTooLarge(status)
+
+    with pytest.raises(GeminiError) as raised:
+        getattr(OversizeClient('unit-test-key'), method)(CONTENTS, 'System', [])
+    assert raised.value.status_code == status
+    assert raised.value.response is None
+    assert 'unknown' in str(raised.value)
+    assert len(calls) == 1

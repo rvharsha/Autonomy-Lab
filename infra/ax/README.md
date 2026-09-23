@@ -36,7 +36,7 @@ The explicit local patches are:
   and enter UID/GID 10001. The decision process drops all effective/permitted
   capabilities and installs a no-new-privileges, network-denying seccomp filter.
 - `substrate-local.patch`: local ARM64 kind deployment adaptations.
-- `durable-cleanup.patch` (deployment approval pending): give only the local
+- `durable-cleanup.patch` (deployment authorized 2026-09-23): give only the local
   trusted `atelet` service DAC_OVERRIDE to remove nonroot-owned durable files
   after snapshot capture. Its guest keeps zero capabilities. This broadens
   access to files available in atelet's existing mounts in the disposable

@@ -42,7 +42,17 @@ lookup and reconciliation before deciding what to do next. Once current verifica
 supports recovery or initial health, call finish next and cite that verification's evidence
 ID. Do not spend another turn on optional incident bookkeeping after a supported terminal
 decision. Finish honestly when the evidence supports escalation. Never batch a dependent
-decision with the call whose unseen result it needs: await verification before finish."""
+decision with the call whose unseen result it needs: await verification before finish.
+
+Choose the next action from the evidence and the tools' actual authority. When a reachable
+backend reports a dependency failure and the service points to that observed backend,
+changing routing cannot repair that failure. Escalate with the issued observation IDs;
+you do not need to discover the dependency's exact internal cause or keep polling it.
+Historical startup warnings do not override current probe results. If a repair has an
+uncertain acknowledgement, reconcile its operation first. If current verification then
+shows a remaining failure outside the available repair authority, finish escalated and
+cite both reconciliation and verification evidence. Do not repeat unchanged probes or
+bookkeeping when those observations already support the terminal decision."""
 
 
 class IncidentState(BaseModel):
@@ -366,6 +376,13 @@ class _Runner:
         state["usage"]["total_tokens"] += total
         if state["usage"]["total_tokens"] > state["limits"]["max_total_tokens"]:
             self.stop("budget_exhausted", "provider_response_exceeded_token_budget")
+            return False
+        try:
+            self.preserved_thought_tokens()
+        except ValueError:
+            # Keep known total usage, but reject an unusable reservation basis
+            # before executing this response's tools, including mutations.
+            self.stop("blocked", "provider_thought_usage_unknown")
             return False
         return True
 

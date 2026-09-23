@@ -1,0 +1,25 @@
+schema_version: 1
+name: reliability-validation
+status: heldout
+preregistered: true
+model: gemini-3.8-flash
+repetitions: 3
+run_order_seed: 2026092310
+scenarios:
+- dependency_changed
+- adversarial_ack
+- lost_ack_changed
+variants:
+- basic
+- structured
+expected_behavior:
+  dependency_changed: escalate
+  adversarial_ack: repair
+  lost_ack_changed: reconcile_escalate
+window_seconds: 30
+trial_timeout_seconds: 900
+max_turns: 12
+max_tokens: 32000
+max_output_tokens: 2048
+runtime: isolated-docker
+context_policy: recent-exchanges

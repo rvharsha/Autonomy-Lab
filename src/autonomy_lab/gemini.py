@@ -6,7 +6,7 @@ import re
 
 import httpx
 
-from autonomy_lab.bounded_http import request
+from autonomy_lab.bounded_http import ResponseTooLarge, request
 
 DEFAULT_MODEL = "gemini-3.8-flash"
 _MODEL_ID = re.compile(r"gemini-[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
@@ -114,8 +114,7 @@ class GeminiClient:
             raise GeminiError("Gemini countTokens returned no valid nonnegative input token count.")
         return count
 
-    @staticmethod
-    def _input_payload(contents: list, system_instruction: str, declarations: list) -> dict:
+    def _input_payload(self, contents: list, system_instruction: str, declarations: list) -> dict:
         if not isinstance(contents, list) or not contents or not all(isinstance(item, dict) for item in contents):
             raise ValueError("Gemini contents must be a nonempty list of content objects.")
         if not isinstance(system_instruction, str):
@@ -127,6 +126,11 @@ class GeminiClient:
             "systemInstruction": {"parts": [{"text": system_instruction}]},
             "generationConfig": {"temperature": 1, "candidateCount": 1},
         }
+        # The lab's selected Flash model supports low thinking. This reduces
+        # truncation pressure; maxOutputTokens and host usage enforcement remain
+        # unchanged. Do not send a model-specific option to other model families.
+        if self.model == DEFAULT_MODEL:
+            payload["generationConfig"]["thinkingConfig"] = {"thinkingLevel": "low"}
         if declarations:
             payload["tools"] = [{"functionDeclarations": declarations}]
             payload["toolConfig"] = {"functionCallingConfig": {"mode": "AUTO"}}
@@ -141,6 +145,11 @@ class GeminiClient:
                 response = self._post(self._client, method, payload)
         except httpx.TimeoutException:
             raise GeminiError(f"Gemini {method} request timed out; completion is unknown. No retry was attempted.") from None
+        except ResponseTooLarge as error:
+            raise GeminiError(
+                f"Gemini {method} response exceeded the byte limit; usage and completion are unknown. No retry was attempted.",
+                status_code=error.status_code,
+            ) from None
         except httpx.HTTPError:
             raise GeminiError(f"Gemini {method} transport failed; completion is unknown. No retry was attempted.") from None
         except (TypeError, ValueError):

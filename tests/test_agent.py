@@ -951,3 +951,31 @@ def test_unreconciled_mutation_at_tool_limit_is_indeterminate(tmp_path):
     assert result['reason'] == 'unreconciled_mutation_tool_budget_exhausted'
     assert client.requests == []
     assert [name for name, _ in tools.calls] == ['propose_repair']
+
+
+@pytest.mark.parametrize('variant', ['basic', 'structured'])
+@pytest.mark.parametrize('metadata', [
+    {'totalTokenCount': 70},
+    {'totalTokenCount': 70, 'thoughtsTokenCount': -1},
+    {'totalTokenCount': 70, 'promptTokenCount': 50, 'candidatesTokenCount': 10,
+     'toolUsePromptTokenCount': 10},
+])
+def test_invalid_new_usage_blocks_repair_before_dispatch(tmp_path, variant, metadata):
+    reply = response(call('propose_repair', {'operation_id': 'unit-operation', 'target_port': 8080}))
+    reply['usageMetadata'] = metadata
+    client, toolbox = StubClient(reply), StubToolbox()
+    path = tmp_path / 'agent.json'
+    result = run_agent(client, toolbox, path, variant=variant)
+    assert result['status'] == 'blocked'
+    assert result['reason'] == 'provider_thought_usage_unknown'
+    assert result['usage']['total_tokens'] == 70
+    assert result['usage']['unknown'] is False
+    assert result['model_responses'] == [reply]
+    assert result['pending_turn'] is None
+    assert toolbox.calls == []
+    # Restart cannot turn the rejected response into a queued mutation or a paid retry.
+    resumed_client = StubClient()
+    resumed = run_agent(resumed_client, toolbox, path, variant=variant)
+    assert resumed['status'] == 'blocked'
+    assert resumed_client.requests == resumed_client.count_requests == []
+    assert toolbox.calls == []
