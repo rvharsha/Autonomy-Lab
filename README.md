@@ -12,7 +12,7 @@ The [funded Fable follow-up](docs/FUNDED_REVIEW.md) records completed source rev
 
 A [focused completion experiment](docs/COMPLETION_EXPERIMENT.md) tested one shared prompt change under unchanged budgets: supported completion rose from 3/8 to 6/8 in matched development conditions. The later [44-trial context comparison](docs/CONTEXT_RESULTS.md) recorded a null development result (6/8 → 6/8), 8/10 regressions, and 6/18 held-out completions. A [separate batching follow-up](docs/BATCHED_TURN_RESULTS.md) completed both structured lost-ack retests under the same token target, with 7/8 development and 8/10 regression completions. Escalation and provider failures remain, and the earlier held-out results do not validate the later candidate.
 
-The [38-trial reliability candidate](docs/RELIABILITY_RESULTS.md) completed 36/38 cases, including all development and regression cases and 16/18 reserved validation cases. Two basic combined-fault budget failures remain recorded; a [separate reconciliation follow-up](docs/RECONCILIATION_EXPERIMENT.md) tests a minimal read-batching change.
+The [38-trial reliability candidate](docs/RELIABILITY_RESULTS.md) completed 36/38 cases, including all development and regression cases and 16/18 reserved validation cases. Two basic combined-fault budget failures remain recorded. The [reconciliation follow-up](docs/RECONCILIATION_RESULTS.md) completed 23/24 cases: 6/6 targets and 17/18 regressions. It failed its declared promotion gate, so the released executable source retains `5ab2ebf`; all follow-up outcomes remain recorded separately.
 
 ## Run the acceptance demo
 

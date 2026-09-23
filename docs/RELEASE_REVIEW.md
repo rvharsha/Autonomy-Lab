@@ -46,3 +46,29 @@ thinking setting. This is a combined treatment, not an attribution experiment.
 These reviews supplement the previous 21 runtime reviews. Model source review,
 authored unit tests, real runtime gates and model evaluations are distinct kinds
 of evidence; none independently establishes production reliability.
+
+## Reconciliation prompt follow-up
+
+One further direct Fable review covered the prompt-only follow-up on `5369e13`,
+with the surrounding usage guards supplied in full. The final wording on
+`a38b0d0` explicitly requires reconciliation against current read-only evidence,
+states that a known journal record is not completion, and forbids redispatch
+merely because verification reports failure. All 132 agent protocol tests passed
+after that clarification; the exact candidate also passed [693 tests, lint and
+17 real Kubernetes CI checks](validation/reconciliation-ci.json).
+
+The review's acknowledgement-only prerequisite for verification was rejected:
+uncertain operations require independent observation to reconcile their outcome.
+Verification cannot mutate or decide completion, and the proposed `failed` and
+`in_progress` statuses are not broker states. No repair or completion decision is
+batched with unseen results. The [selected review](validation/reconciliation-review.json)
+records the exact snapshot, finding, clarification and disposition; it does not
+claim that the later wording received a second source review.
+
+This brings the runtime/release sequence to **25 completed Fable reviews**.
+Their combined API cost estimate is **$9.17381**, not an invoice. Preflight stops
+and the earlier incomplete response are retained separately and are not counted
+as completed reviews. Live evaluation and runtime evidence remain separate from
+these source reviews.
+
+The completed [follow-up evaluation](RECONCILIATION_RESULTS.md) failed its declared promotion gate. The prompt-only follow-up is not shipped: the agent source was restored exactly to the previously reviewed and validated `5ab2ebf` candidate. [Source selection evidence](validation/release-selection.json) verifies every executable release file.
