@@ -227,6 +227,11 @@ class ObservationTools:
             stream.write(serialized + "\n")
             stream.flush()
             os.fsync(stream.fileno())
+        directory = os.open(self.path.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory)
+        finally:
+            os.close(directory)
         self.issued_ids.add(record["observation_id"])
         # The returned object must not alias retained terminal state.
         return json.loads(serialized)

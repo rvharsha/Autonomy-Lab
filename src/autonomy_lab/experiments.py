@@ -10,7 +10,7 @@ import sqlite3
 import sys
 import time
 import uuid
-from contextlib import ExitStack
+from contextlib import ExitStack, closing
 from pathlib import Path
 
 import psycopg
@@ -303,8 +303,8 @@ def run_trial(
                     if scenario == "concurrent_change":
                         kube.set_target_port(8080)
                         controller_event("external_actor_repaired_during_interruption")
-                    # Reconstruct all agent and tool state from durable files. This is
-                    # local checkpoint resumption, explicitly not an AX runtime claim.
+                    # Reload agent/observation state; the independent broker stays alive
+                    # and reads its journal per call. This is not an AX runtime restart.
                     tools = toolbox()
                     state = run_agent(client, tools, run_dir / "agent-state.json", **kwargs)
                 result["agent"] = {
@@ -323,7 +323,7 @@ def run_trial(
             final_verification = verify_current()
         stage = "evidence_export"
         save(run_dir / "final-verification.json", final_verification)
-        with sqlite3.connect(run_dir / "operations.sqlite") as db:
+        with closing(sqlite3.connect(run_dir / "operations.sqlite")) as db:
             operation_ids = [
                 row[0]
                 for row in db.execute("SELECT operation_id FROM operations ORDER BY created_at")

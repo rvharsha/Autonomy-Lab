@@ -397,7 +397,11 @@ def score_trial(
         and latest_check["payload"].get("verdict") == "verified_success"
         and not any(
             _before(latest_check, item, positions) and _before(item, boundary, positions)
-            and (item["payload"].get("status") not in STATUSES or _dispatch_possible(item["payload"]))
+            and (
+                item["payload"].get("status") not in STATUSES
+                or _dispatch_possible(item["payload"])
+                or _dispatch_possible(op_by_id.get(item["payload"].get("operation_id"), item["payload"]))
+            )
             for item in proposals
         )
     )

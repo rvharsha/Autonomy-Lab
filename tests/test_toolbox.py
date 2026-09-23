@@ -586,3 +586,32 @@ def test_evidence_directory_cannot_be_reused_for_different_run(environment):
             environment.path,
             "other-run",
         )
+
+
+def test_first_journal_append_syncs_file_and_parent_directory(environment, monkeypatch):
+    import stat
+
+    synced = []
+    fsync = os.fsync
+
+    def record_sync(fd):
+        synced.append(os.fstat(fd).st_mode)
+        return fsync(fd)
+
+    monkeypatch.setattr(os, "fsync", record_sync)
+    tools = environment.make()
+    tools.call("finish", {"outcome": "escalated", "reason": "unit-test", "evidence_ids": []})
+    assert stat.S_ISREG(synced[-2])
+    assert stat.S_ISDIR(synced[-1])
+    assert environment.make().terminal == tools.terminal
+
+
+def test_oversized_finish_is_explicitly_rejected_and_can_be_corrected(environment):
+    tools = environment.make()
+    result = tools.call("finish", {"outcome": "escalated", "reason": "😀" * 2000, "evidence_ids": []})
+    assert result["payload"]["error"] == "result_too_large"
+    assert tools.terminal is None
+    reopened = environment.make()
+    assert reopened.terminal is None
+    accepted = reopened.call("finish", {"outcome": "escalated", "reason": "concise", "evidence_ids": []})
+    assert reopened.terminal == accepted["payload"]

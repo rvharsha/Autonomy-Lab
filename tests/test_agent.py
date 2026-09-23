@@ -6,6 +6,7 @@ import json
 import pytest
 
 from autonomy_lab import agent
+from autonomy_lab.toolbox import ObservationTools
 
 
 def run_agent(*args, release_id="1" * 64, **kwargs):
@@ -822,3 +823,28 @@ def test_aborted_token_count_does_not_trigger_generation_on_resume(tmp_path):
     assert result["usage"]["model_calls"] == 0
     assert client.requests == []
     assert client.count_requests == []
+
+
+@pytest.mark.parametrize("variant", ["basic", "structured"])
+def test_finish_interruption_replays_real_toolbox_journal_without_provider_calls(tmp_path, variant):
+    def tools():
+        return ObservationTools(None, None, "http://unused.invalid", "http://unused.invalid",
+                                None, tmp_path, "unit-run")
+
+    claim = {"outcome": "escalated", "reason": "Authored restart test", "evidence_ids": []}
+    path = tmp_path / "agent.json"
+    original = tools()
+    interrupted = run_agent(StubClient(response(call("finish", claim))), original, path,
+                            variant=variant, interrupt_after_tool="finish")
+    assert interrupted["status"] == "interrupted"
+    assert interrupted["terminal"] is None
+    journal = (tmp_path / "evidence.jsonl").read_bytes()
+    reopened = tools()
+    assert reopened.terminal == {"kind": "claim", **claim}
+    client = StubClient()
+    resumed = run_agent(client, reopened, path, variant=variant)
+    assert resumed["status"] == "completed"
+    assert resumed["terminal"] == reopened.terminal
+    assert resumed["usage"] == interrupted["usage"]
+    assert client.count_requests == client.requests == []
+    assert (tmp_path / "evidence.jsonl").read_bytes() == journal

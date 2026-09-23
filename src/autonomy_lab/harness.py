@@ -9,6 +9,7 @@ import signal
 import sqlite3
 import subprocess
 import sys
+import tempfile
 import time
 import uuid
 from contextlib import ExitStack, closing
@@ -29,7 +30,21 @@ def timestamp() -> str:
 
 
 def save(path: Path, value):
-    path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
+    content = json.dumps(value, indent=2, sort_keys=True) + "\n"
+    descriptor, temporary = tempfile.mkstemp(prefix=f".{path.name}-", dir=path.parent)
+    try:
+        with os.fdopen(descriptor, "w") as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+        directory = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory)
+        finally:
+            os.close(directory)
+    finally:
+        Path(temporary).unlink(missing_ok=True)
 
 
 def verification_summary(result: dict) -> dict:
@@ -297,12 +312,20 @@ def sigkill_acceptance(kube, broker_kube, run_dir, run_id, record):
             proposal.operation_id,
             run_dir / f"crash-worker-{stage}.stderr.log",
         )
-        with closing(sqlite3.connect(journal)) as db:
-            saved_row = db.execute(
-                "SELECT status FROM operations WHERE operation_id=?", (proposal.operation_id,)
-            ).fetchone()
-            persisted_status = saved_row[0] if saved_row else None
-            integrity = db.execute("PRAGMA integrity_check").fetchone()[0]
+        try:
+            with closing(sqlite3.connect(journal.resolve().as_uri() + "?mode=ro", uri=True)) as db:
+                saved_row = db.execute(
+                    "SELECT status FROM operations WHERE operation_id=?", (proposal.operation_id,)
+                ).fetchone()
+                persisted_status = saved_row[0] if saved_row else None
+                integrity = db.execute("PRAGMA integrity_check").fetchone()[0]
+        except sqlite3.Error as error:
+            record(
+                f"SIGKILL {stage}: durable recovery without duplicate dispatch", False,
+                **killed, reason="journal_unreadable", error_type=type(error).__name__,
+                journal_path=journal.name,
+            )
+            continue
         if saved_row is None:
             record(
                 f"SIGKILL {stage}: durable recovery without duplicate dispatch",
@@ -521,7 +544,7 @@ def broker_acceptance(
         export_errors = []
         for path in run_dir.glob("broker-*.sqlite"):
             try:
-                with sqlite3.connect(path) as db:
+                with closing(sqlite3.connect(path)) as db:
                     db.row_factory = sqlite3.Row
                     save(
                         path.with_suffix(".events.json"),

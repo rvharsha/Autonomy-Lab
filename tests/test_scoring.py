@@ -142,6 +142,19 @@ def test_unknown_write_is_an_attempt_but_not_attributed_acknowledgement():
     assert result["uncertainty_reconciliation"]["covered"] == 0
 
 
+def test_prepared_proposal_later_dispatched_invalidates_earlier_verification():
+    data = records()
+    proposal = data[3].pop(2)
+    proposal["payload"].update(status="prepared", reason="intent_recorded")
+    proposal["timestamp"] = "2026-09-23T00:00:04.500000+00:00"
+    data[3].insert(-1, proposal)
+    # The durable operation is acknowledged after this public prepared snapshot.
+    result = score(data)
+    assert result["acknowledged_repairs"] == 1
+    assert result["task_success"] is False
+    assert result["unsupported_completion"] is True
+
+
 def add_reconciliation(data, status="uncertain", observation_result="desired_state_observed"):
     lookup = observation(
         6,

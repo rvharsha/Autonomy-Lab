@@ -249,3 +249,80 @@ def test_report_surfaces_partial_broker_failure_and_cleanup_failure(tmp_path):
     assert "Failure: Broker acceptance failed: interrupted check" in report
     assert "Cleanup failure: cluster removal failed" in report
     assert "Environment cleanup: **failed**" in report
+
+
+def test_journal_export_closes_connection_on_primary_failure(tmp_path, monkeypatch):
+    journal = tmp_path / "broker-export.sqlite"
+    connection = sqlite3.connect(journal)
+    connection.execute("CREATE TABLE operation_events(sequence INTEGER)")
+    connection.close()
+    opened = []
+    connect = sqlite3.connect
+
+    def capture(*args, **kwargs):
+        db = connect(*args, **kwargs)
+        opened.append(db)
+        return db
+
+    monkeypatch.setattr(harness.sqlite3, "connect", capture)
+    monkeypatch.setattr(harness, "service_identity", lambda *_args: object())
+
+    class FailedSetup:
+        def set_target_port(self, _port):
+            raise AssertionError("primary acceptance failure")
+
+    with pytest.raises(AssertionError, match="primary acceptance failure"):
+        harness.broker_acceptance(FailedSetup(), tmp_path, "unit-run")
+    assert len(opened) == 1
+    with pytest.raises(sqlite3.ProgrammingError, match="closed"):
+        opened[0].execute("SELECT 1")
+
+
+def test_save_publish_failure_preserves_previous_complete_record(tmp_path, monkeypatch):
+    path = tmp_path / "result.json"
+    save(path, {"status": "before"})
+    before = path.read_bytes()
+
+    def failed_publish(*_args):
+        raise OSError("injected replacement failure")
+
+    monkeypatch.setattr(harness.os, "replace", failed_publish)
+    with pytest.raises(OSError, match="injected replacement failure"):
+        save(path, {"status": "after"})
+    assert path.read_bytes() == before
+    assert list(tmp_path.iterdir()) == [path]
+
+
+@pytest.mark.parametrize("journal_contents", [None, b"corrupt sqlite bytes"])
+def test_unreadable_crash_journal_records_failure_without_creating_or_rewriting(tmp_path, monkeypatch, journal_contents):
+    journal = tmp_path / "broker-sigkill-after_intent.sqlite"
+    if journal_contents is not None:
+        journal.write_bytes(journal_contents)
+    proposal = Proposal(
+        run_id="unit-run", operation_id="sigkill-after_intent", namespace="autonomy-lab",
+        service_name="inventory", service_uid="unit-service", resource_version="1",
+        expected_target_port=8081, target_port=8080, evidence_ids=["unit-observation"],
+    )
+
+    class UnitInfrastructure:
+        kubeconfig = tmp_path / "unused-kubeconfig"
+        cluster_name = "unused-unit-cluster"
+
+        def set_target_port(self, _port):
+            pass
+
+    # Authored protocol-failure boundary, not a real child-process result.
+    monkeypatch.setattr(harness, "proposal_for", lambda *_args, **_kwargs: proposal)
+    monkeypatch.setattr(harness, "kill_at_barrier", lambda *_args: {"exit_code": -9})
+    records = []
+
+    def record(name, passed, **evidence):
+        records.append({"name": name, "passed": passed, **evidence})
+        raise AssertionError(name)
+
+    kube = UnitInfrastructure()
+    with pytest.raises(AssertionError, match="SIGKILL after_intent"):
+        harness.sigkill_acceptance(kube, kube, tmp_path, "unit-run", record)
+    assert records[0]["passed"] is False
+    assert records[0]["reason"] == "journal_unreadable"
+    assert (journal.read_bytes() if journal.exists() else None) == journal_contents

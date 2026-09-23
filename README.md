@@ -8,6 +8,8 @@ The application is real: Quote API → Inventory Service → Inventory API → P
 
 The [adversarial self-review](docs/ADVERSARIAL_REVIEW.md) records the original findings and remaining architecture gates. The [correctness follow-up](docs/CORRECTNESS_FIXES.md) tracks their implementation, validation, and review status.
 
+The [funded Fable follow-up](docs/FUNDED_REVIEW.md) records completed source reviews, checked findings and durability fixes. The Anthropic credit blocker is resolved.
+
 A [focused completion experiment](docs/COMPLETION_EXPERIMENT.md) tests one shared prompt change under unchanged budgets: supported completion rose from 3/8 to 6/8 in matched development conditions. Structured lost-acknowledgement trials still exhausted their budgets. This is development evidence; held-out validation remains outstanding.
 
 ## Run the acceptance demo

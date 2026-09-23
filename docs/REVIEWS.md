@@ -14,6 +14,11 @@ The first review command lists the exact source manifest without a model call. T
 
 Available component scopes include `broker`, `agent_runtime`, `verification`, `tools_runbook`, `scoring`, `infrastructure`, `harness`, and `experiments`. Use `--help` for the current list. Broad scopes previously exhausted the response budget without findings; use the smaller component scopes.
 
+If `bounded_transport` or `experiments` exceeds its preflight limit, use
+`transport_clients`, `observation_tools`, and `experiment_runtime`. The
+`http_deadline` scope supports focused follow-up on the shared deadline helper.
+These scopes retain the same token and cost ceilings.
+
 Component reviews use a token-count preflight, fewer than 15,000 input tokens, a hard 12,000 output-token limit, and an estimated request-cost ceiling below $0.80 at the recorded prices. They make one generation request with no tools, retries, continuation, or model fallback. The cost is an estimate, not a billing guarantee. A truncated response, wrong returned model, or missing final text is an incomplete review, never an approval.
 
 Review records stay in `.state/reviews/`. Publish only an explicitly selected summary containing final findings, dispositions, file hashes, and usage. Raw responses and private thinking content do not belong in a PR. Link that summary in the PR description and identify any components changed after the recorded review.

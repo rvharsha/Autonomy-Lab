@@ -23,17 +23,27 @@ def request_deadline(seconds):
     if signal.getitimer(signal.ITIMER_REAL) != (0.0, 0.0):
         raise RuntimeError("Bounded HTTP cannot replace an existing alarm")
     previous = signal.getsignal(signal.SIGALRM)
+    if previous is None:
+        raise RuntimeError("Bounded HTTP cannot replace an unknown signal handler")
+
+    active = True
 
     def expired(signum, frame):
-        raise httpx.TimeoutException("Total HTTP request deadline exceeded")
+        if active:
+            raise httpx.TimeoutException("Total HTTP request deadline exceeded")
 
     signal.signal(signal.SIGALRM, expired)
     try:
         signal.setitimer(signal.ITIMER_REAL, seconds)
         yield
     finally:
-        signal.setitimer(signal.ITIMER_REAL, 0)
-        signal.signal(signal.SIGALRM, previous)
+        try:
+            active = False
+        finally:
+            try:
+                signal.setitimer(signal.ITIMER_REAL, 0)
+            finally:
+                signal.signal(signal.SIGALRM, previous)
 
 
 def request(client, method, url, *, timeout, max_bytes, **kwargs):
@@ -44,7 +54,8 @@ def request(client, method, url, *, timeout, max_bytes, **kwargs):
     """
     if type(max_bytes) is not int or max_bytes < 1:
         raise ValueError("HTTP byte limit must be a positive integer")
-    headers = {**kwargs.pop("headers", {}), "Accept-Encoding": "identity"}
+    headers = httpx.Headers(kwargs.pop("headers", {}))
+    headers["Accept-Encoding"] = "identity"
     with request_deadline(timeout):
         with client.stream(method, url, timeout=timeout, headers=headers,
                            follow_redirects=False, **kwargs) as response:

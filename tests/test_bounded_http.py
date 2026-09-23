@@ -1,6 +1,7 @@
 """Real finite loopback responses exercise HTTP duration and allocation limits."""
 
 import gzip
+import json
 import signal
 import threading
 import time
@@ -28,6 +29,8 @@ def server():
                         time.sleep(0.02)
                     return
                 body = b'"' + b"a" * (100_000 if self.path == "/large" else 80) + b'"'
+                if self.path == "/encoding":
+                    body = json.dumps(self.headers.get_all("Accept-Encoding")).encode()
                 self.send_response(200)
                 if self.path == "/gzip":
                     body = gzip.compress(body)
@@ -74,6 +77,25 @@ def test_compressed_response_is_rejected_before_decompression(server):
         request(client, "GET", server + "/gzip", timeout=1, max_bytes=1024)
 
 
+@pytest.mark.parametrize("header", ["accept-encoding", "aCcEpT-EnCoDiNg"])
+def test_identity_encoding_replaces_case_variant_headers_on_wire(server, header):
+    with httpx.Client(trust_env=False) as client:
+        result = request(client, "GET", server + "/encoding", timeout=1, max_bytes=1024,
+                         headers={header: "gzip"})
+    assert result.json() == ["identity"]
+
+
+def test_unknown_native_alarm_handler_is_refused_without_replacing_it(monkeypatch):
+    # Model the documented getsignal(None) boundary; no native handler is installed.
+    changes = []
+    monkeypatch.setattr(signal, "getsignal", lambda _signal: None)
+    monkeypatch.setattr(signal, "signal", lambda *args: changes.append(args))
+    monkeypatch.setattr(signal, "setitimer", lambda *args: changes.append(args))
+    with pytest.raises(RuntimeError, match="unknown.*handler"), request_deadline(1):
+        changes.append("request-dispatched")
+    assert changes == []
+
+
 @pytest.mark.parametrize("path, error", [("/large", "ResponseTooLarge"), ("/drip", "TimeoutException")])
 def test_verifier_retains_bounded_failure_as_observation(server, path, error):
     with httpx.Client(timeout=0.2, trust_env=False) as client:
@@ -108,3 +130,57 @@ def test_non_main_thread_refuses_before_dispatch():
     thread.start()
     thread.join(timeout=2)
     assert errors == ["refused"]
+
+
+def test_alarm_delivered_during_cancellation_cannot_escape_or_leak_handler(monkeypatch):
+    previous = signal.getsignal(signal.SIGALRM)
+    setitimer = signal.setitimer
+    delivered = []
+
+    def cancel_with_pending_alarm(which, seconds):
+        result = setitimer(which, seconds)
+        if seconds == 0:
+            delivered.append(True)
+            signal.raise_signal(signal.SIGALRM)
+        return result
+
+    monkeypatch.setattr(signal, "setitimer", cancel_with_pending_alarm)
+    try:
+        with request_deadline(1):
+            pass
+        assert delivered == [True]
+        assert signal.getsignal(signal.SIGALRM) == previous
+        assert signal.getitimer(signal.ITIMER_REAL) == (0.0, 0.0)
+    finally:
+        setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
+
+
+def test_alarm_at_cleanup_entry_still_restores_timer_and_handler():
+    import inspect
+    import sys
+
+    function = request_deadline.__wrapped__
+    source, first_line = inspect.getsourcelines(function)
+    cleanup_line = first_line + next(i for i, line in enumerate(source) if line.strip() == "active = False")
+    previous_handler = signal.getsignal(signal.SIGALRM)
+    previous_trace = sys.gettrace()
+    delivered = []
+
+    def trace(frame, event, _arg):
+        if frame.f_code is function.__code__ and event == "line" and frame.f_lineno == cleanup_line and not delivered:
+            delivered.append(True)
+            signal.raise_signal(signal.SIGALRM)
+        return trace
+
+    try:
+        sys.settrace(trace)
+        with pytest.raises(httpx.TimeoutException), request_deadline(1):
+            pass
+        assert delivered == [True]
+        assert signal.getitimer(signal.ITIMER_REAL) == (0.0, 0.0)
+        assert signal.getsignal(signal.SIGALRM) == previous_handler
+    finally:
+        sys.settrace(previous_trace)
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous_handler)

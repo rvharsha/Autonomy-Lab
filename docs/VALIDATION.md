@@ -58,7 +58,11 @@ The GitHub workflow's public upstream pins were verified. The setup-uv pin was c
 
 ## Completion experiment
 
-The [completion-discipline experiment](COMPLETION_EXPERIMENT.md) adds a declared eight-trial baseline, matching eight-trial prompt intervention and ten development regressions at source `ff9bc5f`. Supported completion rose from 3/8 to 6/8; both structured lost-ack trials still stopped on budget. All ten regressions passed. All 26 trials were retained, all three clusters were deleted, and 120 actual provider responses used 584,630 tokens within their reservations. Its [portable evidence](validation/completion-discipline.json) records the source/usage/score bindings. The 626-test suite and lint passed; final Fable review remains blocked by Anthropic credit.
+The [completion-discipline experiment](COMPLETION_EXPERIMENT.md) adds a declared eight-trial baseline, matching eight-trial prompt intervention and ten development regressions at source `ff9bc5f`. Supported completion rose from 3/8 to 6/8; both structured lost-ack trials still stopped on budget. All ten regressions passed. All 26 trials were retained, all three clusters were deleted, and 120 actual provider responses used 584,630 tokens within their reservations. Its [portable evidence](validation/completion-discipline.json) records the source/usage/score bindings. The 626-test suite and lint passed for that source; Fable review was blocked by credit at that time and subsequently completed in the funded follow-up.
+
+## Funded review follow-up
+
+The [funded Fable round](FUNDED_REVIEW.md) completed 13 source reviews and checked every reported finding. Minimal fixes tighten durable-operation scoring, HTTP header/deadline handling, journal/report persistence and SQLite cleanup. **644 tests and Ruff passed** locally. Offline rescoring of all 54 retained pilot/comparison/regression trials changed no score metrics and left original artifacts untouched. Final-source CI is recorded on the PR.
 
 ## Evidence still required
 

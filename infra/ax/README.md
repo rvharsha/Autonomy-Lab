@@ -6,6 +6,10 @@ the original, patched and patch-file SHA-256 values. Apply it only to that
 verified source and rebuild the controller; an existing controller image
 does not acquire the policy by changing this file.
 
+Use a fresh isolated deployment for this experiment. AX returns an existing
+ActorTemplate without updating its policy; rebuilding the controller does not
+migrate existing templates from GOLDEN to COLD_BOOT.
+
 The lab's recovery contract is a new command process reading restored durable
 files. Pinned Substrate documents `RESUME_SOURCE_COLD_BOOT` as starting fresh
 containers from the OCI image with durable directories populated from the
@@ -26,7 +30,8 @@ The patched attempt also failed its three-cycle gate: one cycle restored the
 durable records into a fresh command process, then the second resume failed
 with no free worker available. This patch alone is insufficient for reliable
 AX lifecycle recovery and is not enabled in the application runtime.
-Final Fable review of this patch remains pending with the other new changes.
+The patch received a [funded Fable source review](../../docs/FUNDED_REVIEW.md);
+that review does not change its failed runtime result.
 The local preparation/launch scripts are not yet a supported clean-clone
 installer; runtime lifecycle, isolation and agent/broker integration have
 separate validation gates.

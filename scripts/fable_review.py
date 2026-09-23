@@ -38,12 +38,16 @@ COMPONENT_SCOPES = {
     "agent": ({"agent"}, set()),
     "verification": ({"verifier", "quote", "inventory", "bounded_http"}, {"verifier", "application", "bounded_http"}),
     "bounded_transport": ({"gemini", "kubernetes", "toolbox", "bounded_http"}, {"gemini", "bounded_http"}),
+    "transport_clients": ({"gemini", "kubernetes", "bounded_http"}, {"gemini", "bounded_http"}),
+    "http_deadline": ({"bounded_http"}, {"bounded_http"}),
+    "observation_tools": ({"toolbox", "bounded_http"}, {"toolbox", "bounded_http"}),
     "tools_scoring": ({"toolbox", "runbook", "scoring"}, set()),
     "tools_runbook": ({"toolbox", "runbook"}, set()),
     "scoring": ({"scoring"}, {"scoring"}),
     "infrastructure": ({"environment", "kubernetes", "crash_worker"}, {"environment"}),
     "harness": ({"harness"}, set()),
     "experiments": ({"experiments", "supervisor", "trial_worker", "gemini"}, {"experiment_boundaries", "supervisor"}),
+    "experiment_runtime": ({"experiments", "supervisor", "trial_worker"}, {"experiment_boundaries", "supervisor"}),
 }
 SCOPES = ("foundation", "agents", "all", *COMPONENT_SCOPES)
 REMEDIATION_FINDINGS = {

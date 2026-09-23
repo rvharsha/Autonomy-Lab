@@ -160,7 +160,7 @@ Keep the prompt change as a development improvement, with the two remaining
 structured/lost-ack failures explicit. This closes the declared development
 comparison and regression run. It does **not** complete M6's fresh held-out
 evaluation or establish general reliability; all these scenario families
-were already development material. Final Fable review remains pending credit.
+were already development material. The later [funded review](FUNDED_REVIEW.md) completed the pending source reviews; offline rescoring with its scoring fix leaves all of these trial scores unchanged.
 
 ## Reproduction
 

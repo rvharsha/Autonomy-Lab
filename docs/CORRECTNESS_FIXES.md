@@ -1,6 +1,6 @@
 # Correctness follow-up
 
-Main implementation commit: `a18c434b7eeb8debd9a412f56a972b0c2bbba721`; worker-startup correction: `bfbd7a0`, on [draft PR #1](https://github.com/rvharsha/Autonomy-Lab-/pull/1). This follows the [adversarial self-review](ADVERSARIAL_REVIEW.md). The four findings have code fixes and focused regression coverage; independent Fable review remains pending.
+Main implementation commit: `a18c434b7eeb8debd9a412f56a972b0c2bbba721`; worker-startup correction: `bfbd7a0`, on [draft PR #1](https://github.com/rvharsha/Autonomy-Lab-/pull/1). This follows the [adversarial self-review](ADVERSARIAL_REVIEW.md). The four findings have code fixes and focused regression coverage; the later [funded Fable follow-up](FUNDED_REVIEW.md) now records completed reviews and dispositions.
 
 | Finding | Implemented behavior |
 |---|---|
@@ -28,7 +28,7 @@ The acceptance harness now declares a 30-second readiness allowance before its s
 
 ## Fable review status
 
-Five component requests (`agent`, `scoring`, `verification`, `bounded_transport`, `experiments`) stopped at token preflight with HTTP 400: the Anthropic API reported insufficient credits. **Zero review generation requests were sent.** No retry, fallback reviewer, or approval is inferred. The requested final-source Fable review remains a PR readiness blocker.
+The earlier five component requests (`agent`, `scoring`, `verification`, `bounded_transport`, `experiments`) stopped at token preflight with HTTP 400: the Anthropic API reported insufficient credits. **Zero review generation requests were sent.** Those attempts remain recorded without a generation or approval. After funding, the [follow-up review round](FUNDED_REVIEW.md) completed 13 bounded reviews, addressed substantiated defects and retained rejected findings with their evidence. The credit blocker is resolved.
 
 ## Remaining limits
 
