@@ -36,13 +36,14 @@ COMPONENT_SCOPES = {
     "broker": ({"broker"}, {"broker"}),
     "agent_runtime": ({"agent", "gemini", "credentials"}, set()),
     "agent": ({"agent"}, set()),
-    "verification": ({"verifier", "quote", "inventory"}, {"verifier", "application"}),
+    "verification": ({"verifier", "quote", "inventory", "bounded_http"}, {"verifier", "application", "bounded_http"}),
+    "bounded_transport": ({"gemini", "kubernetes", "toolbox", "bounded_http"}, {"gemini", "bounded_http"}),
     "tools_scoring": ({"toolbox", "runbook", "scoring"}, set()),
     "tools_runbook": ({"toolbox", "runbook"}, set()),
     "scoring": ({"scoring"}, {"scoring"}),
     "infrastructure": ({"environment", "kubernetes", "crash_worker"}, {"environment"}),
     "harness": ({"harness"}, set()),
-    "experiments": ({"experiments"}, set()),
+    "experiments": ({"experiments", "supervisor", "trial_worker", "gemini"}, {"experiment_boundaries", "supervisor"}),
 }
 SCOPES = ("foundation", "agents", "all", *COMPONENT_SCOPES)
 REMEDIATION_FINDINGS = {
@@ -83,6 +84,7 @@ OUTPUT_USD_PER_MILLION = 50
 KEY_NAMES = ("ANTHROPIC_API_KEY", "ANTHROPIC_KEY")
 PRIVATE_COMPONENTS = {"artifacts", "private", "secrets", "credentials", "__pycache__"}
 FOUNDATION = {
+    "bounded_http",
     "broker",
     "crash_worker",
     "environment",
@@ -92,7 +94,7 @@ FOUNDATION = {
     "quote",
     "verifier",
 }
-AGENTS = {"agent", "credentials", "experiments", "gemini", "runbook", "scoring", "toolbox"}
+AGENTS = {"agent", "credentials", "experiments", "gemini", "runbook", "scoring", "toolbox", "bounded_http", "supervisor", "trial_worker"}
 FOUNDATION_TESTS = {"application", "broker", "environment", "harness", "verifier"}
 AGENT_TESTS = {"agent", "credentials", "experiments", "gemini", "runbook", "scoring", "toolbox"}
 PUBLIC_CONFIG = {

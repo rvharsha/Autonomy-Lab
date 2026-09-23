@@ -19,6 +19,8 @@ import httpx
 import psycopg
 from psycopg.rows import dict_row
 
+from autonomy_lab.bounded_http import request
+
 DEFAULT_EXPECTATIONS = Path(__file__).resolve().parents[2] / "fixtures" / "expectations.json"
 SUCCESS = "verified_success"
 FAILURE = "verified_failure"
@@ -244,7 +246,7 @@ def _http_observation(client: httpx.Client, url: str, **kwargs: Any) -> dict[str
     started = time.monotonic()
     observation: dict[str, Any] = {"observed_at": timestamp()}
     try:
-        response = client.get(url, **kwargs)
+        response = request(client, "GET", url, timeout=client.timeout.read, max_bytes=65536, **kwargs)
         try:
             body = response.json()
         except ValueError:

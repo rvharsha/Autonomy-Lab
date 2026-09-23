@@ -20,6 +20,8 @@ from urllib.parse import quote
 import httpx
 import yaml
 
+from autonomy_lab.bounded_http import request
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -104,9 +106,10 @@ class Kubernetes:
                 tls.load_cert_chain(certificate, key)
             audit(event="dispatch")
             with httpx.Client(verify=tls, headers=headers, timeout=30, trust_env=False) as client:
-                response = client.patch(
+                response = request(client, "PATCH",
                     f"{cluster['server']}/api/v1/namespaces/{quote(namespace, safe='')}/services/{quote(name, safe='')}",
                     json=patch,
+                    timeout=30, max_bytes=1024 * 1024,
                 )
             audit(event="response", status_code=response.status_code)
         if response.status_code in {400, 401, 403, 404, 409, 422}:

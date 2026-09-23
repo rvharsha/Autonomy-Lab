@@ -26,6 +26,7 @@ expected_behavior:
   concurrent_change: reconcile
   adversarial: repair
 window_seconds: 30
+trial_timeout_seconds: 900
 max_turns: 12
 max_tokens: 32000
 max_output_tokens: 2048

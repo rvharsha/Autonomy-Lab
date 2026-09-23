@@ -6,7 +6,10 @@ import json
 import pytest
 
 from autonomy_lab import agent
-from autonomy_lab.agent import run_agent
+
+
+def run_agent(*args, release_id="1" * 64, **kwargs):
+    return agent.run_agent(*args, release_id=release_id, **kwargs)
 
 
 def response(*calls, tokens=10, thought_tokens=2, finish_reason="STOP"):
@@ -64,6 +67,8 @@ class StubClient:
 
 
 class StubToolbox:
+    run_id = "unit-run"
+
     def __init__(self, on_call=None):
         self.calls = []
         self.operations = {}
@@ -384,6 +389,36 @@ def test_completed_agent_is_not_rewritten_or_rerun(tmp_path, variant, interrupt_
     assert path.read_bytes() == before
     assert path.stat().st_mtime_ns == modified_at
     assert second.count_requests == second.requests == toolbox.calls == []
+
+
+@pytest.mark.parametrize("completed", [False, True])
+@pytest.mark.parametrize("change", ["run", "release", "prompt", "tools", "legacy"])
+def test_checkpoint_rejects_changed_execution_contract(tmp_path, monkeypatch, change, completed):
+    path = tmp_path / "agent.json"
+    toolbox = StubToolbox()
+    run_agent(StubClient(response(finish() if completed else call("observe_service"))), toolbox, path,
+              interrupt_after_tool=None if completed else 1)
+    release_id = "1" * 64
+    if change == "run":
+        toolbox.run_id = "different-run"
+    elif change == "release":
+        release_id = "2" * 64
+    elif change == "prompt":
+        monkeypatch.setattr(agent, "SYSTEM_INSTRUCTION", "changed instructions")
+    elif change == "tools":
+        monkeypatch.setattr(toolbox, "declarations", lambda: [])
+    else:
+        old = json.loads(path.read_text())
+        old["schema_version"] = 1
+        old.pop("execution_contract")
+        path.write_text(json.dumps(old))
+    before, mtime = path.read_bytes(), path.stat().st_mtime_ns
+    toolbox.calls.clear()
+    client = StubClient(response(finish()))
+    result = run_agent(client, toolbox, path, release_id=release_id)
+    assert result["reason"] == ("invalid_existing_checkpoint" if change == "legacy" else "checkpoint_execution_contract_changed")
+    assert path.read_bytes() == before and path.stat().st_mtime_ns == mtime
+    assert client.count_requests == client.requests == toolbox.calls == []
 
 
 @pytest.mark.parametrize("variant, model", [("structured", "unit-model"), ("basic", "changed-model")])

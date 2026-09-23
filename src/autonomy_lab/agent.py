@@ -168,9 +168,24 @@ def _validate_schema(value, schema: dict) -> None:
         raise ValueError("invalid numeric range")
 
 
-def _new_state(variant: str, model, limits: dict) -> dict:
+def _execution_contract(toolbox, release_id: str) -> dict:
+    run_id = toolbox.run_id
+    if not isinstance(run_id, str) or not run_id.strip() or len(run_id) > 253:
+        raise ValueError("A bounded run identity is required")
+    if not isinstance(release_id, str) or len(release_id) != 64 or any(c not in "0123456789abcdef" for c in release_id):
+        raise ValueError("A SHA-256 release identity is required")
     return {
-        "schema_version": 1, "variant": variant, "model": model, "limits": limits,
+        "run_id": run_id, "release_id": release_id,
+        "system_instruction": SYSTEM_INSTRUCTION,
+        "external_declarations": _copy(toolbox.declarations()),
+        "incident_declaration": _copy(INCIDENT_DECLARATION),
+    }
+
+
+def _new_state(variant: str, model, limits: dict, contract: dict) -> dict:
+    return {
+        "schema_version": 2, "variant": variant, "model": model, "limits": limits,
+        "execution_contract": contract,
         "status": "running", "reason": None, "created_at": _now(), "resume_count": 0,
         "usage": {"model_calls": 0, "tool_calls": 0, "total_tokens": 0, "unknown": False},
         "contents": [{"role": "user", "parts": [{"text": "Investigate the current incident. Gather evidence, act only within authority, verify, and finish honestly."}]}],
@@ -185,7 +200,7 @@ class _Runner:
         self.client, self.toolbox, self.path, self.state = client, toolbox, path, state
         self.interrupt_after_tool = interrupt_after_tool
         self.interrupt_requested = False
-        self.declarations = _copy(toolbox.declarations())
+        self.declarations = _copy(state["execution_contract"]["external_declarations"])
         names = [item["name"] for item in self.declarations]
         if len(names) != len(set(names)) or not set(names).issubset(EXTERNAL_TOOLS):
             raise ValueError("invalid toolbox declarations")
@@ -514,7 +529,7 @@ class _Runner:
 
 
 def run_agent(
-    client, toolbox, state_path: Path, *, variant: str = "basic", max_turns: int = 12,
+    client, toolbox, state_path: Path, *, release_id: str, variant: str = "basic", max_turns: int = 12,
     max_total_tokens: int = 32000, max_output_tokens: int = 2048, interrupt_after_tool=None,
 ) -> dict:
     """Run or resume an agent; counters and original model history survive restarts.
@@ -542,19 +557,25 @@ def run_agent(
             return {"status": "blocked", "reason": "agent_state_in_use"}
         model = getattr(client, "model", None)
         model = model if isinstance(model, str) else None
-        state = _new_state(variant, model, limits)
+        try:
+            contract = _execution_contract(toolbox, release_id)
+        except Exception as error:
+            return _checkpoint_failure(path, "invalid_execution_contract", error)
+        state = _new_state(variant, model, limits, contract)
         if path.exists():
             try:
                 saved = json.loads(path.read_text(encoding="utf-8"))
             except (OSError, ValueError):
                 return _checkpoint_failure(path, "unreadable_existing_checkpoint")
-            if not isinstance(saved, dict) or saved.get("schema_version") != 1:
+            if not isinstance(saved, dict) or saved.get("schema_version") != 2:
                 return _checkpoint_failure(path, "invalid_existing_checkpoint")
             # Loading and preparing existing evidence is separate from execution:
             # validation failures may write only the error sidecar, never the input.
             try:
                 state = saved
                 _validate_resume_shape(state, limits)
+                if state["execution_contract"] != contract:
+                    return _checkpoint_failure(path, "checkpoint_execution_contract_changed")
                 if state["variant"] != variant or state.get("model") != model:
                     return _checkpoint_failure(path, "checkpoint_configuration_changed")
                 # Opening a terminal checkpoint is not another execution attempt.

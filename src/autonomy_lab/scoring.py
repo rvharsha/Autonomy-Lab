@@ -389,9 +389,18 @@ def score_trial(
         )
     cited = [by_id[value] for value in claim_ids] if claim_evidence_valid else []
     useful_evidence = any(_useful(item) for item in cited)
-    cited_verification = any(
-        item["source"] == "verify_recovery" and item["payload"].get("verdict") == "verified_success"
-        for item in cited
+    prior_checks = [item for item in observations if boundary
+                    and item["source"] == "verify_recovery" and _before(item, boundary, positions)]
+    latest_check = prior_checks[-1] if prior_checks else None
+    cited_verification = bool(
+        latest_check and latest_check in cited
+        and latest_check["payload"].get("verdict") == "verified_success"
+        and not any(
+            _before(latest_check, item, positions) and _before(item, boundary, positions)
+            and item["payload"].get("status") in STATUSES
+            and _dispatch_possible(item["payload"])
+            for item in proposals
+        )
     )
     verdict = verification.get("verdict")
     recovered = (

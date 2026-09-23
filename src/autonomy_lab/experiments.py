@@ -7,6 +7,7 @@ import json
 import math
 import random
 import sqlite3
+import sys
 import time
 import uuid
 from contextlib import ExitStack
@@ -19,10 +20,11 @@ from autonomy_lab.agent import run_agent
 from autonomy_lab.broker import ActionBroker, BrokerPolicy
 from autonomy_lab.credentials import gemini_key
 from autonomy_lab.environment import provision, reset_application, service_identity, teardown
-from autonomy_lab.gemini import GeminiClient
+from autonomy_lab.gemini import GeminiClient, validate_model_id
 from autonomy_lab.harness import check, establish_fault, save, timestamp
 from autonomy_lab.kubernetes import ROOT, Kubernetes
 from autonomy_lab.runbook import run as runbook
+from autonomy_lab.supervisor import supervise
 from autonomy_lab.toolbox import ObservationTools
 from autonomy_lab.verifier import verify
 
@@ -56,9 +58,22 @@ def validate_config(config: dict) -> None:
         integers += ["max_turns", "max_tokens", "max_output_tokens"]
         if not isinstance(config.get("model"), str) or not config["model"].strip():
             raise ValueError("Manifest model must be a nonempty string")
+        try:
+            validate_model_id(config["model"])
+        except ValueError:
+            raise ValueError("Manifest model must be a bare Gemini model ID") from None
     for name in integers:
         if type(config.get(name)) is not int or config[name] < 1:
             raise ValueError(f"Manifest {name} must be a positive integer")
+    if set(config["variants"]) & {"basic", "structured"} and not (
+        config["max_output_tokens"] <= min(65536, config["max_tokens"])
+    ):
+        raise ValueError("Manifest output budget must fit the provider and total token limits")
+    if type(config.get("run_order_seed", 20260923)) is not int:
+        raise ValueError("Manifest run_order_seed must be an integer")
+    timeout = config.get("trial_timeout_seconds", 900)
+    if type(timeout) not in (int, float) or not math.isfinite(timeout) or timeout <= 0:
+        raise ValueError("Manifest trial_timeout_seconds must be positive and finite")
     window = config.get("window_seconds")
     if type(window) not in (int, float) or not math.isfinite(window) or window <= 0:
         raise ValueError("Manifest window_seconds must be positive and finite")
@@ -266,6 +281,7 @@ def run_trial(
                     "concurrent_change": "observe_service",
                 }.get(scenario)
                 kwargs = {
+                    "release_id": release_manifest(config)["release_id"],
                     "variant": variant,
                     "max_turns": config["max_turns"],
                     "max_total_tokens": config["max_tokens"],
@@ -364,14 +380,56 @@ def run_trial(
     return result
 
 
+def supervise_trial(kube, run_dir, scenario, variant, config, *, env_file=None, release_id):
+    run_dir.mkdir(parents=True, mode=0o700)
+    request_path = run_dir / "worker-request.json"
+    save(request_path, {
+        "kubeconfig": str(kube.kubeconfig), "cluster_name": kube.cluster_name,
+        "namespace": kube.namespace, "scenario": scenario, "variant": variant,
+        "config": config, "release_id": release_id,
+        "env_file": str(env_file.expanduser().resolve()) if env_file else None,
+    })
+    started_at = timestamp()
+    interrupted = False
+    try:
+        outcome = supervise([sys.executable, "-m", "autonomy_lab.trial_worker", str(request_path)],
+                            timeout=config["trial_timeout_seconds"], log_path=run_dir / "worker.log")
+    except KeyboardInterrupt:
+        interrupted = True
+        outcome = {"interrupted": True}
+    except Exception as error:
+        outcome = {"timed_out": False, "exit_code": None, "error_type": type(error).__name__}
+    save(run_dir / "supervisor.json", outcome)
+    path = run_dir / "trial.json"
+    try:
+        result = json.loads(path.read_text())
+        if not isinstance(result, dict):
+            raise ValueError("Invalid worker result")
+    except (OSError, ValueError):
+        result = {"trial_id": uuid.uuid4().hex, "scenario": scenario, "variant": variant,
+                  "started_at": started_at, "agent": None}
+    if interrupted or outcome["timed_out"] or outcome["exit_code"] != 0 or result.get("status") in {None, "running"}:
+        if path.exists():
+            path.replace(run_dir / "trial-worker-partial.json")
+        result.pop("score", None)
+        result.update(status="interrupted" if interrupted else "timed_out" if outcome["timed_out"] else "infrastructure_error",
+                      failed_stage="worker", finished_at=timestamp(), supervisor=outcome)
+        save(path, result)
+    if interrupted:
+        raise KeyboardInterrupt
+    return result
+
+
 def run_experiment(config: dict, *, env_file: Path | None = None, keep=False) -> Path:
     validate_config(config)
+    config = {**config, "trial_timeout_seconds": config.get("trial_timeout_seconds", 900)}
     if set(config["variants"]) & {"basic", "structured"}:
         gemini_key(env_file)  # fail before provisioning if no authorized credential is available
     run_id = uuid.uuid4().hex[:8]
     run_dir = ROOT / "artifacts" / f"experiment-{run_id}"
     run_dir.mkdir(parents=True, mode=0o700)
-    save(run_dir / "release.json", release_manifest(config))
+    release = release_manifest(config)
+    save(run_dir / "release.json", release)
     plan = []
     rng = random.Random(config.get("run_order_seed", 20260923))
     for repetition in range(config["repetitions"]):
@@ -398,8 +456,9 @@ def run_experiment(config: dict, *, env_file: Path | None = None, keep=False) ->
                 )
             trial_dir = run_dir / f"trial-{index + 1:03d}"
             try:
-                result = run_trial(
-                    kube, trial_dir, item["scenario"], item["variant"], config, env_file=env_file
+                result = supervise_trial(
+                    kube, trial_dir, item["scenario"], item["variant"], config, env_file=env_file,
+                    release_id=release["release_id"],
                 )
             except KeyboardInterrupt:
                 # run_trial saves its partial record before propagating cancellation.

@@ -19,6 +19,7 @@ from typing import Annotated, Any, Literal
 import httpx
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from autonomy_lab.bounded_http import ResponseTooLarge, request
 from autonomy_lab.broker import OperationConflict, Proposal
 
 Identifier = Annotated[str, Field(min_length=1, max_length=253)]
@@ -428,27 +429,14 @@ class ObservationTools:
 
     def _request(self, client: httpx.Client, url: str, params: dict) -> dict:
         try:
-            with client.stream(
-                "GET",
-                url,
-                params=params,
-                timeout=self.request_timeout,
-                follow_redirects=False,
-            ) as response:
-                content = bytearray()
-                for chunk in response.iter_bytes():
-                    content.extend(chunk[: self.max_result_bytes - len(content) + 1])
-                    if len(content) > self.max_result_bytes:
-                        return {
-                            "kind": "response",
-                            "status_code": response.status_code,
-                            "body_truncated": True,
-                            "body": None,
-                        }
-                try:
-                    body = json.loads(content)
-                except (ValueError, UnicodeDecodeError):
-                    body = content.decode("utf-8", errors="replace")
-                return {"kind": "response", "status_code": response.status_code, "body": body}
+            response = request(client, "GET", url, params=params,
+                               timeout=self.request_timeout, max_bytes=self.max_result_bytes)
+            try:
+                body = response.json()
+            except (ValueError, UnicodeDecodeError):
+                body = response.content.decode("utf-8", errors="replace")
+            return {"kind": "response", "status_code": response.status_code, "body": body}
+        except ResponseTooLarge as exc:
+            return {"kind": "response", "status_code": exc.status_code, "body_truncated": True, "body": None}
         except httpx.HTTPError as exc:
             return {"kind": "error", "error": "transport_failure", "error_type": type(exc).__name__}

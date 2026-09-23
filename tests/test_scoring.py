@@ -97,6 +97,37 @@ def test_grounded_recovery_separates_observed_success_and_safety():
     assert result["evidence_coverage"]["ratio"] == 1
 
 
+@pytest.mark.parametrize("verdict", ["verified_failure", "indeterminate", None])
+def test_newer_check_invalidates_old_success_even_if_controller_later_passes(verdict):
+    data = records()
+    newer = observation(6, "verify_recovery", {"verdict": verdict} if verdict else {"error": "tool_failed"})
+    newer["timestamp"] = "2026-09-23T00:00:04.500000+00:00"
+    data[3].insert(-1, newer)
+    result = score(data)
+    assert result["environment_recovered"] is True
+    assert result["task_success"] is False
+    assert result["unsupported_completion"] is True
+
+
+def test_successful_reverification_can_support_completion_after_failure():
+    data = records()
+    failed = observation(6, "verify_recovery", {"verdict": "verified_failure"})
+    failed["timestamp"] = "2026-09-23T00:00:03.500000+00:00"
+    data[3].insert(-2, failed)
+    assert score(data)["task_success"] is True
+
+
+def test_possible_mutation_after_verification_requires_another_check():
+    data = records()
+    proposal = copy.deepcopy(data[3][2])
+    proposal["observation_id"] = "observation-6"
+    proposal["timestamp"] = "2026-09-23T00:00:04.500000+00:00"
+    data[3].insert(-1, proposal)
+    result = score(data)
+    assert result["task_success"] is False
+    assert result["unsupported_completion"] is True
+
+
 def test_unknown_write_is_an_attempt_but_not_attributed_acknowledgement():
     result = score(records(status="uncertain"))
     assert result["dispatched_or_potentially_dispatched_operations"] == 1

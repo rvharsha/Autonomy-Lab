@@ -6,6 +6,8 @@ import re
 
 import httpx
 
+from autonomy_lab.bounded_http import request
+
 DEFAULT_MODEL = "gemini-3.8-flash"
 _MODEL_ID = re.compile(r"gemini-[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 _FINISH_REASONS = {
@@ -13,6 +15,11 @@ _FINISH_REASONS = {
     "PROHIBITED_CONTENT", "SPII", "MALFORMED_FUNCTION_CALL", "IMAGE_SAFETY",
     "UNEXPECTED_TOOL_CALL", "TOO_MANY_TOOL_CALLS", "FINISH_REASON_UNSPECIFIED",
 }
+
+
+def validate_model_id(model: str) -> None:
+    if not isinstance(model, str) or not _MODEL_ID.fullmatch(model):
+        raise ValueError("Invalid Gemini model ID; expected a bare gemini- model name.")
 
 
 class GeminiError(RuntimeError):
@@ -46,8 +53,7 @@ class GeminiClient:
             raise GeminiError("Set GEMINI_API_KEY or GOOGLE_API_KEY before using Gemini.")
         if not key.isascii() or any(character.isspace() for character in key):
             raise GeminiError("Gemini API key must contain ASCII characters without whitespace.")
-        if not isinstance(model, str) or not _MODEL_ID.fullmatch(model):
-            raise ValueError("Invalid Gemini model ID; expected a bare gemini- model name.")
+        validate_model_id(model)
         if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or timeout <= 0:
             raise ValueError("Gemini timeout must be a finite positive number of seconds.")
         self.model = model
@@ -153,10 +159,11 @@ class GeminiClient:
         return result
 
     def _post(self, client: httpx.Client, method: str, payload: dict) -> httpx.Response:
-        return client.post(
+        return request(
+            client, "POST",
             f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:{method}",
             headers={"x-goog-api-key": self._api_key},
             json=payload,
             timeout=self._timeout,
-            follow_redirects=False,
+            max_bytes=4 * 1024 * 1024,
         )

@@ -63,7 +63,8 @@ def test_interrupted_trial_is_persisted_and_counted_before_cleanup(monkeypatch, 
 
     cleanup = []
     monkeypatch.setattr(experiments, "ROOT", tmp_path)
-    monkeypatch.setattr(experiments, "release_manifest", lambda config: {})
+    monkeypatch.setattr(experiments, "release_manifest", lambda config: {"release_id": "1" * 64})
+    monkeypatch.setattr(experiments, "supervise_trial", lambda *args, release_id, **kwargs: run_trial(*args, **kwargs))
     monkeypatch.setattr(experiments, "provision", provision)
     monkeypatch.setattr(experiments, "teardown", lambda path: cleanup.append(path))
     monkeypatch.setattr(experiments, "service_identity", interrupt_identity)
@@ -103,6 +104,15 @@ def test_interrupted_trial_is_persisted_and_counted_before_cleanup(monkeypatch, 
         ("window_seconds", -1),
         ("window_seconds", True),
         ("model", None),
+        ("model", "not-a-gemini-model"),
+        ("model", "gemini-flash?key=private"),
+        ("max_output_tokens", 65537),
+        ("max_output_tokens", 32001),
+        ("run_order_seed", {}),
+        ("run_order_seed", True),
+        ("trial_timeout_seconds", float("inf")),
+        ("trial_timeout_seconds", 0),
+        ("trial_timeout_seconds", True),
         ("max_tokens", None),
         ("max_tokens", True),
         ("max_turns", 0),
