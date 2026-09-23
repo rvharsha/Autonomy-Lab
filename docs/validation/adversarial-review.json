@@ -1,0 +1,68 @@
+{
+  "kind": "adversarial_review_probes_not_benchmark_outcomes",
+  "source_commit": "54b39dafd1de2baec2a1ede6b0d348cd13b5cbcc",
+  "source_file_hashes": {
+    "src/autonomy_lab/__init__.py": "e0e75b2f3231733dc848918b71c8f65d3d836009d920b6de6ba8b13946eaa933",
+    "src/autonomy_lab/agent.py": "68177d95493f69ea378fe50a6cd7c5ffe4b1297747e42b61de9f1aa3bfb54607",
+    "src/autonomy_lab/broker.py": "64b02b1e17171524fdc612aa8f520fec4c3eecda0782ef42a28f698ff4af812b",
+    "src/autonomy_lab/cli.py": "517c32e89395b13d2acff8e0d86149e1247419666260401b178bb0bd2ecc8944",
+    "src/autonomy_lab/crash_worker.py": "64ac43f215d31b1c73c3fd27d7aed72bf513871912b20996b8d125c2b4455701",
+    "src/autonomy_lab/credentials.py": "889e7ae960883c16930bce85d710863275150abf550aa693dc3e1bdf4294a099",
+    "src/autonomy_lab/environment.py": "1cef744277b13e6e0b4254170e8db21ec9099dc8c48bf2fc56530cb34ab3f87d",
+    "src/autonomy_lab/experiments.py": "6e710ee1975eacf569ad9828b6f0459de3670194e7de84e1e19bc6ebd6a2abce",
+    "src/autonomy_lab/gemini.py": "ea90acd46bface1cd96a0c6fd5d7d85a2ce5b393f44500e8d676cd92aabadb51",
+    "src/autonomy_lab/harness.py": "72d58fea42910564685c78ea37b5a79423761e481717dfc40e74ca45eec253be",
+    "src/autonomy_lab/inventory.py": "f4e64c0858342474fa0cb5396b589d659e13585aa21910dd48702551e4800422",
+    "src/autonomy_lab/kubernetes.py": "45616f1cd358905454d0110431db4b8e4cd5f34e62f9fa8cb510f74b95c6d688",
+    "src/autonomy_lab/quote.py": "f83b02b37071fb471e5d3861938b62af936f6781f1630a208d85777bb408cbbc",
+    "src/autonomy_lab/runbook.py": "524b6dc5fa8843bce1443be5de5186fc38e05c25b4f06932350d67e6d77c22af",
+    "src/autonomy_lab/scoring.py": "dcb54d65ef455d3af7048a044d7c5ff0bb9959519fee2f4f0c3e4d82ba4fc04e",
+    "src/autonomy_lab/toolbox.py": "d1ce3aa40b224ba125cc642affa39af12549bdbe9e904c4e653a94eacfd31b27",
+    "src/autonomy_lab/verifier.py": "d339c2181122d54c3c427b2a428078617e96cc8bc7e9ac605fd5c605fccaaab8"
+  },
+  "provider_requests": 0,
+  "cluster_mutations": 0,
+  "superseded_verification": {
+    "input_kind": "counterfactual copy of real trial-002; added failed verification before finish",
+    "task_success": true,
+    "false_completion": false,
+    "unsupported_completion": false,
+    "successful_verification_cited": true
+  },
+  "checkpoint_run_binding": {
+    "input_kind": "unchanged real completed checkpoint, new toolbox run ID",
+    "returned_status": "completed",
+    "returned_previous_terminal": true,
+    "checkpoint_bytes_preserved": true,
+    "provider_and_tool_calls": 0,
+    "top_level_run_id_bound": false,
+    "release_id_bound": false
+  },
+  "original_pilot_audit": {
+    "trials": 28,
+    "score_mismatches": [],
+    "claims_with_superseded_verification": []
+  },
+  "manifest_model_validation": {
+    "manifest_accepted_invalid_model": true,
+    "transport_constructor_rejected": true
+  },
+  "http_bounds": {
+    "input_kind": "real finite loopback HTTP server, no external service",
+    "configured_timeout_seconds": 0.1,
+    "chunk_interval_seconds": 0.04,
+    "slow_response_kind": "response",
+    "slow_elapsed_seconds": 0.86282,
+    "large_body_characters_retained": 262144
+  },
+  "recorded_at": "2026-09-23T04:39:16.960689+00:00",
+  "reproduction_driver_sha256": "bfb77df177b2acaa61b55d83edfe790dbca91488939d62d2ce77c25b56c96144",
+  "verification": {
+    "command": "make test lint",
+    "pytest_passed": 576,
+    "pytest_warnings": 2,
+    "ruff": "passed",
+    "new_kubernetes_acceptance_run": false,
+    "new_live_model_experiment": false
+  }
+}

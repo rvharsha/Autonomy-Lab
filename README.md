@@ -6,6 +6,8 @@ The application is real: Quote API → Inventory Service → Inventory API → P
 
 [Executed validation](docs/VALIDATION.md) records the real-system checks. The [28-trial development pilot](docs/PILOT_RESULTS.md) retains successes and non-completions, including the model agents' budget stops. These results do not establish production reliability.
 
+The [adversarial self-review](docs/ADVERSARIAL_REVIEW.md) records open correctness findings and the remaining runtime, isolation, evaluation, and cloud-deployment gates.
+
 ## Run the acceptance demo
 
 Requirements: Docker running, Python 3.12, `uv`, and internet access for pinned tools/images/dependencies. The initial setup downloads a Kubernetes node image and application dependencies. All cluster configuration remains in this project; commands select a dedicated `autolab-*` context.
