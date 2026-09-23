@@ -1,6 +1,8 @@
 # Runtime, isolation, and evaluation work
 
-Current authorized scope: AX recovery/integration, execution boundaries, reliability validation, and PR review/merge/release. GCP deployment remains outside this work.
+Current authorized scope: AX recovery/integration, execution boundaries, reliability validation, PR review/merge/release, and the subsequently authorized [GCP experiment host](../infra/gcp/README.md). The GCP deployment uses the existing kind/Docker runtime; the AX results below remain local.
+
+The [GCP deployment evidence](validation/gcp-deployment.json) adds native Linux audit ownership/rotation validation, four separately declared corrected smoke completions, and actual stop/start persistence. The initial four audit-permission infrastructure errors remain recorded; historical local results below are unchanged.
 
 ## Executed gates
 

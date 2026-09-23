@@ -9,3 +9,7 @@ __pycache__/
 artifacts/
 .env
 *.egg-info/
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan

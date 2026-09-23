@@ -1,0 +1,259 @@
+{
+  "reviews": [
+    {
+      "status": "completed",
+      "snapshot": {
+        "files": [
+          {
+            "included": "complete_file",
+            "path": "infra/gcp/main.tf",
+            "sha256": "684555b12a51ce963263f6c27db062bb61bc3c915b054461d58a9eb03f414f93"
+          },
+          {
+            "included": "complete_file",
+            "path": "infra/gcp/bootstrap.sh",
+            "sha256": "0bf5c041d1b750a8fe4310284bc4091cb50258fdc91fc286d0063b09d74c48ed"
+          },
+          {
+            "included": "complete_file",
+            "path": "infra/gcp/README.md",
+            "sha256": "1ed3a1ac7a5a38b0688a645d1146dded300b3079287610f3c66818d7e05b468e"
+          },
+          {
+            "included": "complete_file",
+            "path": "scenarios/gcp-smoke.yaml",
+            "sha256": "c8a86c54c58a4345afafe0f5abf4ef1bbb136ce3872109b39cec3a7c8074ebc7"
+          }
+        ],
+        "prompt_sha256": "19a3f3e016f87a1bca3daa93f4ce41dd4ce4c8429f393e10836e13c6e926555f",
+        "scope": "gcp_deployment",
+        "snapshot_id": "6b7cbd13f2468125b2a80e4618e85da0a18cc45fccda1482ee3eafb6859d750d",
+        "source_bytes": 12597
+      },
+      "requested_model": "claude-fable-5-1",
+      "findings_text": "**Finding 1 \u2014 Retained boot disk collides with the next instance create (durability / data-loss risk)**\n\nFile: `infra/gcp/main.tf`, lines 66\u201380 (`google_compute_instance.lab`, `boot_disk { auto_delete = false; initialize_params {...} }`).\n\nTrigger: any lifecycle event that recreates the instance \u2014 `terraform destroy` followed by `apply`, or any change to `initialize_params` (e.g., bumping the pinned `image` on line 76, which forces replacement) \u2014 while the previously retained disk still exists.\n\nExecution trace:\n1. First `apply`: GCE creates the boot disk from `initialize_params` with no explicit disk name, so it is named after the instance: `autonomy-lab`. The disk is not a Terraform-managed resource; only the instance is in state.\n2. `destroy` (or replacement, since `create_before_destroy` is not set): the instance is deleted; because `auto_delete = false`, disk `autonomy-lab` remains, now orphaned from state.\n3. Next `apply`: the provider issues `instances.insert` with `initializeParams` again \u2192 GCE attempts to create disk `projects/autonomy-lab-509518/zones/us-central1-a/disks/autonomy-lab` \u2192 `409 alreadyExists`. Apply fails with the VM already gone.\n4. The obvious operator \"fix\" is `gcloud compute disks delete autonomy-lab`, which destroys exactly the evidence the retention was meant to preserve; the README (lines 58\u201359, 132\u2013135) does not warn of this collision. Replacement also has no `prevent_destroy` guard, so an image bump silently plans deletion of the running host.\n\nMinimal fix: manage the disk explicitly and make retention/evidence a state-tracked, guarded resource:\n\n```hcl\nresource \"google_compute_disk\" \"lab_boot\" {\n  name  = \"autonomy-lab-boot\"\n  zone  = \"${var.region}-a\"\n  image = \"ubuntu-os-cloud/ubuntu-2404-noble-amd64-v20260918\"\n  size  = 80\n  type  = \"pd-balanced\"\n  lifecycle { prevent_destroy = true }\n}\n\nresource \"google_compute_instance\" \"lab\" {\n  # ...\n  boot_disk {\n    source      = google_compute_disk.lab_boot.id\n    auto_delete = false\n  }\n  lifecycle { prevent_destroy = true }\n  # ...\n}\n```\n\nThen document in README \u00a7Operate: image changes are done by creating a new disk resource (or snapshot-and-recreate), and `terraform destroy` will refuse until `prevent_destroy` is deliberately removed. This keeps the retained disk visible in state instead of orphaned under a name the next apply must reuse.\n\n**Finding 2 \u2014 none substantiated.**\n\nItems checked and found consistent with actual provider/GCE semantics from source alone:\n- Omitting `service_account` in `google_compute_instance` attaches no service account (the API `serviceAccounts` field is simply absent), so the comment on line 88 and the README's \"no workload credential\" claim hold \u2014 pending the declared live check in gate 1.\n- `scheduling.max_run_duration` with `instance_termination_action = \"STOP\"` and `automatic_restart = false` is a valid combination for a STANDARD-provisioned VM; the README correctly states STOP retains disk charges and that each start resets the 12-hour interval.\n- `bootstrap.sh`: `set -euo pipefail`, lock acquired before the ready-marker check, checksum verification in a subshell (failure propagates under `set -e`), `--proto '=https'`, pinned uv artifact, and no credentials or autorun. Re-running on every boot is idempotent via the `bootstrap-ready` marker.\n- Scenario arithmetic (2 scenarios \u00d7 2 variants \u00d7 1 repetition = 4 trials \u00d7 32,000 = 128,000 tokens) matches README gate 4.\n\nThese are source-level observations only; nothing here substitutes for the live GCP API checks the README itself requires.\n\nSnapshot ID: 6b7cbd13f2468125b2a80e4618e85da0a18cc45fccda1482ee3eafb6859d750d",
+      "record_sha256": "1b58f61cae63e38fc7b3030b998b61060dc436b92ce372137d7ed34792350e8d",
+      "usage_cost_estimate_usd": 0.28695,
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 6340,
+        "output_tokens": 4471,
+        "output_tokens_details": {
+          "thinking_tokens": 3059
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "status": "completed",
+      "snapshot": {
+        "files": [
+          {
+            "included": "complete_file",
+            "path": "infra/gcp/main.tf",
+            "sha256": "b669004036e2298eb365cb1f5fdcc7aa180737713211d50722407c3de5a26017"
+          },
+          {
+            "included": "complete_file",
+            "path": "infra/gcp/bootstrap.sh",
+            "sha256": "0bf5c041d1b750a8fe4310284bc4091cb50258fdc91fc286d0063b09d74c48ed"
+          },
+          {
+            "included": "complete_file",
+            "path": "infra/gcp/README.md",
+            "sha256": "8a56ec9011d29adfb735c02f24a702a54992f8de3578abd1021daf49f66394ce"
+          },
+          {
+            "included": "complete_file",
+            "path": "scenarios/gcp-smoke.yaml",
+            "sha256": "c8a86c54c58a4345afafe0f5abf4ef1bbb136ce3872109b39cec3a7c8074ebc7"
+          }
+        ],
+        "prompt_sha256": "1f951c6d2d662b43a9365dcec13b642ec950eae467eadfbc84d8e075d5f8411a",
+        "scope": "gcp_deployment",
+        "snapshot_id": "d62d8df0caa4de0c3f0307c27f1df0c3a0db77f233d87843aa77c8c6b16a4412",
+        "source_bytes": 13118
+      },
+      "requested_model": "claude-fable-5-1",
+      "findings_text": "**Review result: no substantiated blocking defects.**\n\nI checked the items you asked about against actual Terraform/GCE semantics; findings below distinguish what source review can establish from what only live execution can.\n\n**Service-account default (main.tf:98):** Correct as written. The `google_compute_instance` resource passes exactly the `serviceAccounts` list it is given; when the block is omitted the API request carries none and the instance is created with no service account (the \"default compute SA\" behaviour is a `gcloud`/Console client convenience, not an API default). The README's gate 1 correctly requires confirming this on the real instance rather than inferring it.\n\n**Disk lifecycle (main.tf:66-90):** Consistent. Separate `google_compute_disk` with `prevent_destroy`, referenced via `boot_disk.source` with `auto_delete = false`. Any plan that would replace the VM (e.g. a `metadata_startup_script` change, which is ForceNew) or the disk (image change) is refused by Terraform before any API call, matching README lines 134-139. Zone is inherited from the provider for both, so they cannot diverge.\n\n**Bootstrap safety (bootstrap.sh):** `set -euo pipefail`, non-blocking flock, idempotency marker written only after all steps succeed, pinned uv URL with SHA-256 check before extraction, no credentials, no autorun. Rerun on every boot is harmless because of the marker at line 7. No injection surface from instance metadata.\n\n**Cost control (main.tf:111-117):** `max_run_duration` + `instance_termination_action = \"STOP\"` + `automatic_restart = false` is the supported combination for standard (non-Spot) VMs on the pinned provider line, and README lines 25-31 correctly state that STOP does not stop disk/IP charges and that this is not a spending cap.\n\n**Validation procedure (README.md:50-58):** With `-chdir=infra/gcp`, relative paths on the command line are resolved after the chdir, so `../../.state/gcp/deploy.tfplan` and the backend path `../../.state/gcp/terraform.tfstate` (main.tf:10) both land in the repo-root `.state/gcp`. `TF_DATA_DIR` is absolute. The sequence is coherent.\n\n**One minor, non-blocking observation (not a security/data-loss defect):**\n\n- `bootstrap.sh:4,35-37` \u2013 `umask 027` makes `host-packages.txt`, `uv-version.txt`, and `bootstrap-ready` mode `0640 root:root` in a `0755` directory. `autolab` (and any non-root gate script checking for `bootstrap-ready`) can `stat` the marker but cannot read the recorded versions, which the README (line 15, 73) presents as inspectable evidence. Minimal fix if desired: `chmod 0644 /var/lib/autonomy-lab/*.txt /var/lib/autonomy-lab/bootstrap-ready` after line 37, or write them via `install -m 0644`.\n\nNothing here is claimed to be verified against live GCP; all statements are from source and provider/API semantics, and the README's gate 1 remains the authoritative check.\n\nSnapshot ID d62d8df0caa4de0c3f0307c27f1df0c3a0db77f233d87843aa77c8c6b16a4412",
+      "record_sha256": "b6fa6612e2f43e793981862ca688cc7180d0f1f985721f4c0abf9f8a96db059c",
+      "usage_cost_estimate_usd": 0.3008,
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 6590,
+        "output_tokens": 4698,
+        "output_tokens_details": {
+          "thinking_tokens": 3587
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "status": "completed",
+      "snapshot": {
+        "files": [
+          {
+            "included": "complete_file",
+            "path": "src/autonomy_lab/audit.py",
+            "sha256": "3a0fc211258421bdea43828d80c2673dc3e86f9c8b050a716407db36c6138cc5"
+          },
+          {
+            "included": "complete_file",
+            "path": "tests/test_audit.py",
+            "sha256": "c1f88e6e3b008b991cc67d7205da5ed3ee5f7b7b2aaa2441c2470b58361aad73"
+          },
+          {
+            "included": "complete_file",
+            "path": "src/autonomy_lab/environment.py",
+            "sha256": "026fdb8aee08c6f04c9682d4986359a9f38b5ed87eab2d961cb0d09af51b67ce"
+          }
+        ],
+        "prompt_sha256": "e1a1aeb3e7a22e7cdce42c40a33ce71e60d2adda2690d8e6ea6789f0115d73d2",
+        "scope": "gcp_audit_ownership",
+        "snapshot_id": "2eb5d473074fa1f53ddac46bdb889d9883d97f98c2093035111483c12f164479",
+        "source_bytes": 21504
+      },
+      "requested_model": "claude-fable-5-1",
+      "findings_text": "**Findings: no substantiated actionable defect in the ownership fix.**\n\nExecution trace checked (src/autonomy_lab/audit.py:10\u201314, environment.py:250\u2013267):\n\n1. `configure` runs as the controller before `kind create cluster`. `mkdir(mode=0o700)` and `touch(mode=0o600, exist_ok=False)` are umask-restricted only (bits can only be removed), so the directory is \u22640700 and the log \u22640600, owned by the controller UID. A second call on the same run_dir raises `FileExistsError` before any cluster is created, so retained evidence is never truncated (matches test lines 19\u201322).\n2. kind bind-mounts the host directory into the node container; kube-apiserver runs as container root with CAP_CHOWN/CAP_DAC_OVERRIDE, so the 0700 directory is traversable and the existing 0600 file is opened `O_APPEND|O_WRONLY` by lumberjack `openExistingOrNew` without touching ownership. Controller retains read access; the original `PermissionError` path (root-created file) is closed.\n3. Rotation (`openNew` in vendored lumberjack): `os.Rename` moves the current file to `events-<ts>.jsonl` (ownership preserved), then creates the new file with `info.Mode()` (0600) and `chown_linux.go` calls `os.Chown(name, Uid, Gid)` from the prior stat \u2014 i.e., the controller UID. Root chown succeeds, so every backup and every successor file remains controller-readable. Kubernetes does not set `Compress`, so `read_events` (audit.py:47\u201348) globbing `events*` and skipping `.gz` captures all rotated segments; maxage-1 deletion uses `os.Remove`, unaffected by ownership.\n4. Fail-closed handling unchanged: `read_events` still raises on unreadable files; `assess` returns `incomplete` on malformed lines or missing acknowledged operations, `unassessed` on an empty selection (test lines 25\u201339 exercise this).\n\nOverwrite/reuse, privacy (0700 directory, 0600 log, policy limited to the trial namespace), and rotation all behave as described for the pinned v1.35.8 backend.\n\n**Residual risk, not a finding (unverified against the deployed controllers):** if any Linux controller runs Docker with `userns-remap` or rootless mode, container root maps to a subordinate UID; the 0700 controller-owned directory would then be untraversable and `os.Chown` to an unmapped UID would fail, causing `openNew` to error in blocking mode. The failure would be loud (apiserver audit write error), not silent, so it does not undermine fail-closed behaviour, but the remedial validation should include a rotation-forcing run on the actual GCP image to confirm backup ownership empirically rather than by source reading.\n\nNo changes recommended to the diff. Separate remedial validation of the four retained failed trials remains required as stated.\n\nSnapshot ID: 2eb5d473074fa1f53ddac46bdb889d9883d97f98c2093035111483c12f164479",
+      "usage_cost_estimate_usd": 0.26923,
+      "record_sha256": "cdf16f3e174f49195ad1ccbfb8c0f05200ce12b65221cf88dd41027ce8e30c4a",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 9878,
+        "output_tokens": 3409,
+        "output_tokens_details": {
+          "thinking_tokens": 2371
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "status": "completed",
+      "snapshot": {
+        "files": [
+          {
+            "included": "complete_file",
+            "path": "scripts/check_audit_permissions.py",
+            "sha256": "1a87a643cebbdc687fbae0fa002f6eac5183f9415f7215dc61c46f962e54ce21"
+          },
+          {
+            "included": "complete_file",
+            "path": "src/autonomy_lab/audit.py",
+            "sha256": "3a0fc211258421bdea43828d80c2673dc3e86f9c8b050a716407db36c6138cc5"
+          },
+          {
+            "included": "complete_file",
+            "path": "src/autonomy_lab/environment.py",
+            "sha256": "026fdb8aee08c6f04c9682d4986359a9f38b5ed87eab2d961cb0d09af51b67ce"
+          },
+          {
+            "included": "complete_file",
+            "path": "scenarios/gcp-audit-remediation.yaml",
+            "sha256": "567974c4df6dd5a8d3b4801f207a5a1f2fa1ba045645d7380496c67ccc826a9b"
+          }
+        ],
+        "prompt_sha256": "8da1d19d1d373efb7f38320af4e68dba3535a891d8d3ae189b824c2eb28ca8e6",
+        "scope": "gcp_audit_rotation_probe",
+        "snapshot_id": "120b977a4e02c2aaed9f9562a0bc61e85ec49b2378af429c1b9d5e3c156e9408",
+        "source_bytes": 22730
+      },
+      "requested_model": "claude-fable-5-1",
+      "findings_text": "**Finding 1 \u2014 Failure evidence is lost exactly in the case the probe exists to detect** (`scripts/check_audit_permissions.py:51-55`; `src/autonomy_lab/audit.py:47-49`)\n\nThe core failure mode under test is the API server (root in the kind node) creating the post-rotation `events.jsonl` as root-owned or non-0600, making it unreadable by the nonroot controller. In that case `read_events` at line 51 calls `path.read_bytes()` on the root-owned file and raises `PermissionError`. That exception is not in the `except (ValueError, KeyError, TypeError, AttributeError)` tuple at `audit.py:54`, so it propagates before line 52-55 ever runs. `result.json` then contains only `status: failed, error_type: PermissionError` \u2014 no `files` list (names/uid/mode), no `api_reads`, no event counts. The one piece of evidence that distinguishes \"rotation created a root-owned file\" from \"rotation created an unreadable 0600 controller file\" or \"some unrelated I/O fault\" is never recorded, contradicting the stated \"preserve failure evidence\" requirement.\n\nTrace: rotation happens \u2192 new `events.jsonl` owned by uid 0 \u2192 `list(directory.glob(\"events-*.jsonl\"))` truthy \u2192 break \u2192 `read_events` \u2192 `open()` EACCES \u2192 `PermissionError` \u2192 line 60 records only the type \u2192 line 72 saves a result with no file metadata.\n\nMinimal fix: stat before reading, and make the read step record instead of abort:\n\n```python\nfiles = [{\"name\": p.name, \"uid\": p.stat().st_uid, \"mode\": oct(p.stat().st_mode & 0o777)}\n         for p in sorted(directory.glob(\"events*.jsonl\"))]\nresult.update(api_reads=request, files=files)\ntry:\n    captured = read_events(directory)\nexcept OSError as error:\n    result.update(read_error=type(error).__name__)\n    raise RuntimeError(\"Nonroot controller could not read rotated audit log\") from error\nresult.update(event_count=len(captured[\"events\"]), malformed_lines=captured[\"malformed_lines\"])\n```\n\n**Finding 2 \u2014 Reading immediately after rotation races in-flight writes, producing spurious `malformed_lines` failures** (`scripts/check_audit_permissions.py:46-51`, `56-58`)\n\nThe loop issues `kube.get_service` and, as soon as a backup file appears, breaks and calls `read_events` on the live log with no quiescence. The `ResponseComplete` event for the last request (and any concurrent controller-manager/scheduler requests matched by the Metadata rule, plus the 1 MiB threshold triggering mid-line-sequence) is written by the API server after the client response is sent; `audit-log-mode=blocking` only serialises the backend write within the server, not relative to the kubectl process exit. A partial trailing line read by `read_bytes().splitlines()` fails `json.loads` \u2192 `malformed_lines >= 1` \u2192 line 56 raises \"Audit ownership, privacy, rotation or read check failed\". The probe thus reports a genuine ownership/rotation success as a failure nondeterministically, and the error message conflates it with a privacy defect.\n\nReproduction: run the probe repeatedly on a loaded host; occasional runs record `malformed_lines: 1` with all files `uid == controller`, `mode == 0o600`, `len(files) >= 2`.\n\nMinimal fix: after the break, wait for the live log to stabilise before reading:\n\n```python\nlive = directory / \"events.jsonl\"\nsettle_deadline = time.monotonic() + 15\nsize = -1\nwhile time.monotonic() < settle_deadline:\n    current = live.stat().st_size if live.exists() else 0\n    if current == size:\n        break\n    size = current\n    time.sleep(1)\n```\n\nand record which condition failed (ownership vs. mode vs. malformed vs. rotation count) as separate booleans in `result` so a malformed-line failure is not reported as a permission failure.\n\nNo substantiated defect found in `scenarios/gcp-audit-remediation.yaml` from the supplied files; the per-trial limits cannot be verified as \"unchanged\" without the original manifest, and no claim is made here either way.\n\nSnapshot ID 120b977a4e02c2aaed9f9562a0bc61e85ec49b2378af429c1b9d5e3c156e9408",
+      "usage_cost_estimate_usd": 0.26736,
+      "record_sha256": "407b02a38283c36fb00cca7bd6636d4a1d31966d5b9380cd745b932ca887dca8",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 10201,
+        "output_tokens": 3307,
+        "output_tokens_details": {
+          "thinking_tokens": 1843
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "status": "completed",
+      "snapshot": {
+        "files": [
+          {
+            "included": "complete_file",
+            "path": "scripts/check_audit_permissions.py",
+            "sha256": "997fac873952cd3ed3e3989c66c115b2319d486c4a494324e15e4080b4e4d0a1"
+          },
+          {
+            "included": "complete_file",
+            "path": "src/autonomy_lab/audit.py",
+            "sha256": "3a0fc211258421bdea43828d80c2673dc3e86f9c8b050a716407db36c6138cc5"
+          },
+          {
+            "included": "complete_file",
+            "path": "src/autonomy_lab/environment.py",
+            "sha256": "026fdb8aee08c6f04c9682d4986359a9f38b5ed87eab2d961cb0d09af51b67ce"
+          },
+          {
+            "included": "complete_file",
+            "path": "scenarios/gcp-audit-remediation.yaml",
+            "sha256": "567974c4df6dd5a8d3b4801f207a5a1f2fa1ba045645d7380496c67ccc826a9b"
+          }
+        ],
+        "prompt_sha256": "6c0bb9083eede74950cb43c740e1d082962c58d97840e39353417a35ed0ee15c",
+        "scope": "gcp_audit_rotation_probe",
+        "snapshot_id": "f70d074ec3887831033b32850478f1d59c38a7f9a7174022de8d71c1c388ab17",
+        "source_bytes": 23012
+      },
+      "requested_model": "claude-fable-5-1",
+      "findings_text": "**Review scope:** `scripts/check_audit_permissions.py`, `src/autonomy_lab/audit.py`, `src/autonomy_lab/environment.py`, `scenarios/gcp-audit-remediation.yaml`.\n\n**Result: no substantiated defect found.**\n\nPoints I checked and could not turn into a concrete, reproducible defect:\n\n1. **Monkeypatch correctness (`check_audit_permissions.py:36\u201340`).** `environment.provision` (`environment.py:260`) resolves `configure` through the `environment` module's globals, so rebinding `environment.configure` to `rotation_config` takes effect for exactly this probe's cluster creation, and the `finally` at line 40 restores `audit.configure` (the name imported at line 11). `rotation_config` itself calls `audit.configure` directly, so it does not recurse. Only `audit-log-maxsize` is changed (line 22); policy, path, backup and age settings are untouched, as claimed.\n\n2. **Rotation detection (`check_audit_permissions.py:47`, `audit.py:47\u201348`).** The kube-apiserver's lumberjack writer names rotated files `events-<timestamp>.jsonl`, matching the `events-*.jsonl` glob; `read_events` uses `events*` and skips `.gz`, so both current and rotated files are parsed. The `len(files) < 2` requirement at line 61 correctly demands at least one real rotation.\n\n3. **Ownership/permission claim.** The controller precreates `events.jsonl` 0600 (`audit.py:14`); lumberjack renames on rotation (ownership preserved) and creates the new file with the old file's mode and chowns it to the old owner on Linux. The probe records `uid`/`mode` for every file (lines 55\u201357) *before* attempting the read, so a `PermissionError` at line 58 still leaves the ownership evidence in `result.json`. Directory is controller-owned 0700, so `stat()` cannot fail there.\n\n4. **Failure handling and cleanup (`check_audit_permissions.py:65\u201378`).** Every exception path sets `status=\"failed\"` and `error_type`, re-raises, and `finally` tears down if `environment.json` exists and cleanup was not already recorded, then always saves `result.json` and prints the output directory. `provision` refuses to reuse an existing cluster name (`environment.py:230\u2013231`), so the probe cannot delete a cluster it does not own. The explicit teardown at line 53 before parsing is correct: it stops the writer so the on-disk files are quiescent; if it raises, `cleanup` is unset and the `finally` retries once, recording `cleanup=\"failed\"` if that also fails.\n\n5. **Bounds.** Work is capped at 3000 reads and a 180 s deadline (lines 42\u201350); both exits are recorded as failures with the request count preserved only on success (line 51). Whether 180 s is generous enough for ~1 MiB of `RequestResponse`-level service reads depends on per-call `kubectl` latency; I cannot substantiate that as a defect from the supplied code, and an early deadline produces an honest recorded failure rather than a false pass.\n\n6. **Remediation manifest.** The YAML repeats the four original cases (`routing`/`lost_ack` \u00d7 `basic`/`structured`) at the stated per-trial limits and claims no result; nothing in the file contradicts the description. I have no evidence about the runner's handling of `status: development` + `preregistered: true`, so I make no finding there.\n\nNo blocking or actionable defects substantiated from the included files.\n\nf70d074ec3887831033b32850478f1d59c38a7f9a7174022de8d71c1c388ab17",
+      "usage_cost_estimate_usd": 0.25947,
+      "record_sha256": "b394f6c5ef9df8105762eb3ec659940de9ba090b37f18e6fde852f5fc90980e0",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 10302,
+        "output_tokens": 3129,
+        "output_tokens_details": {
+          "thinking_tokens": 1899
+        },
+        "service_tier": "standard"
+      }
+    }
+  ],
+  "disposition": "Accepted retained implicit disk recreate collision: disk is now an explicit tracked resource, both disk and VM prevent destruction, and migration/deletion procedures are documented. Second complete-source review found no blocking defect. Root-owned mode-0640 host-version files are intentionally inspected through the authenticated OS Login administrator using sudo; the nonroot controller only needs to stat the ready marker. No source change is required for this non-blocking observation.",
+  "validation": "Terraform provider schema validation, formatting, shell syntax, saved-plan boundaries, and smoke-manifest validation passed. No cloud execution claimed by this source review.",
+  "audit_disposition": "Audit ownership fix had no substantiated defect. Accepted probe findings: record file UID/mode before a read that can fail, and stop the actual API-server writer by deleting the owned cluster before parsing retained bind-mounted logs. Final probe review found no substantiated defect. Actual native Linux rotation remains a required gate. The actual GCP rotation gate subsequently passed: 349 Service reads, controller-owned 0600 current/rotated files, 526 parsed events, no malformed lines and cluster deletion.",
+  "preflight_rejections": [
+    {
+      "record_sha256": "dc20be429900842af88b5be52ad27c93063e3473502729022dd32d0566a0094f",
+      "status": "failed",
+      "reason": "Larger source snapshot exceeded the existing 14,999 input-token preflight cap; no generation. Reviewed a narrower complete-file snapshot without raising the cap."
+    }
+  ]
+}
