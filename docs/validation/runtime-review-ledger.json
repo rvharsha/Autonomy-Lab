@@ -1647,13 +1647,67 @@
         "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
       },
       "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T172012.920156Z-agent.json",
+      "status": "completed",
+      "scope": "agent",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 36456,
+            "included": "full_source",
+            "lines": 651,
+            "path": "src/autonomy_lab/agent.py",
+            "sha256": "3eb9614c33d4ac46b37b2779c6dd3796d61dcb3052dead19486d522071e33251"
+          }
+        ],
+        "prompt_sha256": "c5530e28e7e5f06b6e5aa65894469cabadfcb13bd258e15e876ae3a55508ac2f",
+        "review_kind": "initial",
+        "scope": "agent",
+        "snapshot_id": "dcbade77e65d602ef7dd1d6548191322a232e6505b574f81751bbeaff31ce11a",
+        "source_bytes": 36456
+      },
+      "started_at": "2026-09-23T17:20:12.920387+00:00",
+      "finished_at": "2026-09-23T17:22:10.868779+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 harness argument typo permanently terminates a resumable run**\n`src/autonomy_lab/agent.py:596-599, 637-643, 426-427, 633-636`\n\n`run_agent` validates only the *type* of `interrupt_after_tool`. Membership is checked later, inside `_Runner.run()`, after the checkpoint has already been mutated and after `stop()` persists a terminal status.\n\nTrace (resume of a live `interrupted` checkpoint with `interrupt_after_tool=\"probe_backnd\"`):\n1. Line 596: passes (`isinstance(str)`).\n2. Lines 637\u2013642: `limits` shrunk, `resume_count += 1`, `_save`.\n3. Line 426: `\"probe_backnd\" not in self.schemas` \u2192 `stop(\"blocked\", \"invalid_interrupt_tool\")` \u2192 status `blocked` written to disk.\n4. Any later, correctly-configured `run_agent` call hits line 633 and returns the checkpoint unchanged: the run is dead, with a spent `resume_count` and no agent/broker fault. Same outcome for `variant=\"basic\"` with `interrupt_after_tool=\"record_incident\"`.\n\nA caller error is thereby recorded as an agent outcome in the scored journal.\n\nMinimal fix: validate before loading/writing anything:\n```python\nnames = {d[\"name\"] for d in toolbox.declarations()} | ({\"record_incident\"} if variant == \"structured\" else set())\nif isinstance(interrupt_after_tool, str) and interrupt_after_tool not in names:\n    raise ValueError(\"interrupt_after_tool must name a declared tool\")\n```\nand delete lines 426\u2013427 (or make them `raise ValueError`, never `stop`).\n\n**Finding 2 \u2014 an interrupted, side-effect-free `count_tokens` becomes an unrecoverable terminal state**\n`src/autonomy_lab/agent.py:463-470, 483-491, 420-421`\n\nLine 470 checkpoints the preflight with `phase=\"pending\"` *before* `client.count_tokens` runs. Line 488 catches only `Exception`. A `KeyboardInterrupt`/SIGINT (or SIGKILL/power loss) during the count leaves `phase=\"pending\"` on disk. On resume, line 420 issues `stop(\"blocked\", \"pending_token_preflight_no_automatic_retry\")`, which is terminal (line 633), so the run can never continue.\n\nUnlike `pending_model` (line 416), nothing here is ambiguous: `usage[\"model_calls\"]`/`total_tokens` were not incremented, no request was appended to `model_requests`, and `countTokens` is read-only and unbilled against the budget. The stop therefore discards a valid run with intact provenance and misreports the cause as a preflight fault. Any resume-under-interruption test that fires during preflight (a real window: the network call between lines 483\u2013485) will show this.\n\nReproduction: fake `client.count_tokens` that raises `KeyboardInterrupt`; call `run_agent` \u2192 outer handler (line 644) writes `status=\"error\"`, `pending_turn` unchanged/None, preflight pending; call `run_agent` again with a well-behaved client \u2192 returns `blocked/pending_token_preflight_no_automatic_retry`.\n\nMinimal fix (preserve the record, don't terminate):\n```python\n# run(), replacing lines 420-421\nif preflights and preflights[-1][\"phase\"] == \"pending\":\n    preflights[-1].update(phase=\"abandoned_on_resume\", finished_at=_now())\n    self.save()\n```\nand widen line 488 to `except BaseException as error:` (re-raise `KeyboardInterrupt` after marking the preflight `failed`) so an interrupted count is never left `pending` in the first place. Keep the `pending_model` check unchanged; that one is genuinely indeterminate.\n\nNo other defects substantiated from the supplied file alone; broker/verifier shape assumptions (e.g., whether `operation_not_found` payloads echo `operation_id`, line 294 vs 297) depend on omitted files and were not asserted.\n\ndcbade77e65d602ef7dd1d6548191322a232e6505b574f81751bbeaff31ce11a",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 14993,
+        "output_tokens": 8920,
+        "output_tokens_details": {
+          "thinking_tokens": 7511
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.59593,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.75743,
+        "input_margin_tokens": 750,
+        "input_tokens": 14993,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
     }
   ],
-  "completed": 20,
+  "completed": 21,
   "other_statuses": {
     "failed": 3,
     "incomplete": 1
   },
-  "usage_cost_estimate_usd": 7.05979,
+  "usage_cost_estimate_usd": 7.65572,
   "limitations": "Direct Anthropic source reviews; no execution or merge approval. Latest local remediations have unit/real checks; individual review hashes define coverage. Raw responses and private thinking omitted."
 }

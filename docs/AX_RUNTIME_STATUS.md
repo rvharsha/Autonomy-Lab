@@ -1,5 +1,31 @@
 # AX local runtime spike status
 
+## Live agent integration remains incomplete
+
+The final local nonroot agent image started in real AX and passed its actual
+network, filesystem, capability, credential and privilege checks. It made two
+Gemini calls (6,111 known tokens) and reached the lost-ack interruption.
+Suspension then failed in Substrate host cleanup: `atelet`, which drops all
+capabilities, could not unlink files owned by the decision UID 10001. The
+original integration remains `infrastructure_error`. A read-only postmortem
+found exactly one correlated repair and no unmatched successful scoped
+mutation; it does not turn the failed integration into a pass.
+
+The proposed `durable-cleanup.patch` grants DAC_OVERRIDE to only the trusted
+local atelet service. Automatic approval review rejected deployment because it
+broadens that service's filesystem privileges and needs explicit approval.
+The patch is prepared, source-reviewed and reproduced from clean pinned
+checkouts, but **undeployed**. Full live agent reconstruction and AX-specific
+controller-death validation remain open. See the [current work record](RUNTIME_ISOLATION_WORK.md)
+and [selected evidence](validation/runtime-gates.json).
+
+The repeated lifecycle gate also exposed one test race: its old pod selector
+could return before the worker drained from Substrate's registry. That attempt
+failed with an ambiguous restore error and was not retried. The gate now waits
+for the correct pod selector and no active registered workers before testing
+pre-assignment capacity rejection; the subsequent gate passed. This does not
+claim recovery from an arbitrary mid-restore worker failure.
+
 ## Recovery gate passed, 2026-09-23 14:38 UTC
 
 The new source variant passed **3/3 real AX cold-boot suspend/resume cycles**.

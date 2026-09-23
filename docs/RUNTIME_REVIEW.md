@@ -1,6 +1,6 @@
 # Runtime review and dispositions
 
-Twenty additional **Claude Fable 5.1** component reviews completed through the direct Anthropic API. Three oversized scopes stopped at token preflight without generation; smaller scopes covered their components. One final context request returned `refusal` and remains incomplete; it was not continued or counted as approval. Reported usage implies **$7.05979** at the recorded rates, including that incomplete request, not an invoice.
+Twenty-one additional **Claude Fable 5.1** component reviews completed through the direct Anthropic API. Three oversized scopes stopped at token preflight without generation; smaller scopes covered their components. One final context request returned `refusal` and remains incomplete; it was not continued or counted as approval. Reported usage implies **$7.65572** at the recorded rates, including that incomplete request, not an invoice.
 
 The [selected ledger](validation/runtime-review-ledger.json) contains every attempt, final finding text, source hashes, usage, limits and status. Raw responses, private thinking and credentials are excluded. Reviews inspect source snapshots and do not execute tests. Findings were checked against the surrounding implementation and real evidence. Small subsequent remediation changes are validated locally; the individual snapshot hashes delimit Fable coverage.
 
@@ -9,7 +9,7 @@ The [selected ledger](validation/runtime-review-ledger.json) contains every atte
 | Partial RPC frames and backpressure could outlive the local deadline | Added nonblocking pipe readers/writers with absolute deadlines; real pipe tests exercise partial input and blocked output. |
 | Authority responses lacked correlation after a timeout | Added request IDs; deadline/correlation failures close the channel permanently. |
 | Worker cleanup accepted empty identities; fixed leases could expire during long plans | Require a matching nonempty identity, tolerate already-exited processes, and size the lease from the declared plan. |
-| AX result unlink and restart RPC budget | Tolerate an absent result file and persist the RPC budget across boots. Model spending was already independently bounded by the host ledger. |
+| AX result unlink and restart RPC budget | Tolerate an absent result file and persist the RPC budget across boots. The host independently gates requests and records provider usage; observed provider overruns prevent claiming a strict billing cap. |
 | Context ledger drift and lost original task | Derive historical evidence from verified original model/function-response exchanges; retain the original task verbatim. |
 | Context fails after a text-only model response | Not applicable to this runner: such a response already terminates as `model_returned_no_tool_call`, before another context request. |
 | Tail evidence duplicated in compacted context | The ledger now covers only dropped exchanges; the last two complete signed exchanges appear once. |
@@ -38,3 +38,25 @@ The [selected ledger](validation/runtime-review-ledger.json) contains every atte
 Self-review and real execution additionally found Docker source permissions, concurrent build-tag replacement, legacy-builder compatibility, AX timestamp serialization, the second-interruption terminal recovery path, and Substrate overlay/durable roots at mode 0700. A later capacity-loss run exposed a stale worker selector and a race with the scheduler registry; the gate now waits for pod deletion and an empty active-worker registry. Real before/after-UID diagnostics established the directory-permission cause; bootstrap now permits traversal without world write access. Each failure remains in its original run directory; corrected attempts are separate. The initial publication commit is `7bdbfef`; final source, execution evidence and CI are reported separately.
 
 The final AX variant grants CHOWN/SETUID/SETGID only to the trusted bootstrap in `autonomy-agents`, because the pinned default lacks those permissions. Both the decision process and controller mailbox helper enter UID 10001. The decision process then installs a syscall filter and checks effective/permitted capabilities, root-escalation denial and network denial before any model request. [Kernel seccomp semantics](https://docs.kernel.org/userspace-api/seccomp_filter.html) and the pinned ARM64 syscall ABI informed this boundary; it is not a claim of complete sandbox security. The scoped Go regression checks that other atespaces receive no capability adjustment.
+
+## Separate batching candidate
+
+The twenty-first review inspected the [follow-up development candidate](BATCHED_TURN_EXPERIMENT.md)
+in a separate source copy while the original 44-trial release remained frozen.
+It did not inspect held-out model traces. Two findings were assessed:
+
+- A misspelled interruption hook could persist `blocked` over a resumable
+  checkpoint. The candidate now validates the hook before saving any execution
+  changes and writes only an error sidecar. Tests check byte/mtime preservation,
+  zero model/tool requests, and successful continuation after correcting the
+  hook, for both variants. Existing completed checkpoints remain untouched.
+- An interrupted token-count preflight stops rather than automatically retrying.
+  This remains the conservative recovery policy. The failed count is retained
+  with its specific reason; it is not reported as a successful task or a lost
+  generation. This is an availability limitation. Fable's suggested automatic
+  retry would change the declared recovery contract and was not applied.
+
+The additional hook fix followed the reviewed snapshot and passed local
+regression tests; Fable coverage is limited to its recorded source hashes.
+Candidate unit validation passed 682 tests. Its live performance is reported
+separately from the original frozen comparison.

@@ -22,9 +22,13 @@ The proposed [durable cleanup patch](../infra/ax/durable-cleanup.patch) grants D
 
 ## Evaluation
 
-The [44-trial comparison contract](CONTEXT_EXPERIMENT.md) was committed before comparison trials. The source is being frozen for one run of baseline (8), bounded-context treatment (8), existing regressions (10), and held-out scenarios (18). Fixed budgets, all planned denominators, no adaptive retries or passing replacements. Completed integration probes are separate evidence.
+The [44-trial comparison](CONTEXT_RESULTS.md) completed on frozen source `9dcc8ef`: baseline 6/8, bounded-context treatment 6/8, existing regressions 8/10, and held-out scenarios 6/18 supported completions. Context compaction did not solve the structured lost-ack budget failures. All planned trials remain, with no adaptive retries or passing replacements. All 44 audits were assessed with no duplicate proposals, unmatched successful scoped mutations, protected-state damage or false completion claims. Every phase's cluster was deleted. Completed integration probes are separate evidence.
 
-Twenty additional direct Fable component reviews completed so far; findings and checked dispositions are in [the review record](RUNTIME_REVIEW.md). Final local checks passed 675 tests and lint. These authored tests are separate from actual Docker/Kubernetes/AX evidence.
+The provider twice reported output above its requested allowance, including one 272-token excess over the intended trial ceiling. The host retained the usage and stopped; [the accounting finding](PROVIDER_OUTPUT_LIMIT_FINDING.md) limits any strict billing-cap claim.
+
+A [separate follow-up contract](BATCHED_TURN_EXPERIMENT.md), recorded in `7bfce90`, tests ordered incident recording and repair in one model response. That candidate was applied only after the original comparison and cleanup finished. Its next gate is eight live development trials; it preserves evidence, verification dependencies and original trial limits. The earlier held-out results do not validate this later candidate.
+
+Twenty-one additional direct Fable component reviews completed so far; findings and checked dispositions are in [the review record](RUNTIME_REVIEW.md). The frozen comparison release passed 675 tests and all 17 real CI acceptance checks. The separate batching candidate passed 682 tests and lint. These authored tests are separate from actual Docker/Kubernetes/AX evidence.
 
 ## Limits
 

@@ -1,5 +1,11 @@
 # Validation record
 
+The latest execution-boundary work is tracked in [the runtime work record](RUNTIME_ISOLATION_WORK.md),
+with [selected real runtime evidence](validation/runtime-gates.json) and
+[CI results for the frozen comparison release](validation/runtime-ci.json).
+The entries below preserve earlier releases and must not be reassigned to later
+source or described as AX integration evidence.
+
 ## Real-system acceptance
 
 Run `demo-cc5ea868` passed **8 application/verifier checks and 9 broker checks** on a fresh local kind cluster. Recovery checks used 30-second sampled windows. The cluster was removed after the run. The portable, credential-free result summary is [acceptance-cc5ea868.json](validation/acceptance-cc5ea868.json).

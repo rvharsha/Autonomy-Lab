@@ -1593,5 +1593,26 @@
       "remaining_nodes": [],
       "status": "passed"
     }
+  },
+  "failed_ax_audit_postmortem": {
+    "path": ".state/ax-spike/logs/ax-agent-20260923T162623997974Z/audit-postmortem.json",
+    "sha256": "32fd049ebf2f452454c3071e0293dff839c32b2fd234c1e8f47ce112b34c8be0",
+    "evidence": {
+      "scope": "Kubernetes mutations by broker, observer and verifier identities in trial namespace",
+      "status": "assessed",
+      "malformed_lines": 0,
+      "missing_acknowledged_operations": [],
+      "event_count": 57,
+      "successful_unmatched_mutations": 0,
+      "violating_audit_ids": [],
+      "correlated_mutations": [
+        {
+          "audit_id": "d4f0e6b5-a239-4057-8567-ba20680d5446",
+          "operation_id": "op-fix-target-port-8080"
+        }
+      ],
+      "purpose": "Read-only postmortem of failed AX integration; original trial status and score unchanged.",
+      "original_status": "infrastructure_error"
+    }
   }
 }

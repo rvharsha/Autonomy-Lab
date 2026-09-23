@@ -10,7 +10,7 @@ The [adversarial self-review](docs/ADVERSARIAL_REVIEW.md) records the original f
 
 The [funded Fable follow-up](docs/FUNDED_REVIEW.md) records completed source reviews, checked findings and durability fixes. The Anthropic credit blocker is resolved.
 
-A [focused completion experiment](docs/COMPLETION_EXPERIMENT.md) tests one shared prompt change under unchanged budgets: supported completion rose from 3/8 to 6/8 in matched development conditions. Structured lost-acknowledgement trials still exhausted their budgets. This is development evidence; held-out validation remains outstanding.
+A [focused completion experiment](docs/COMPLETION_EXPERIMENT.md) tested one shared prompt change under unchanged budgets: supported completion rose from 3/8 to 6/8 in matched development conditions. The later [44-trial context comparison](docs/CONTEXT_RESULTS.md) recorded a null development result (6/8 → 6/8), 8/10 regressions, and 6/18 held-out completions. Structured lost-acknowledgement failures remained. A [separate batching candidate](docs/BATCHED_TURN_EXPERIMENT.md) now addresses the extra incident-recording turn; its performance is a separate development question.
 
 ## Run the acceptance demo
 
@@ -47,8 +47,10 @@ The credential loader recognizes `GEMINI_API_KEY`, `GOOGLE_API_KEY`, or `GEMINI_
 
 ```sh
 PYTHONPATH=src .venv/bin/python -m autonomy_lab.cli experiment \
-  --manifest scenarios/pilot.yaml --env-file ~/Dev/.env
+  --manifest scenarios/batched-turn-development.yaml --env-file ~/Dev/.env
 ```
+
+This current manifest selects `runtime: isolated-docker`. Older pilot/completion manifests retain the legacy trusted local-process runtime for historical reproduction.
 
 This invokes the live model API and may incur charges. The manifest declares the model, token/turn limits, scenario matrix, repetition count, and verification window. The command saves the manifest and source hashes before running, resets the namespace and database between trials, and records every attempted result and any unrun trials. Local model/agent failures are retained as outcomes. A missing credential stops before provisioning.
 
@@ -56,9 +58,9 @@ Each trial runs in a separate POSIX worker with a controller-enforced `trial_tim
 
 Checkpoint schema 2 binds state to its run, release, system instructions and tool declarations. Schema 1 checkpoints remain historical evidence and are rejected without modification; there is no automatic migration or replay. Bounded HTTP runs on the worker's main thread and rejects compressed responses before decoding. The verifier caps each response at 64 KiB; model and Kubernetes responses have separate bounded limits.
 
-The pilot is development evidence, not a statistical reliability claim. Injected adversarial observations count as exposure only if they appear in the actor's recorded observations. Model token usage includes repeated input context and thinking tokens. Preflight conservatively reserves previous thinking carried by the conversation in addition to `countTokens`; [the live accounting failure](docs/TOKEN_BUDGET_FINDING.md) explains why. Infrastructure runtime and any unpriced cost remain separate from token usage.
+The pilot is development evidence, not a statistical reliability claim. Injected adversarial observations count as exposure only if they appear in the actor's recorded observations. Model token usage includes repeated input context and thinking tokens. Preflight conservatively reserves previous thinking carried by the conversation in addition to `countTokens`; [the live accounting failure](docs/TOKEN_BUDGET_FINDING.md) explains why. Later responses also [reported output usage above the requested limit](docs/PROVIDER_OUTPUT_LIMIT_FINDING.md). The host records that usage and stops; local request gating is not a proven strict provider billing cap. Infrastructure runtime and any unpriced cost remain separate from token usage.
 
-The [runtime work record](docs/RUNTIME_ISOLATION_WORK.md) tracks the additional isolation, crash recovery, AX and evaluation gates. The 44-trial comparison is declared in `scenarios/context-*.yaml` and runs once with `PYTHONPATH=src .venv/bin/python scripts/run_context_evaluation.py`. It retains failed and unrun trials, enforces unchanged budgets, and stops if its frozen source changes.
+The [runtime work record](docs/RUNTIME_ISOLATION_WORK.md) tracks the additional isolation, crash recovery, AX and evaluation gates. The original 44-trial comparison is declared in `scenarios/context-*.yaml`; reproduce its source from commit `9dcc8ef` before running `PYTHONPATH=src .venv/bin/python scripts/run_context_evaluation.py`. The runner retains failed and unrun trials, keeps requested limits unchanged, and stops if its frozen source changes.
 
 ## Boundaries and current limitations
 

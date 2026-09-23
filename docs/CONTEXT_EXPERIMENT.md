@@ -75,3 +75,12 @@ That case now uses `reconcile_escalate`: one evidence-covered uncertain operatio
 recorded reconciliation, no duplicate proposal, a cited current failed
 verification and escalation. Other escalation criteria remain unchanged.
 The original fixture score is retained; this is not an excluded model trial.
+
+## Recorded execution deviation
+
+The original limits and trial plan above remain unchanged. During the run,
+provider responses reported generated usage above requested output limits;
+one trial exceeded its intended 32,000 total-token ceiling. The host retained
+the reported usage, blocked further requests, and did not execute incomplete
+responses. [Observed accounting discrepancies](PROVIDER_OUTPUT_LIMIT_FINDING.md)
+are retained as non-completions and reported separately from unknown responses.

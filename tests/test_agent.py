@@ -355,6 +355,55 @@ def test_basic_variant_cannot_record_incident(tmp_path):
     assert toolbox.calls == []
 
 
+@pytest.mark.parametrize("interrupt", [False, True])
+def test_batched_incident_is_durable_before_repair_even_after_restart(tmp_path, interrupt):
+    path = tmp_path / "agent.json"
+    incident = {"hypotheses": ["Observed routing mismatch."], "evidence_ids": ["unit-observation-1"],
+                "unresolved_operations": [], "next_step": "Submit the evidence-covered repair."}
+    proposal = {"operation_id": "unit-batched-repair", "target_port": 8080}
+
+    def check_checkpoint(name, args):
+        if name == "propose_repair":
+            saved = json.loads(path.read_text())
+            assert saved["incident"] == incident
+            assert saved["pending_turn"]["calls"][0]["result"]["kind"] == "incident_recorded"
+            assert saved["pending_turn"]["calls"][0]["phase"] == "completed"
+
+    toolbox = StubToolbox(on_call=check_checkpoint)
+    batch = response(call("record_incident", incident, "record"), call("propose_repair", proposal, "repair"))
+    client = StubClient(response(call("observe_service")), batch, response(finish()))
+    result = run_agent(client, toolbox, path, variant="structured",
+                       interrupt_after_tool="record_incident" if interrupt else None)
+    if interrupt:
+        assert result["status"] == "interrupted"
+        assert [name for name, _ in toolbox.calls] == ["observe_service"]
+        assert result["pending_turn"]["calls"][1]["phase"] == "queued"
+        result = run_agent(StubClient(response(finish())), toolbox, path, variant="structured")
+    assert result["status"] == "completed"
+    assert [name for name, _ in toolbox.calls] == ["observe_service", "propose_repair", "finish"]
+    assert sum(r["name"] == "record_incident" for r in result["tool_records"]) == 1
+
+
+@pytest.mark.parametrize("interrupt", [False, True])
+def test_rejected_batched_incident_prevents_repair_and_survives_restart(tmp_path, interrupt):
+    path = tmp_path / "agent.json"
+    incident = {"hypotheses": [], "evidence_ids": ["never-observed"],
+                "unresolved_operations": [], "next_step": "Unsubstantiated repair."}
+    batch = response(call("record_incident", incident, "record"),
+                     call("propose_repair", {"operation_id": "unit-batched-repair", "target_port": 8080}, "repair"))
+    toolbox = StubToolbox()
+    result = run_agent(StubClient(batch), toolbox, path, variant="structured",
+                       interrupt_after_tool="record_incident" if interrupt else None)
+    if interrupt:
+        assert result["status"] == "interrupted"
+    resumed = StubClient()
+    result = run_agent(resumed, toolbox, path, variant="structured")
+    assert result["status"] == "blocked"
+    assert result["reason"] == "repair_after_rejected_incident"
+    assert result["pending_turn"]["calls"][1]["phase"] == "queued"
+    assert toolbox.calls == resumed.requests == resumed.count_requests == []
+
+
 @pytest.mark.parametrize("invalid_fields", [
     {"evidence_ids": ["never-observed"]},
     {"hypotheses": ["x" * 501]},
@@ -782,6 +831,28 @@ def test_interrupt_name_must_be_in_actual_toolbox_declarations(tmp_path):
     result = run_agent(client, toolbox, tmp_path / "agent.json", interrupt_after_tool="finish")
     assert result["reason"] == "invalid_interrupt_tool"
     assert client.count_requests == client.requests == toolbox.calls == []
+
+
+@pytest.mark.parametrize("variant, tool_name", [
+    ("basic", "observe_servce"), ("structured", "observe_servce"), ("basic", "record_incident"),
+])
+def test_invalid_resume_hook_preserves_checkpoint_for_corrected_call(tmp_path, variant, tool_name):
+    path = tmp_path / "agent.json"
+    toolbox = StubToolbox()
+    first = run_agent(StubClient(response(call("observe_service"))), toolbox, path,
+                      variant=variant, interrupt_after_tool="observe_service")
+    before, modified_at = path.read_bytes(), path.stat().st_mtime_ns
+    toolbox.calls.clear()
+    client = StubClient(response(finish()))
+    result = run_agent(client, toolbox, path, variant=variant, interrupt_after_tool=tool_name)
+    assert result["reason"] == "invalid_interrupt_tool"
+    assert path.read_bytes() == before and path.stat().st_mtime_ns == modified_at
+    assert client.count_requests == client.requests == toolbox.calls == []
+    assert json.loads(path.with_suffix(".json.error.json").read_text()) == result
+    result = run_agent(client, toolbox, path, variant=variant)
+    assert result["status"] == "completed"
+    assert result["resume_count"] == first["resume_count"] + 1
+    assert len(client.requests) == 1
 
 
 def test_count_failure_is_durable_and_never_falls_back_to_estimate(tmp_path):

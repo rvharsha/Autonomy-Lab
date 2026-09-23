@@ -127,7 +127,7 @@ def container_args(image_id, workspace, name):
 
 
 class ModelRelay:
-    """A host-owned ledger enforces spend even if writable agent state is corrupted."""
+    """Gate provider requests and retain usage outside writable agent state."""
     def __init__(self, client, path, options):
         self.client, self.path, self.options = client, Path(path), options
         self.state = json.loads(self.path.read_text()) if self.path.exists() else {
