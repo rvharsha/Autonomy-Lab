@@ -9,6 +9,9 @@ import yaml
 def configure(run_dir: Path, base: Path) -> Path:
     directory = run_dir / "server-audit"
     directory.mkdir(mode=0o700)
+    # Native Linux bind mounts preserve root-created 0600 log ownership. Create
+    # the log as the controller; the pinned API server preserves it on rotation.
+    (directory / "events.jsonl").touch(mode=0o600, exist_ok=False)
     policy = directory / "policy.yaml"
     policy.write_text(yaml.safe_dump({
         "apiVersion": "audit.k8s.io/v1", "kind": "Policy",

@@ -1,6 +1,6 @@
 # Autonomy Lab
 
-A local Kubernetes lab for testing diagnosis, bounded repair, independent verification, and recovery after interruption. The research proposal is in [PLAN.md](PLAN.md); milestones are in [BUILD_PLAN.md](BUILD_PLAN.md).
+A Kubernetes lab for testing diagnosis, bounded repair, independent verification, and recovery after interruption. It runs locally or on the [GCP experiment host](infra/gcp/README.md) in `autonomy-lab-509518`. The research proposal is in [PLAN.md](PLAN.md); milestones are in [BUILD_PLAN.md](BUILD_PLAN.md).
 
 The application is real: Quote API → Inventory Service → Inventory API → PostgreSQL. The controller changes the Inventory Service's target port. A separate verifier checks HTTP responses, protected database rows, and Service configuration. The broker permits one typed field change with identity/version preconditions and a durable SQLite operation journal.
 
@@ -69,7 +69,7 @@ The [runtime work record](docs/RUNTIME_ISOLATION_WORK.md) tracks the additional 
 - Agent-visible tools contain no shell, arbitrary URL, database write, or unrestricted Kubernetes command. Broker and verifier use separate Kubernetes identities; application and verifier database users have SELECT-only access.
 - The trusted local controller holds cluster-admin credentials for setup and scenario injection. With `runtime: isolated-docker`, the agent runs as a nonroot user in an immutable, read-only, network-disabled container with only its workspace mounted. Broker and verifier run outside that container. The Docker daemon, host, and orchestration code remain trusted.
 - The local kind API server records independent mutation audit events. The controller correlates successful broker writes to exact conditional patches and rejects missing acknowledged writes or successful unmatched scoped writes. Comprehensive unsafe-execution attribution remains unassessed.
-- The patched, pinned [AX runtime](docs/AX_RUNTIME_STATUS.md) passed three data-snapshot resume cycles and a real worker-capacity-loss recovery check. Full live lost-ack recovery and AX controller-death cleanup also passed on the authorized local variant; [selected evidence](docs/validation/ax-release.json) retains the preceding failed provider attempt. The supported deployment target remains local.
+- The patched, pinned [AX runtime](docs/AX_RUNTIME_STATUS.md) passed three data-snapshot resume cycles and a real worker-capacity-loss recovery check. Full live lost-ack recovery and AX controller-death cleanup also passed on the authorized local variant; [selected evidence](docs/validation/ax-release.json) retains the preceding failed provider attempt. AX remains local to the tested macOS ARM64 variant; the GCP host uses the existing isolated Docker runtime.
 - The basic/structured comparison changes an internal state tool and prompt as well as representation. Full history is archived for both. The declared [bounded-context comparison](docs/CONTEXT_EXPERIMENT.md) tests the same context policy for both variants; results must be read as a shared runtime intervention.
 - The initial corpus uses declared, versioned test inputs. All reported system outcomes must come from actual executions.
 

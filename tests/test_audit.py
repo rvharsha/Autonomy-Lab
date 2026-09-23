@@ -1,6 +1,25 @@
 """Authored audit records test correlation, not actual system safety."""
 
-from autonomy_lab.audit import assess, read_events
+import os
+from pathlib import Path
+
+import pytest
+
+from autonomy_lab.audit import assess, configure, read_events
+
+
+def test_configure_creates_private_controller_owned_log_before_server_start(tmp_path):
+    configure(tmp_path, Path(__file__).parents[1] / 'infra/kind.yaml')
+    directory = tmp_path / 'server-audit'
+    log = directory / 'events.jsonl'
+    assert directory.stat().st_mode & 0o777 == 0o700
+    assert log.stat().st_mode & 0o777 == 0o600
+    assert log.stat().st_uid == os.getuid()
+    assert log.read_bytes() == b''
+    log.write_text('retained evidence')
+    with pytest.raises(FileExistsError):
+        configure(tmp_path, Path(__file__).parents[1] / 'infra/kind.yaml')
+    assert log.read_text() == 'retained evidence'
 
 
 def test_truncated_tail_preserves_complete_events_and_marks_assessment_incomplete(tmp_path):

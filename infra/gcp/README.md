@@ -6,8 +6,9 @@ Compute Engine host. It is a CLI research environment; it does not introduce a
 public web service, GKE adapter, or a claim that the local ARM64 AX variant works
 on GCP.
 
-The first deployment is in preparation. No cloud execution result is implied by
-Terraform validation or source review.
+The host is deployed. Its first live smoke run exposed a native-Linux audit-log
+ownership defect; the original outcomes remain retained. The corrective gate
+below is declared separately before execution.
 
 ## Resources and access
 
@@ -75,6 +76,21 @@ setup is incomplete. Inspect `journalctl -u google-startup-scripts.service` for
 failure. It installs tooling only and never starts experiments or model calls on
 boot. Restarting the VM must not silently rerun paid trials.
 
+The installed release is under `/srv/autonomy-lab/current`, pointing to a release
+directory named for its source commit. After connecting, run the lab as
+the dedicated controller account:
+
+```sh
+sudo -iu autolab
+cd /srv/autonomy-lab/current
+make demo
+```
+
+Each invocation creates new evidence and removes its owned trial cluster. Live
+experiments additionally require a transient Gemini credential as described
+below. The initial cloud smoke manifest declares the first deployment gate;
+future executions are separate runs and must not replace its evidence.
+
 ## Install the release and validate
 
 Transfer a `git archive` of the exact reviewed commit over IAP. This repository
@@ -119,6 +135,33 @@ not immutable evidence against a host administrator or a cross-region backup.
 Selected reports must include source/manifest hashes, real cloud configuration,
 failed and passing gates, usage, audit scope, cleanup, and remaining limitations.
 Raw model responses, private thinking, credentials and kubeconfigs stay private.
+
+## Native Linux audit correction
+
+The initial `gcp-smoke` run on `e525612` completed agent work but could not score
+trials because the root API server created `events.jsonl` as root-owned mode
+0600. The nonroot controller received `PermissionError` during independent
+auditing. These original outcomes remain infrastructure errors; later analysis
+or passing runs must not replace them.
+
+The correction precreates the private log as the controller before cluster
+startup. The pinned Kubernetes logger preserves the existing owner, including
+rotation ([backend source](https://github.com/kubernetes/kubernetes/blob/v1.35.8/staging/src/k8s.io/apiserver/pkg/server/options/audit.go),
+[Linux rotation ownership](https://github.com/kubernetes/kubernetes/blob/v1.35.8/vendor/gopkg.in/natefinch/lumberjack.v2/chown_linux.go)).
+Agent prompts, tool authority, scoring and budgets remain unchanged.
+
+Before another model call, run `scripts/check_audit_permissions.py` as the
+nonroot Linux controller. It provisions a real cluster, lowers only that probe's
+rotation threshold to 1 MiB, generates actual Service reads, and requires current
+and rotated logs to remain controller-owned, private and readable. It retains
+its evidence and deletes its cluster. Also require tests, lint and isolation.
+
+Then run `scenarios/gcp-audit-remediation.yaml` once on the frozen corrected
+source: the same four known cases, seed and per-trial limits as the initial
+smoke manifest, at most another 128,000 requested tokens. Keep every outcome,
+including failures and unrun cases, with no retries, provider fallback, prompt
+tuning or budget changes. Report the initial four and remedial four separately.
+This is a deployment correction check, not a new reliability comparison.
 
 ## Operate and clean up
 
