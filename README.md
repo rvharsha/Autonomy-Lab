@@ -1,5 +1,7 @@
 # Autonomy Lab
 
+Start with the [research findings and readiness](docs/FINDINGS.md), [annotated trajectories](docs/TRAJECTORIES.md), and [reproduction guide](docs/REPRODUCING.md). The corrected research release is **v0.1.1**; [handoff validation](docs/HANDOFF_VALIDATION.md) records its execution gates.
+
 A Kubernetes lab for testing diagnosis, bounded repair, independent verification, and recovery after interruption. It runs locally or on the [GCP experiment host](infra/gcp/README.md) in `autonomy-lab-509518`. The research proposal is in [PLAN.md](PLAN.md); milestones are in [BUILD_PLAN.md](BUILD_PLAN.md).
 
 The application is real: Quote API → Inventory Service → Inventory API → PostgreSQL. The controller changes the Inventory Service's target port. A separate verifier checks HTTP responses, protected database rows, and Service configuration. The broker permits one typed field change with identity/version preconditions and a durable SQLite operation journal.

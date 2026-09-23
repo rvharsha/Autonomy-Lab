@@ -1,6 +1,6 @@
 [project]
 name = "autonomy-lab"
-version = "0.1.0"
+version = "0.1.1"
 description = "An eval-first playground for dependable cloud agents"
 requires-python = ">=3.12,<3.13"
 dependencies = [

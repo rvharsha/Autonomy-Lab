@@ -1,5 +1,7 @@
 # Correctness follow-up
 
+> Historical record for the source named below. See [current findings and readiness](FINDINGS.md) for current deployment status and deferred work.
+
 Main implementation commit: `a18c434b7eeb8debd9a412f56a972b0c2bbba721`; worker-startup correction: `bfbd7a0`, on [draft PR #1](https://github.com/rvharsha/Autonomy-Lab-/pull/1). This follows the [adversarial self-review](ADVERSARIAL_REVIEW.md). The four findings have code fixes and focused regression coverage; the later [funded Fable follow-up](FUNDED_REVIEW.md) now records completed reviews and dispositions.
 
 | Finding | Implemented behavior |

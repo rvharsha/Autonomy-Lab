@@ -1,5 +1,7 @@
 # Reconciliation follow-up results
 
+> Historical record for the source named below. See [current findings and readiness](FINDINGS.md) for current deployment status and deferred work.
+
 Candidate `a38b0d03f38da08b99a97e003598062037fd16ba` recorded **23/24 supported completions** in the [declared follow-up](RECONCILIATION_EXPERIMENT.md). The promotion gate **failed**. Both phases used unchanged executable source, budgets, scorer and verification. Each declared trial was attempted once without generation retries or passing replacements.
 
 | Phase | Supported completion | Reported tokens | Cleanup |

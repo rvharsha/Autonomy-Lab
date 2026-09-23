@@ -1,5 +1,7 @@
 # Adversarial self-review and remaining work
 
+> Historical record for the source named below. See [current findings and readiness](FINDINGS.md) for current deployment status and deferred work.
+
 Reviewed implementation: `54b39dafd1de2baec2a1ede6b0d348cd13b5cbcc`, on `feat/verified-agent-lab`. This is a self-review of the current local prototype, not a new Fable review or an approval to merge. Findings below remain open; this review changes documentation and exports review evidence, not runtime code.
 
 Subsequent implementation and validation are tracked in [CORRECTNESS_FIXES.md](CORRECTNESS_FIXES.md). The findings and priorities below preserve the original review rather than silently rewriting its conclusions.
