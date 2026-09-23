@@ -37,3 +37,15 @@ without executing the incomplete response or retrying. This run stayed below
 its trial total limit, but violated the per-request reservation. The second
 case shows the discrepancy also occurred with the normal 2,048 output setting,
 not only the smaller final allowance in treatment trial 003.
+
+## Follow-up candidate discrepancy
+
+The separately declared batching regression trial 008 (`experiment-5533bbd9`,
+structured `distraction`, source `ec7feb1`) returned `MAX_TOKENS` on generation
+two. Its reserved and reported prompt usage both equaled 3,853 tokens. Reported
+output was 497 candidate plus 1,845 thinking tokens: 2,342 against a requested
+2,048, an excess of 294. The host retained both generation responses and all
+7,698 reported trial tokens, blocked further generation, and did not execute
+the incomplete response's tools. This is a known reservation overrun below the
+trial total ceiling; it is separate from the follow-up development HTTP 503
+whose generation usage is unknown. Neither trial was retried or replaced.

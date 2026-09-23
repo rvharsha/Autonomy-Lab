@@ -2,7 +2,7 @@
 
 ## Live agent integration remains incomplete
 
-The final local nonroot agent image started in real AX and passed its actual
+The nonroot agent image in the latest attempted AX integration passed its actual
 network, filesystem, capability, credential and privilege checks. It made two
 Gemini calls (6,111 known tokens) and reached the lost-ack interruption.
 Suspension then failed in Substrate host cleanup: `atelet`, which drops all

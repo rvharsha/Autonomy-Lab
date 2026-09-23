@@ -1614,5 +1614,21 @@
       "purpose": "Read-only postmortem of failed AX integration; original trial status and score unchanged.",
       "original_status": "infrastructure_error"
     }
+  },
+  "comparison_cleanup": {
+    "path": ".state/final-owned-cleanup.json",
+    "sha256": "e3b127d1d259949e9441f0d367dbab6d5b682fb4ea7b09ba82a7ddb779ab01fd",
+    "evidence": {
+      "checked_clusters": [
+        "autolab-c99b520e",
+        "autolab-31b761fa",
+        "autolab-ac4b2fd7",
+        "autolab-9fdf9b01",
+        "autolab-8ecd0f18",
+        "autolab-5533bbd9"
+      ],
+      "checked_agent_names": 62,
+      "remaining_owned_containers": []
+    }
   }
 }

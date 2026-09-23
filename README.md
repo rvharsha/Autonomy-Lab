@@ -10,7 +10,7 @@ The [adversarial self-review](docs/ADVERSARIAL_REVIEW.md) records the original f
 
 The [funded Fable follow-up](docs/FUNDED_REVIEW.md) records completed source reviews, checked findings and durability fixes. The Anthropic credit blocker is resolved.
 
-A [focused completion experiment](docs/COMPLETION_EXPERIMENT.md) tested one shared prompt change under unchanged budgets: supported completion rose from 3/8 to 6/8 in matched development conditions. The later [44-trial context comparison](docs/CONTEXT_RESULTS.md) recorded a null development result (6/8 → 6/8), 8/10 regressions, and 6/18 held-out completions. Structured lost-acknowledgement failures remained. A [separate batching candidate](docs/BATCHED_TURN_EXPERIMENT.md) now addresses the extra incident-recording turn; its performance is a separate development question.
+A [focused completion experiment](docs/COMPLETION_EXPERIMENT.md) tested one shared prompt change under unchanged budgets: supported completion rose from 3/8 to 6/8 in matched development conditions. The later [44-trial context comparison](docs/CONTEXT_RESULTS.md) recorded a null development result (6/8 → 6/8), 8/10 regressions, and 6/18 held-out completions. A [separate batching follow-up](docs/BATCHED_TURN_RESULTS.md) completed both structured lost-ack retests under the same token target, with 7/8 development and 8/10 regression completions. Escalation and provider failures remain, and the earlier held-out results do not validate the later candidate.
 
 ## Run the acceptance demo
 
