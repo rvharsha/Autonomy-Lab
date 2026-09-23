@@ -1,0 +1,117 @@
+{
+  "artifact": ".state/reviews/20260923T023059.622299Z-final_patch.json",
+  "cost_preflight": {
+    "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+    "budget_usd": 0.8,
+    "estimated_maximum_usd": 0.71221,
+    "input_margin_tokens": 535,
+    "input_tokens": 10686,
+    "input_usd_per_million": 10,
+    "max_output_tokens": 12000,
+    "output_usd_per_million": 50,
+    "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+  },
+  "cumulative_reported_or_estimated_review_cost_usd": 11.214535,
+  "description": "Final patch scope source review only; no tests executed by reviewer and no automatic approval.",
+  "final_findings_text": "**Finding 1 \u2014 introduced: invalid interrupt tool check rewrites terminal states (src/autonomy_lab/agent.py:325\u2013328)**\n\nThe new guard runs before the terminal-status short-circuit. Trace: a saved run with `state[\"status\"] == \"completed\"` (or `budget_exhausted`/`indeterminate`) is reopened with `interrupt_after_tool=\"typo_tool\"`. Line 325 evaluates true \u2192 `self.stop(\"blocked\", \"invalid_interrupt_tool\")` executes and returns, so line 327 never protects the terminal record. A finished run's status is overwritten to `blocked` purely because of a caller argument, with no provider call involved. The boundary only requires blocking before a provider call; the check should sit after line 328 (or only gate the request path) to avoid mutating already-terminal states. Also note the guard is a no-op for non-`str` non-`None` values because of the `isinstance(..., str)` prefix; whether that type is reachable is not shown in the supplied scope, so I do not assert it.\n\n**Finding 2 \u2014 unresolved: derived thinking count is not \"complete\" arithmetic (src/autonomy_lab/agent.py:302\u2013308)**\n\nThe fallback computes `prior_thoughts = total - prompt - candidates` and labels it as thinking. The provider's `usageMetadata` can carry additional additive components (e.g., `toolUsePromptTokenCount`) that are neither prompt nor candidates. Trace: response with `totalTokenCount=1200, promptTokenCount=1000, candidatesTokenCount=100, toolUsePromptTokenCount=100`, no `thoughtsTokenCount` \u2192 code records `tokens=100, source=\"...minus...\"` and reserves 100 as thought tokens. The 100 are tool-use prompt tokens, not thinking; the range check at line 309 passes, so the misattribution is silent. Since the accepted boundary is that missing thinking is derived only from complete valid token arithmetic, the subtraction should either require absence (or explicit inclusion) of the other additive fields or raise `cannot be derived` when they are present. Over-reservation is conservative for budget but the recorded `prior_thought_usage` evidence is inaccurate.\n\n**Checked, no defect substantiated in supplied scope:**\n- broker.py:291\u2013308 \u2014 ack requires uid match, non-empty changed `resourceVersion`, exactly one port matching `proposal.port_name`, `targetPort` strictly `int` (bool excluded) equal to `proposal.target_port`; failures go to `uncertain` after dispatch, consistent with budget consumed.\n- harness.py:263\u2013280 \u2014 `closing()` ensures connection close; missing row records a named failed check and `continue`s. Whether `killed` may collide with the explicit keyword names (`reason`, `persisted_status`, \u2026) cannot be determined from supplied code.\n- harness.py:566 \u2014 `establish_fault` call inserted; its definition is not in scope, so wait-behavior is not verified here.\n- runbook.py:55\u201370 \u2014 nonterminal replay refused via `toolbox.call_count` (attribute definition not supplied); evidence collection skips absent/blank IDs and explicit `evidence_eligible is not True`.\n- scoring.py:138\u2013141 \u2014 non-mapping `request` rejected.\n\nNo tests were executed; this is static verification of the supplied patches only.\n\nSnapshot ID: 1573928fc4bcb54191663a787aebc40b8926fbc9850072792994ef1a61a837c2",
+  "generated_at": "2026-09-23T02:31:54.099182+00:00",
+  "generation_attempts": 1,
+  "model": "claude-fable-5-1",
+  "prior_generation_attempts": 0,
+  "prior_preflight_failure": ".state/reviews/20260923T022945.477973Z-final_patch.json",
+  "snapshot": {
+    "files": [
+      {
+        "before_sha256": "ca68008b65a85dbcb62425d7e7f2bfce2f87c6cb79e22c1b5bdce1cc8f27ecc9",
+        "before_snapshot_id": "db029542f17097f89a9ff4872df7529bcd82dd0022f777e8880b0416e7c66fa7",
+        "bytes": 28834,
+        "changed_functions": [
+          "_Runner.preserved_thought_tokens",
+          "_Runner.run"
+        ],
+        "included": "unified_diff_and_changed_function_context",
+        "lines": 534,
+        "path": "src/autonomy_lab/agent.py",
+        "sha256": "6007c80f0b375f7b8f25ed34a025b16193951fc4b30dc5165150c427622e7667"
+      },
+      {
+        "before_sha256": "0c9cb0933478c0960981f814cb8b5f4ff5f5ff490662e3ed32ac44792792bf1a",
+        "before_snapshot_id": "c69388efe89ccd3441309463fe06b844e78021399e7b2312d20ba47c2c71cdfb",
+        "bytes": 19384,
+        "changed_functions": [
+          "ActionBroker.resume_prepared"
+        ],
+        "included": "unified_diff_and_changed_function_context",
+        "lines": 424,
+        "path": "src/autonomy_lab/broker.py",
+        "sha256": "64b02b1e17171524fdc612aa8f520fec4c3eecda0782ef42a28f698ff4af812b"
+      },
+      {
+        "before_sha256": "f8b456f139a1fc57a79b42341694aa11815ef4f6616c915d73ff49ca2333984d",
+        "before_snapshot_id": "5a4f48cb14e96a9fdecc95bc10b4894bb4644031931ec16c992e230a7ef19c9a",
+        "bytes": 28922,
+        "changed_functions": [
+          "sigkill_acceptance",
+          "run_demo"
+        ],
+        "included": "unified_diff_and_changed_function_context",
+        "lines": 663,
+        "path": "src/autonomy_lab/harness.py",
+        "sha256": "72d58fea42910564685c78ea37b5a79423761e481717dfc40e74ca45eec253be"
+      },
+      {
+        "before_sha256": "f0c4514dbee4c4a8cbef786a10a29b91cd6ec1319b4a31b766dbf067755163ea",
+        "before_snapshot_id": "840bf4ebf7e9c9d3b9c583e6271713c24f1058948625a7ce771fb6c541e7f2ed",
+        "bytes": 6371,
+        "changed_functions": [
+          "run",
+          "run.call"
+        ],
+        "included": "unified_diff_and_changed_function_context",
+        "lines": 160,
+        "path": "src/autonomy_lab/runbook.py",
+        "sha256": "524b6dc5fa8843bce1443be5de5186fc38e05c25b4f06932350d67e6d77c22af"
+      },
+      {
+        "before_sha256": "86a2bee6a4b02aa71a1a48984e2178b5c10aa79d8169b0ad647e90a84d6578c1",
+        "before_snapshot_id": "14c421f3ceee4427d52fb949a2675007d84e96036890095217bf48af50ada145",
+        "bytes": 21819,
+        "changed_functions": [
+          "_validate"
+        ],
+        "included": "unified_diff_and_changed_function_context",
+        "lines": 495,
+        "path": "src/autonomy_lab/scoring.py",
+        "sha256": "dcb54d65ef455d3af7048a044d7c5ff0bb9959519fee2f4f0c3e4d82ba4fc04e"
+      }
+    ],
+    "prompt_sha256": "8469c800ad58ce6499b09d4efd4a5a4b4160e862b2366fab005253b8c9063e7a",
+    "review_kind": "final_patch",
+    "scope": "final_patch",
+    "snapshot_id": "1573928fc4bcb54191663a787aebc40b8926fbc9850072792994ef1a61a837c2",
+    "source_bytes": 105330,
+    "unchanged_excluded_files": [
+      "src/autonomy_lab/experiments.py",
+      "src/autonomy_lab/toolbox.py"
+    ]
+  },
+  "source_files_match_at_summary": true,
+  "status": "completed",
+  "stop_reason": "end_turn",
+  "usage": {
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 0,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "inference_geo": "global",
+    "input_tokens": 10686,
+    "output_tokens": 2417,
+    "output_tokens_details": {
+      "thinking_tokens": 1241
+    },
+    "service_tier": "standard"
+  },
+  "usage_cost_estimate_usd": 0.22771
+}

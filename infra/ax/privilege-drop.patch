@@ -1,0 +1,34 @@
+--- a/internal/substrate/client.go
++++ b/internal/substrate/client.go
+@@ -236,16 +236,27 @@
+ 		})
+ 	}
+ 
++	// The local lab bootstrap needs only these additional capabilities to
++	// hand its workspace to, and irreversibly enter, the nonroot decision UID.
++	// No other AX atespace receives this adjustment.
++	var securityContext *ateapipb.SecurityContext
++	if atespace == "autonomy-agents" {
++		securityContext = &ateapipb.SecurityContext{Capabilities: &ateapipb.Capabilities{
++			Add: []string{"CHOWN", "SETUID", "SETGID"},
++		}}
++	}
++
+ 	return &ateapipb.ActorTemplate{
+ 		Metadata: &ateapipb.ResourceMetadata{
+ 			Name:     name,
+ 			Atespace: atespace,
+ 		},
+ 		Containers: []*ateapipb.Container{{
+-			Name:    "guest",
+-			Image:   image,
+-			Command: command,
+-			Env:     envList,
++			Name:            "guest",
++			Image:           image,
++			Command:         command,
++			Env:             envList,
++			SecurityContext: securityContext,
+ 			Readyz: &ateapipb.ContainerReadyz{
+ 				HttpGet: &ateapipb.HTTPGetAction{
+ 					Path: "/readyz",

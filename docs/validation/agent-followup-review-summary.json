@@ -1,0 +1,107 @@
+{
+  "artifact": ".state/reviews/20260923T031906.919502Z-agent_followup_patch.json",
+  "cost_preflight": {
+    "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+    "budget_usd": 0.7,
+    "estimated_maximum_usd": 0.68102,
+    "input_margin_tokens": 386,
+    "input_tokens": 7716,
+    "input_usd_per_million": 10,
+    "max_output_tokens": 12000,
+    "output_usd_per_million": 50,
+    "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+  },
+  "count_response": {
+    "body": "{\"input_tokens\":7716}",
+    "status_code": 200
+  },
+  "cumulative_reported_or_estimated_review_cost_usd": 11.441595,
+  "error": null,
+  "final_findings_text": "**Finding 1 \u2014 Terminal checkpoint still overwritten by the configuration check (agent.py 522\u2013525 precede 528\u2013531)**\n\nThe patch's stated invariant (\"Preserve its bytes before changing counters, limits, or hooks\", 526\u2013527) is only applied after the configuration comparison. Trace:\n\n1. Checkpoint on disk: `schema_version: 1`, `variant: \"basic\"`, `status: \"completed\"`, `reason: <real completion reason>`, full `model_responses`/`usage`.\n2. `run_agent(..., variant=\"structured\")` (or a client with a different `.model`) \u2192 510 exists \u2192 512 loads \u2192 517 passes \u2192 521 `state = saved`.\n3. 522 `state[\"variant\"] != variant` is true \u2192 523 `state.update(status=\"blocked\", reason=\"checkpoint_configuration_changed\")` \u2192 524 `_save(path, state)` rewrites the completed checkpoint in place \u2192 525 returns.\n\nThe completed run's terminal status and reason are destroyed by a mere mis-configured open, which is exactly the class of mutation 528\u2013531 was added to prevent. Fix: move the terminal-status test (528\u2013531) to immediately after 521, or make 522\u2013525 write the failure to the `.error.json` side file as 515/519 do instead of `_save(path, state)`.\n\n**Finding 2 \u2014 Malformed-but-versioned checkpoint is overwritten via the generic handler (agent.py 517\u2013521, 522/528/532\u2013533, 536\u2013540)**\n\nValidation at 517 only checks `dict` and `schema_version == 1`; subsequent lines index required keys directly. Trace:\n\n1. Checkpoint: `{\"schema_version\": 1, \"variant\": \"basic\", \"model\": <matching>, \"status\": \"completed\"}` (no `pending_turn`, or no `limits`/`resume_count`).\n2. 521 `state = saved` \u2192 522 passes \u2192 528 `state[\"status\"] in {...}` true \u2192 returns (OK). But with `status: \"error\"` and no `pending_turn` key: 528 first clause false \u2192 529 `state[\"pending_turn\"]` raises `KeyError`.\n3. 536 catches it \u2192 538 `state.update(status=\"error\", reason=\"agent_execution_failed\", ...)` mutates the *loaded* dict \u2192 540 `_save(path, state)` overwrites the original file with an error record and traceback-derived details.\n\nUnreadable/invalid checkpoints at 513\u2013520 are deliberately routed to the `.error.json` side file and left untouched; the same class of defect one line later rewrites the primary checkpoint. Fix: validate required keys (`status`, `pending_turn`, `pending_model`, `limits`, `resume_count`, `variant`) at 517 and route failures to the side file, or narrow the 536 handler so structural `KeyError`/`TypeError` before 534 does not `_save(path, \u2026)`.\n\n**Reviewed without substantiated findings:** `_Runner.stop`, `preserved_thought_tokens` (the `toolUsePromptTokenCount` guard at 305\u2013307 is conservative: any non-zero or non-int value rejects derivation; `bool` is excluded by `type(...) is not int`), `run` guards 321\u2013333 (interrupt-hook check now follows terminal returns; `stop` cannot fire on a terminal state from these lines), `gemini.py` (model ID fullmatch prevents URL injection; error bodies/headers excluded; no retry paths), `cli.py` (`positive_seconds` rejects NaN/inf/\u22640; `Path(\"~/Dev/.env\")` is not expanded here, but consumer is out of scope).\n\nNo tests were executed; findings are from static traces of the supplied lines only.\n\nSource snapshot ID b25c9fc5a6072b3191c0db01b04ce1ac9ddd4db48d4164dba0b55c0698cf6d01",
+  "generated_at": "2026-09-23T03:19:49.541057+00:00",
+  "generation_attempts": 1,
+  "limits": {
+    "automatic_retries": 0,
+    "cost_usd": 0.7,
+    "generation_requests": 1,
+    "input_tokens": 8000,
+    "output_tokens": 12000
+  },
+  "model": "claude-fable-5-1",
+  "prior_preflight_attempts": [
+    {
+      "artifact": ".state/reviews/20260923T031542.443760Z-agent_followup_patch.json",
+      "generation_attempts": 0,
+      "input_tokens": 11594
+    },
+    {
+      "artifact": ".state/reviews/20260923T031737.234215Z-agent_followup_patch.json",
+      "generation_attempts": 0,
+      "input_tokens": 8208
+    }
+  ],
+  "snapshot": {
+    "files": [
+      {
+        "before_sha256": "6007c80f0b375f7b8f25ed34a025b16193951fc4b30dc5165150c427622e7667",
+        "before_snapshot_id": "1573928fc4bcb54191663a787aebc40b8926fbc9850072792994ef1a61a837c2",
+        "bytes": 29479,
+        "complete_functions": [
+          "_Runner.stop",
+          "_Runner.preserved_thought_tokens",
+          "run_agent"
+        ],
+        "function_excerpts": [
+          {
+            "end": 333,
+            "function": "_Runner.run",
+            "omitted": "Remaining unchanged body is outside this follow-up.",
+            "start": 321
+          }
+        ],
+        "included": "complete_unified_diff_full_relevant_functions_and_initial_guard_excerpt",
+        "lines": 543,
+        "path": "src/autonomy_lab/agent.py",
+        "sha256": "bcd089e068499c0acc8effc4e8a339c36a6681b0b79ab6fe1feafc704c721d54"
+      },
+      {
+        "bytes": 8263,
+        "included": "full_current_source",
+        "lines": 162,
+        "path": "src/autonomy_lab/gemini.py",
+        "sha256": "ea90acd46bface1cd96a0c6fd5d7d85a2ce5b393f44500e8d676cd92aabadb51"
+      },
+      {
+        "bytes": 1925,
+        "included": "full_current_source",
+        "lines": 51,
+        "path": "src/autonomy_lab/cli.py",
+        "sha256": "517c32e89395b13d2acff8e0d86149e1247419666260401b178bb0bd2ecc8944"
+      }
+    ],
+    "prompt_sha256": "405c18328f59c2e628f800255640c1cb0a2ec2fe96aad4b8dc6abdb253fc5e2e",
+    "review_kind": "agent_patch_and_full_provider_cli",
+    "scope": "agent_followup_patch",
+    "snapshot_id": "b25c9fc5a6072b3191c0db01b04ce1ac9ddd4db48d4164dba0b55c0698cf6d01",
+    "source_bytes": 39667
+  },
+  "source_files_match_at_summary": true,
+  "status": "completed",
+  "stop_reason": "end_turn",
+  "usage": {
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 0,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "inference_geo": "global",
+    "input_tokens": 7716,
+    "output_tokens": 2998,
+    "output_tokens_details": {
+      "thinking_tokens": 1718
+    },
+    "service_tier": "standard"
+  },
+  "usage_cost_estimate_usd": 0.22706
+}

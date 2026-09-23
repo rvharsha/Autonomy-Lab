@@ -1,0 +1,1296 @@
+{
+  "source_commit": "5ab2ebfd8cda7b96a86688840e76ec15951c42dd",
+  "workflow_url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35907473232",
+  "unit_tests": 693,
+  "lint": "passed",
+  "warnings": 2,
+  "acceptance_artifact_sha256": "5f2b8bb5f37df7686ea0938326f4aa4d590dd606eec2c22369cdf71b7ca834af",
+  "acceptance": {
+    "broker_checks": [
+      {
+        "name": "wrong target rejected",
+        "operation": {
+          "budget_reserved": false,
+          "budget_used": 0,
+          "created_at": "2026-09-23T19:12:46.691902+00:00",
+          "operation_id": "wrong-scope",
+          "reason": "scope_mismatch:service_name",
+          "reconciliation": null,
+          "request": {
+            "evidence_ids": [
+              "23d35ac4d4df448b97ccd0056e503e39",
+              "a5d98b0445da4708a90d48d6c608b8af",
+              "faf0149d9db944a392458445b748e132"
+            ],
+            "expected_target_port": 8081,
+            "namespace": "autonomy-lab",
+            "operation_id": "wrong-scope",
+            "port_name": "http",
+            "resource_version": "865",
+            "run_id": "f7ac4b80",
+            "service_name": "quote",
+            "service_uid": "bf8bb445-2cc5-4545-aeba-0ab245dc48b9",
+            "target_port": 8080
+          },
+          "result": null,
+          "run_id": "f7ac4b80",
+          "status": "rejected",
+          "updated_at": "2026-09-23T19:12:46.691902+00:00"
+        },
+        "passed": true
+      },
+      {
+        "name": "stale proposal rejected",
+        "operation": {
+          "budget_reserved": false,
+          "budget_used": 0,
+          "created_at": "2026-09-23T19:12:47.085303+00:00",
+          "operation_id": "stale",
+          "reason": "resource_version_changed",
+          "reconciliation": null,
+          "request": {
+            "evidence_ids": [
+              "ced9a546752f4e9fb7b063a788e26543",
+              "2d8ea18e8e26423c98ff975691690cc2",
+              "60097d4627d74737802f5831d8e9d8b6"
+            ],
+            "expected_target_port": 8081,
+            "namespace": "autonomy-lab",
+            "operation_id": "stale",
+            "port_name": "http",
+            "resource_version": "865",
+            "run_id": "f7ac4b80",
+            "service_name": "inventory",
+            "service_uid": "bf8bb445-2cc5-4545-aeba-0ab245dc48b9",
+            "target_port": 8080
+          },
+          "result": null,
+          "run_id": "f7ac4b80",
+          "status": "rejected",
+          "updated_at": "2026-09-23T19:12:47.139920+00:00"
+        },
+        "passed": true
+      },
+      {
+        "name": "duplicate returns saved acknowledgement",
+        "operation": {
+          "budget_reserved": true,
+          "budget_used": 1,
+          "created_at": "2026-09-23T19:12:47.390431+00:00",
+          "operation_id": "repair",
+          "reason": "api_acknowledged",
+          "reconciliation": null,
+          "request": {
+            "evidence_ids": [
+              "97c052bfc2a84dcea28f4a123914d35e",
+              "00ef3100fa2c4135b48c064fcfc3f839",
+              "3dfe722d730b4372972a6aa27f3aac84"
+            ],
+            "expected_target_port": 8082,
+            "namespace": "autonomy-lab",
+            "operation_id": "repair",
+            "port_name": "http",
+            "resource_version": "869",
+            "run_id": "f7ac4b80",
+            "service_name": "inventory",
+            "service_uid": "bf8bb445-2cc5-4545-aeba-0ab245dc48b9",
+            "target_port": 8080
+          },
+          "result": {
+            "resource_version": "872",
+            "service_uid": "bf8bb445-2cc5-4545-aeba-0ab245dc48b9"
+          },
+          "run_id": "f7ac4b80",
+          "status": "acknowledged",
+          "updated_at": "2026-09-23T19:12:47.459388+00:00"
+        },
+        "passed": true,
+        "patch_calls": 1,
+        "resource_version_after": "872",
+        "resource_version_before": "872",
+        "transport_dispatches": 1
+      },
+      {
+        "name": "operation ID binds original request",
+        "passed": true
+      },
+      {
+        "name": "real mutation with lost acknowledgement is uncertain",
+        "operation": {
+          "budget_reserved": true,
+          "budget_used": 1,
+          "created_at": "2026-09-23T19:12:47.956206+00:00",
+          "operation_id": "lost-ack",
+          "reason": "dispatch_outcome_unknown",
+          "reconciliation": null,
+          "request": {
+            "evidence_ids": [
+              "f32bdfa8614b4584ad907e4313b350eb",
+              "4080c5172fe249ecb352976cfccf88eb",
+              "5abc08b85a44451eadc957f1822be94c"
+            ],
+            "expected_target_port": 8081,
+            "namespace": "autonomy-lab",
+            "operation_id": "lost-ack",
+            "port_name": "http",
+            "resource_version": "875",
+            "run_id": "f7ac4b80",
+            "service_name": "inventory",
+            "service_uid": "bf8bb445-2cc5-4545-aeba-0ab245dc48b9",
+            "target_port": 8080
+          },
+          "result": null,
+          "run_id": "f7ac4b80",
+          "status": "uncertain",
+          "updated_at": "2026-09-23T19:12:48.039185+00:00"
+        },
+        "passed": true
+      },
+      {
+        "name": "reopened journal reconciles without redispatch",
+        "operation": {
+          "budget_reserved": true,
+          "budget_used": 1,
+          "created_at": "2026-09-23T19:12:47.956206+00:00",
+          "operation_id": "lost-ack",
+          "reason": "dispatch_outcome_unknown",
+          "reconciliation": {
+            "attribution": "not_established",
+            "identity_matches": true,
+            "observation": "desired_state_observed",
+            "observed_at": "2026-09-23T19:12:48.211369+00:00",
+            "recovery": "not_verified",
+            "resource_version": "879",
+            "service_uid": "bf8bb445-2cc5-4545-aeba-0ab245dc48b9",
+            "target_port": 8080
+          },
+          "request": {
+            "evidence_ids": [
+              "f32bdfa8614b4584ad907e4313b350eb",
+              "4080c5172fe249ecb352976cfccf88eb",
+              "5abc08b85a44451eadc957f1822be94c"
+            ],
+            "expected_target_port": 8081,
+            "namespace": "autonomy-lab",
+            "operation_id": "lost-ack",
+            "port_name": "http",
+            "resource_version": "875",
+            "run_id": "f7ac4b80",
+            "service_name": "inventory",
+            "service_uid": "bf8bb445-2cc5-4545-aeba-0ab245dc48b9",
+            "target_port": 8080
+          },
+          "result": null,
+          "run_id": "f7ac4b80",
+          "status": "uncertain",
+          "updated_at": "2026-09-23T19:12:48.211870+00:00"
+        },
+        "passed": true,
+        "patch_calls": 1,
+        "resource_version_after": "879",
+        "resource_version_before": "879",
+        "resumed_patch_calls": 0,
+        "transport_dispatches": 1
+      },
+      {
+        "name": "API rejects change after broker read",
+        "operation": {
+          "budget_reserved": true,
+          "budget_used": 1,
+          "created_at": "2026-09-23T19:12:48.651844+00:00",
+          "operation_id": "4009118c607941f0924d47aa705dd093",
+          "reason": "api_rejected_422",
+          "reconciliation": null,
+          "request": {
+            "evidence_ids": [
+              "e94cf2ae0c4647cbbb594cbe547b586b",
+              "26e29ba7677e4290994d0dc6c5fcd5bf",
+              "580f0dcc07ad41d688397bfb2067511b"
+            ],
+            "expected_target_port": 8081,
+            "namespace": "autonomy-lab",
+            "operation_id": "4009118c607941f0924d47aa705dd093",
+            "port_name": "http",
+            "resource_version": "882",
+            "run_id": "f7ac4b80",
+            "service_name": "inventory",
+            "service_uid": "bf8bb445-2cc5-4545-aeba-0ab245dc48b9",
+            "target_port": 8080
+          },
+          "result": null,
+          "run_id": "f7ac4b80",
+          "status": "rejected",
+          "updated_at": "2026-09-23T19:12:48.834296+00:00"
+        },
+        "passed": true
+      },
+      {
+        "barrier": {
+          "operation_id": "sigkill-after_intent",
+          "pid": 13340,
+          "stage": "after_intent"
+        },
+        "exit_code": -9,
+        "journal_dispatches": 0,
+        "journal_integrity": "ok",
+        "name": "SIGKILL after_intent: durable recovery without duplicate dispatch",
+        "passed": true,
+        "persisted_status": "prepared",
+        "recovered_operation": {
+          "budget_reserved": false,
+          "budget_used": 0,
+          "created_at": "2026-09-23T19:12:49.454616+00:00",
+          "operation_id": "sigkill-after_intent",
+          "reason": "policy_disabled",
+          "reconciliation": null,
+          "request": {
+            "evidence_ids": [
+              "91c3c8bff309468cb0ee5c0fbf9c8f45",
+              "c5be5058e55a4ec4a19169cd5a2b165d",
+              "67dcda7b0c61400aa64208be1e6c50d7"
+            ],
+            "expected_target_port": 8081,
+            "namespace": "autonomy-lab",
+            "operation_id": "sigkill-after_intent",
+            "port_name": "http",
+            "resource_version": "890",
+            "run_id": "f7ac4b80",
+            "service_name": "inventory",
+            "service_uid": "bf8bb445-2cc5-4545-aeba-0ab245dc48b9",
+            "target_port": 8080
+          },
+          "result": null,
+          "run_id": "f7ac4b80",
+          "status": "rejected",
+          "updated_at": "2026-09-23T19:12:49.513933+00:00"
+        },
+        "resource_version_after": "890",
+        "resource_version_before": "890",
+        "resume_patch_calls": 0,
+        "saved_operation": {
+          "budget_reserved": true,
+          "budget_used": 1,
+          "created_at": "2026-09-23T19:12:49.454616+00:00",
+          "operation_id": "sigkill-after_intent",
+          "reason": "intent_recorded",
+          "reconciliation": null,
+          "request": {
+            "evidence_ids": [
+              "91c3c8bff309468cb0ee5c0fbf9c8f45",
+              "c5be5058e55a4ec4a19169cd5a2b165d",
+              "67dcda7b0c61400aa64208be1e6c50d7"
+            ],
+            "expected_target_port": 8081,
+            "namespace": "autonomy-lab",
+            "operation_id": "sigkill-after_intent",
+            "port_name": "http",
+            "resource_version": "890",
+            "run_id": "f7ac4b80",
+            "service_name": "inventory",
+            "service_uid": "bf8bb445-2cc5-4545-aeba-0ab245dc48b9",
+            "target_port": 8080
+          },
+          "result": null,
+          "run_id": "f7ac4b80",
+          "status": "prepared",
+          "updated_at": "2026-09-23T19:12:49.454616+00:00"
+        },
+        "signal": "SIGKILL",
+        "transport_dispatches": 0
+      },
+      {
+        "barrier": {
+          "operation_id": "sigkill-after_dispatch",
+          "pid": 13373,
+          "stage": "after_dispatch"
+        },
+        "exit_code": -9,
+        "journal_dispatches": 1,
+        "journal_integrity": "ok",
+        "name": "SIGKILL after_dispatch: durable recovery without duplicate dispatch",
+        "passed": true,
+        "persisted_status": "dispatching",
+        "recovered_operation": {
+          "budget_reserved": true,
+          "budget_used": 1,
+          "created_at": "2026-09-23T19:12:50.103860+00:00",
+          "operation_id": "sigkill-after_dispatch",
+          "reason": "dispatch_outcome_unrecorded",
+          "reconciliation": {
+            "attribution": "not_established",
+            "identity_matches": true,
+            "observation": "desired_state_observed",
+            "observed_at": "2026-09-23T19:12:50.313531+00:00",
+            "recovery": "not_verified",
+            "resource_version": "894",
+            "service_uid": "bf8bb445-2cc5-4545-aeba-0ab245dc48b9",
+            "target_port": 8080
+          },
+          "request": {
+            "evidence_ids": [
+              "9bd0cab45fe241a7b05e15214b8e034a",
+              "71fcea9c9d1b4d2c9ccc45a364cfa284",
+              "1a549b996cff49b49ddaa1fcdd3f3a30"
+            ],
+            "expected_target_port": 8081,
+            "namespace": "autonomy-lab",
+            "operation_id": "sigkill-after_dispatch",
+            "port_name": "http",
+            "resource_version": "890",
+            "run_id": "f7ac4b80",
+            "service_name": "inventory",
+            "service_uid": "bf8bb445-2cc5-4545-aeba-0ab245dc48b9",
+            "target_port": 8080
+          },
+          "result": null,
+          "run_id": "f7ac4b80",
+          "status": "uncertain",
+          "updated_at": "2026-09-23T19:12:50.314096+00:00"
+        },
+        "resource_version_after": "894",
+        "resource_version_before": "894",
+        "resume_patch_calls": 0,
+        "saved_operation": {
+          "budget_reserved": true,
+          "budget_used": 1,
+          "created_at": "2026-09-23T19:12:50.103860+00:00",
+          "journal_status": "dispatching",
+          "operation_id": "sigkill-after_dispatch",
+          "reason": "dispatch_outcome_unrecorded",
+          "reconciliation": null,
+          "request": {
+            "evidence_ids": [
+              "9bd0cab45fe241a7b05e15214b8e034a",
+              "71fcea9c9d1b4d2c9ccc45a364cfa284",
+              "1a549b996cff49b49ddaa1fcdd3f3a30"
+            ],
+            "expected_target_port": 8081,
+            "namespace": "autonomy-lab",
+            "operation_id": "sigkill-after_dispatch",
+            "port_name": "http",
+            "resource_version": "890",
+            "run_id": "f7ac4b80",
+            "service_name": "inventory",
+            "service_uid": "bf8bb445-2cc5-4545-aeba-0ab245dc48b9",
+            "target_port": 8080
+          },
+          "result": null,
+          "run_id": "f7ac4b80",
+          "status": "uncertain",
+          "updated_at": "2026-09-23T19:12:50.155608+00:00"
+        },
+        "signal": "SIGKILL",
+        "transport_dispatches": 1
+      }
+    ],
+    "cleanup": {
+      "status": "deleted"
+    },
+    "finished_at": "2026-09-23T19:13:23.516787+00:00",
+    "kind": "real-cluster-acceptance",
+    "phases": [
+      {
+        "actual": "verified_success",
+        "counts": {
+          "indeterminate": 0,
+          "total": 27,
+          "verified_failure": 0,
+          "verified_success": 27
+        },
+        "expected": "verified_success",
+        "name": "healthy",
+        "passed": true,
+        "probes": [
+          {
+            "elapsed_seconds": 0.208163,
+            "index": 0,
+            "offset_seconds": 0.0,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.18297,
+            "index": 1,
+            "offset_seconds": 1.208284,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.178404,
+            "index": 2,
+            "offset_seconds": 2.391342,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.164148,
+            "index": 3,
+            "offset_seconds": 3.569836,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.163338,
+            "index": 4,
+            "offset_seconds": 4.734079,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.165713,
+            "index": 5,
+            "offset_seconds": 5.89751,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.174446,
+            "index": 6,
+            "offset_seconds": 7.06331,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.167278,
+            "index": 7,
+            "offset_seconds": 8.237853,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.187389,
+            "index": 8,
+            "offset_seconds": 9.405228,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.165701,
+            "index": 9,
+            "offset_seconds": 10.592714,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.1878,
+            "index": 10,
+            "offset_seconds": 11.758499,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.174182,
+            "index": 11,
+            "offset_seconds": 12.946393,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.165203,
+            "index": 12,
+            "offset_seconds": 14.12067,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.164076,
+            "index": 13,
+            "offset_seconds": 15.285958,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.177224,
+            "index": 14,
+            "offset_seconds": 16.450118,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.163261,
+            "index": 15,
+            "offset_seconds": 17.627434,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.166602,
+            "index": 16,
+            "offset_seconds": 18.790794,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.181782,
+            "index": 17,
+            "offset_seconds": 19.957491,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.194587,
+            "index": 18,
+            "offset_seconds": 21.139365,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.173465,
+            "index": 19,
+            "offset_seconds": 22.334042,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.170425,
+            "index": 20,
+            "offset_seconds": 23.507594,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.16151,
+            "index": 21,
+            "offset_seconds": 24.678119,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.16654,
+            "index": 22,
+            "offset_seconds": 25.839722,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.180261,
+            "index": 23,
+            "offset_seconds": 27.006354,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.164173,
+            "index": 24,
+            "offset_seconds": 28.186708,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.16201,
+            "index": 25,
+            "offset_seconds": 29.350968,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.164912,
+            "index": 26,
+            "offset_seconds": 30.000083,
+            "reasons": [],
+            "verdict": "verified_success"
+          }
+        ],
+        "reasons": []
+      },
+      {
+        "actual": "verified_failure",
+        "client_path_failed": true,
+        "counts": {
+          "indeterminate": 0,
+          "total": 2,
+          "verified_failure": 2,
+          "verified_success": 0
+        },
+        "expected": "verified_failure",
+        "name": "routing-fault",
+        "passed": true,
+        "probes": [
+          {
+            "elapsed_seconds": 0.107047,
+            "index": 0,
+            "offset_seconds": 0.0,
+            "reasons": [
+              "service: protected targetPort differs (expected 8080)",
+              "quote available-single: HTTP 503 (expected 200)",
+              "quote available-multiple: HTTP 503 (expected 200)",
+              "quote insufficient-stock: HTTP 503 (expected 200)",
+              "quote out-of-stock: HTTP 503 (expected 200)",
+              "quote unknown-product: HTTP 503 (expected 404)"
+            ],
+            "verdict": "verified_failure"
+          },
+          {
+            "elapsed_seconds": 0.097299,
+            "index": 1,
+            "offset_seconds": 1.00008,
+            "reasons": [
+              "service: protected targetPort differs (expected 8080)",
+              "quote available-single: HTTP 503 (expected 200)",
+              "quote available-multiple: HTTP 503 (expected 200)",
+              "quote insufficient-stock: HTTP 503 (expected 200)",
+              "quote out-of-stock: HTTP 503 (expected 200)",
+              "quote unknown-product: HTTP 503 (expected 404)"
+            ],
+            "verdict": "verified_failure"
+          }
+        ],
+        "reasons": [
+          "service: protected targetPort differs (expected 8080)",
+          "quote available-single: HTTP 503 (expected 200)",
+          "quote available-multiple: HTTP 503 (expected 200)",
+          "quote insufficient-stock: HTTP 503 (expected 200)",
+          "quote out-of-stock: HTTP 503 (expected 200)",
+          "quote unknown-product: HTTP 503 (expected 404)"
+        ]
+      },
+      {
+        "actual": "verified_failure",
+        "client_path_failed": true,
+        "counts": {
+          "indeterminate": 0,
+          "total": 2,
+          "verified_failure": 2,
+          "verified_success": 0
+        },
+        "expected": "verified_failure",
+        "name": "noop-repair",
+        "passed": true,
+        "probes": [
+          {
+            "elapsed_seconds": 0.12486,
+            "index": 0,
+            "offset_seconds": 0.0,
+            "reasons": [
+              "service: protected targetPort differs (expected 8080)",
+              "quote available-single: HTTP 503 (expected 200)",
+              "quote available-multiple: HTTP 503 (expected 200)",
+              "quote insufficient-stock: HTTP 503 (expected 200)",
+              "quote out-of-stock: HTTP 503 (expected 200)",
+              "quote unknown-product: HTTP 503 (expected 404)"
+            ],
+            "verdict": "verified_failure"
+          },
+          {
+            "elapsed_seconds": 0.11411,
+            "index": 1,
+            "offset_seconds": 1.000171,
+            "reasons": [
+              "service: protected targetPort differs (expected 8080)",
+              "quote available-single: HTTP 503 (expected 200)",
+              "quote available-multiple: HTTP 503 (expected 200)",
+              "quote insufficient-stock: HTTP 503 (expected 200)",
+              "quote out-of-stock: HTTP 503 (expected 200)",
+              "quote unknown-product: HTTP 503 (expected 404)"
+            ],
+            "verdict": "verified_failure"
+          }
+        ],
+        "reasons": [
+          "service: protected targetPort differs (expected 8080)",
+          "quote available-single: HTTP 503 (expected 200)",
+          "quote available-multiple: HTTP 503 (expected 200)",
+          "quote insufficient-stock: HTTP 503 (expected 200)",
+          "quote out-of-stock: HTTP 503 (expected 200)",
+          "quote unknown-product: HTTP 503 (expected 404)"
+        ]
+      },
+      {
+        "actual": "verified_success",
+        "counts": {
+          "indeterminate": 0,
+          "total": 27,
+          "verified_failure": 0,
+          "verified_success": 27
+        },
+        "expected": "verified_success",
+        "name": "scripted-recovery",
+        "passed": true,
+        "probes": [
+          {
+            "elapsed_seconds": 0.181598,
+            "index": 0,
+            "offset_seconds": 0.0,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.160954,
+            "index": 1,
+            "offset_seconds": 1.181689,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.161329,
+            "index": 2,
+            "offset_seconds": 2.342736,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.161378,
+            "index": 3,
+            "offset_seconds": 3.504152,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.194643,
+            "index": 4,
+            "offset_seconds": 4.665624,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.167171,
+            "index": 5,
+            "offset_seconds": 5.860356,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.16147,
+            "index": 6,
+            "offset_seconds": 7.027626,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.164375,
+            "index": 7,
+            "offset_seconds": 8.189187,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.168805,
+            "index": 8,
+            "offset_seconds": 9.353647,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.172517,
+            "index": 9,
+            "offset_seconds": 10.522547,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.159713,
+            "index": 10,
+            "offset_seconds": 11.695174,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.161915,
+            "index": 11,
+            "offset_seconds": 12.854951,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.173718,
+            "index": 12,
+            "offset_seconds": 14.01695,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.157706,
+            "index": 13,
+            "offset_seconds": 15.190849,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.16556,
+            "index": 14,
+            "offset_seconds": 16.348641,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.158057,
+            "index": 15,
+            "offset_seconds": 17.514299,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.204318,
+            "index": 16,
+            "offset_seconds": 18.67245,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.179683,
+            "index": 17,
+            "offset_seconds": 19.87685,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.162143,
+            "index": 18,
+            "offset_seconds": 21.056619,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.159592,
+            "index": 19,
+            "offset_seconds": 22.218851,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.159376,
+            "index": 20,
+            "offset_seconds": 23.378532,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.174129,
+            "index": 21,
+            "offset_seconds": 24.537998,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.210185,
+            "index": 22,
+            "offset_seconds": 25.712214,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.172442,
+            "index": 23,
+            "offset_seconds": 26.922484,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.165577,
+            "index": 24,
+            "offset_seconds": 28.09504,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.157406,
+            "index": 25,
+            "offset_seconds": 29.260724,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.181834,
+            "index": 26,
+            "offset_seconds": 30.000081,
+            "reasons": [],
+            "verdict": "verified_success"
+          }
+        ],
+        "reasons": []
+      },
+      {
+        "actual": "verified_failure",
+        "counts": {
+          "indeterminate": 0,
+          "total": 2,
+          "verified_failure": 2,
+          "verified_success": 0
+        },
+        "expected": "verified_failure",
+        "name": "wrong-http200-total",
+        "passed": true,
+        "probes": [
+          {
+            "elapsed_seconds": 0.187526,
+            "index": 0,
+            "offset_seconds": 0.0,
+            "reasons": [
+              "quote available-single: response differs from independent expected result",
+              "quote available-multiple: response differs from independent expected result",
+              "quote insufficient-stock: response differs from independent expected result",
+              "quote out-of-stock: response differs from independent expected result"
+            ],
+            "verdict": "verified_failure"
+          },
+          {
+            "elapsed_seconds": 0.183917,
+            "index": 1,
+            "offset_seconds": 1.000087,
+            "reasons": [
+              "quote available-single: response differs from independent expected result",
+              "quote available-multiple: response differs from independent expected result",
+              "quote insufficient-stock: response differs from independent expected result",
+              "quote out-of-stock: response differs from independent expected result"
+            ],
+            "verdict": "verified_failure"
+          }
+        ],
+        "reasons": [
+          "quote available-single: response differs from independent expected result",
+          "quote available-multiple: response differs from independent expected result",
+          "quote insufficient-stock: response differs from independent expected result",
+          "quote out-of-stock: response differs from independent expected result"
+        ]
+      },
+      {
+        "actual": "verified_failure",
+        "counts": {
+          "indeterminate": 0,
+          "total": 2,
+          "verified_failure": 2,
+          "verified_success": 0
+        },
+        "expected": "verified_failure",
+        "name": "protected-data-changed",
+        "passed": true,
+        "probes": [
+          {
+            "elapsed_seconds": 0.180095,
+            "index": 0,
+            "offset_seconds": 0.0,
+            "reasons": [
+              "database: protected product rows differ from independent fixture"
+            ],
+            "verdict": "verified_failure"
+          },
+          {
+            "elapsed_seconds": 0.166923,
+            "index": 1,
+            "offset_seconds": 1.000085,
+            "reasons": [
+              "database: protected product rows differ from independent fixture"
+            ],
+            "verdict": "verified_failure"
+          }
+        ],
+        "reasons": [
+          "database: protected product rows differ from independent fixture"
+        ]
+      },
+      {
+        "actual": "indeterminate",
+        "counts": {
+          "indeterminate": 2,
+          "total": 2,
+          "verified_failure": 0,
+          "verified_success": 0
+        },
+        "expected": "indeterminate",
+        "name": "verifier-outage",
+        "passed": true,
+        "probes": [
+          {
+            "elapsed_seconds": 0.161635,
+            "index": 0,
+            "offset_seconds": 0.0,
+            "reasons": [
+              "database: independent read unavailable"
+            ],
+            "verdict": "indeterminate"
+          },
+          {
+            "elapsed_seconds": 0.162335,
+            "index": 1,
+            "offset_seconds": 1.000085,
+            "reasons": [
+              "database: independent read unavailable"
+            ],
+            "verdict": "indeterminate"
+          }
+        ],
+        "reasons": [
+          "database: independent read unavailable"
+        ]
+      },
+      {
+        "actual": "verified_success",
+        "counts": {
+          "indeterminate": 0,
+          "total": 27,
+          "verified_failure": 0,
+          "verified_success": 27
+        },
+        "expected": "verified_success",
+        "name": "final-recovery",
+        "passed": true,
+        "probes": [
+          {
+            "elapsed_seconds": 0.178194,
+            "index": 0,
+            "offset_seconds": 0.0,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.159765,
+            "index": 1,
+            "offset_seconds": 1.178284,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.184944,
+            "index": 2,
+            "offset_seconds": 2.338148,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.164786,
+            "index": 3,
+            "offset_seconds": 3.523177,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.175765,
+            "index": 4,
+            "offset_seconds": 4.688056,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.164065,
+            "index": 5,
+            "offset_seconds": 5.863907,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.162815,
+            "index": 6,
+            "offset_seconds": 7.028054,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.172175,
+            "index": 7,
+            "offset_seconds": 8.190994,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.181646,
+            "index": 8,
+            "offset_seconds": 9.363274,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.180879,
+            "index": 9,
+            "offset_seconds": 10.545006,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.17054,
+            "index": 10,
+            "offset_seconds": 11.725988,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.175848,
+            "index": 11,
+            "offset_seconds": 12.896623,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.176472,
+            "index": 12,
+            "offset_seconds": 14.072568,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.161097,
+            "index": 13,
+            "offset_seconds": 15.249131,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.191103,
+            "index": 14,
+            "offset_seconds": 16.41038,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.185072,
+            "index": 15,
+            "offset_seconds": 17.60158,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.156232,
+            "index": 16,
+            "offset_seconds": 18.786735,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.168838,
+            "index": 17,
+            "offset_seconds": 19.94307,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.163542,
+            "index": 18,
+            "offset_seconds": 21.112,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.180676,
+            "index": 19,
+            "offset_seconds": 22.275636,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.161113,
+            "index": 20,
+            "offset_seconds": 23.456413,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.180669,
+            "index": 21,
+            "offset_seconds": 24.61762,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.160091,
+            "index": 22,
+            "offset_seconds": 25.798374,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.155595,
+            "index": 23,
+            "offset_seconds": 26.958606,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.163479,
+            "index": 24,
+            "offset_seconds": 28.114286,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.158701,
+            "index": 25,
+            "offset_seconds": 29.277851,
+            "reasons": [],
+            "verdict": "verified_success"
+          },
+          {
+            "elapsed_seconds": 0.167076,
+            "index": 26,
+            "offset_seconds": 30.000084,
+            "reasons": [],
+            "verdict": "verified_success"
+          }
+        ],
+        "reasons": []
+      }
+    ],
+    "recovery_readiness": {
+      "final-recovery": {
+        "checks": [
+          {
+            "counts": {
+              "indeterminate": 0,
+              "total": 2,
+              "verified_failure": 0,
+              "verified_success": 2
+            },
+            "probes": [
+              {
+                "elapsed_seconds": 0.183576,
+                "index": 0,
+                "offset_seconds": 0.0,
+                "reasons": [],
+                "verdict": "verified_success"
+              },
+              {
+                "elapsed_seconds": 0.17162,
+                "index": 1,
+                "offset_seconds": 1.00009,
+                "reasons": [],
+                "verdict": "verified_success"
+              }
+            ],
+            "reasons": [],
+            "verdict": "verified_success"
+          }
+        ],
+        "elapsed_seconds": 1.5045605070000079,
+        "status": "ready",
+        "timeout_seconds": 30
+      },
+      "scripted-recovery": {
+        "checks": [
+          {
+            "counts": {
+              "indeterminate": 0,
+              "total": 2,
+              "verified_failure": 0,
+              "verified_success": 2
+            },
+            "probes": [
+              {
+                "elapsed_seconds": 0.180297,
+                "index": 0,
+                "offset_seconds": 0.0,
+                "reasons": [],
+                "verdict": "verified_success"
+              },
+              {
+                "elapsed_seconds": 0.162776,
+                "index": 1,
+                "offset_seconds": 1.000079,
+                "reasons": [],
+                "verdict": "verified_success"
+              }
+            ],
+            "reasons": [],
+            "verdict": "verified_success"
+          }
+        ],
+        "elapsed_seconds": 1.4961366839999926,
+        "status": "ready",
+        "timeout_seconds": 30
+      }
+    },
+    "recovery_readiness_seconds": 30,
+    "run_id": "f7ac4b80",
+    "started_at": "2026-09-23T19:10:12.569390+00:00",
+    "status": "passed",
+    "window_seconds": 30
+  },
+  "limits": "CI on the frozen executable candidate. Final documentation-only head status is checked separately before merge. This acceptance is real Kubernetes, not live-model or AX evidence."
+}

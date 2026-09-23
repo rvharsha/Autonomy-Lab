@@ -1,0 +1,98 @@
+{
+  "head": "9dcc8efabecd2cd563a73aad8560acdb0ac58b55",
+  "url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35889797036",
+  "conclusion": "success",
+  "checks": [
+    {
+      "name": "kubernetes-acceptance",
+      "conclusion": "success",
+      "url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35889797036/job/107279080835"
+    },
+    {
+      "name": "tests",
+      "conclusion": "success",
+      "url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35889797036/job/107279081186"
+    }
+  ],
+  "acceptance": {
+    "status": "passed",
+    "broker_checks": [
+      {
+        "name": "wrong target rejected",
+        "passed": true
+      },
+      {
+        "name": "stale proposal rejected",
+        "passed": true
+      },
+      {
+        "name": "duplicate returns saved acknowledgement",
+        "passed": true
+      },
+      {
+        "name": "operation ID binds original request",
+        "passed": true
+      },
+      {
+        "name": "real mutation with lost acknowledgement is uncertain",
+        "passed": true
+      },
+      {
+        "name": "reopened journal reconciles without redispatch",
+        "passed": true
+      },
+      {
+        "name": "API rejects change after broker read",
+        "passed": true
+      },
+      {
+        "name": "SIGKILL after_intent: durable recovery without duplicate dispatch",
+        "passed": true
+      },
+      {
+        "name": "SIGKILL after_dispatch: durable recovery without duplicate dispatch",
+        "passed": true
+      }
+    ],
+    "cleanup": {
+      "status": "deleted"
+    },
+    "window_seconds": 30,
+    "phases": [
+      {
+        "name": "healthy",
+        "passed": true
+      },
+      {
+        "name": "routing-fault",
+        "passed": true
+      },
+      {
+        "name": "noop-repair",
+        "passed": true
+      },
+      {
+        "name": "scripted-recovery",
+        "passed": true
+      },
+      {
+        "name": "wrong-http200-total",
+        "passed": true
+      },
+      {
+        "name": "protected-data-changed",
+        "passed": true
+      },
+      {
+        "name": "verifier-outage",
+        "passed": true
+      },
+      {
+        "name": "final-recovery",
+        "passed": true
+      }
+    ],
+    "passed_checks": 17,
+    "total_checks": 17
+  }
+}

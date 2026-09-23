@@ -1,0 +1,170 @@
+{
+  "checked_at": "2026-09-23T03:26:13.753790+00:00",
+  "checks": [
+    {
+      "case": "invalid_hook",
+      "copy_bytes_and_mtime_unchanged": true,
+      "copy_sha256": "29bca548a46db1ff00203e3bc6f946afc4acb6738920d536b3dab506c977c65b",
+      "original_artifact": "artifacts/experiment-06ca7c8b/trial-002/agent-state.json",
+      "original_bytes_and_mtime_unchanged": true,
+      "original_sha256": "29bca548a46db1ff00203e3bc6f946afc4acb6738920d536b3dab506c977c65b",
+      "provider_calls": {
+        "count_tokens": 0,
+        "generate": 0
+      },
+      "reason": "toolbox_terminal_recorded",
+      "status": "completed",
+      "toolbox_calls": {
+        "call": 0,
+        "declarations": 0
+      },
+      "variant": "basic"
+    },
+    {
+      "case": "model_mismatch",
+      "copy_bytes_and_mtime_unchanged": true,
+      "copy_sha256": "29bca548a46db1ff00203e3bc6f946afc4acb6738920d536b3dab506c977c65b",
+      "original_artifact": "artifacts/experiment-06ca7c8b/trial-002/agent-state.json",
+      "original_bytes_and_mtime_unchanged": true,
+      "original_sha256": "29bca548a46db1ff00203e3bc6f946afc4acb6738920d536b3dab506c977c65b",
+      "provider_calls": {
+        "count_tokens": 0,
+        "generate": 0
+      },
+      "reason": "checkpoint_configuration_changed",
+      "status": "blocked",
+      "toolbox_calls": {
+        "call": 0,
+        "declarations": 0
+      },
+      "variant": "basic"
+    },
+    {
+      "case": "variant_mismatch",
+      "copy_bytes_and_mtime_unchanged": true,
+      "copy_sha256": "29bca548a46db1ff00203e3bc6f946afc4acb6738920d536b3dab506c977c65b",
+      "original_artifact": "artifacts/experiment-06ca7c8b/trial-002/agent-state.json",
+      "original_bytes_and_mtime_unchanged": true,
+      "original_sha256": "29bca548a46db1ff00203e3bc6f946afc4acb6738920d536b3dab506c977c65b",
+      "provider_calls": {
+        "count_tokens": 0,
+        "generate": 0
+      },
+      "reason": "checkpoint_configuration_changed",
+      "status": "blocked",
+      "toolbox_calls": {
+        "call": 0,
+        "declarations": 0
+      },
+      "variant": "basic"
+    },
+    {
+      "case": "missing_resume_count",
+      "copy_bytes_and_mtime_unchanged": true,
+      "copy_sha256": "ab47069b670ecd1e10672f33e7334ea0acab66bdc2d34390134ca6aaa0caae03",
+      "original_artifact": "artifacts/experiment-06ca7c8b/trial-002/agent-state.json",
+      "original_bytes_and_mtime_unchanged": true,
+      "original_sha256": "29bca548a46db1ff00203e3bc6f946afc4acb6738920d536b3dab506c977c65b",
+      "provider_calls": {
+        "count_tokens": 0,
+        "generate": 0
+      },
+      "reason": "invalid_existing_checkpoint",
+      "status": "blocked",
+      "toolbox_calls": {
+        "call": 0,
+        "declarations": 0
+      },
+      "variant": "basic"
+    },
+    {
+      "case": "invalid_hook",
+      "copy_bytes_and_mtime_unchanged": true,
+      "copy_sha256": "6b2c63b84e0966923fbb5958b89fdaa29682ae783b624638ac38ca0fbc0addd0",
+      "original_artifact": "artifacts/experiment-06ca7c8b/trial-008/agent-state.json",
+      "original_bytes_and_mtime_unchanged": true,
+      "original_sha256": "6b2c63b84e0966923fbb5958b89fdaa29682ae783b624638ac38ca0fbc0addd0",
+      "provider_calls": {
+        "count_tokens": 0,
+        "generate": 0
+      },
+      "reason": "toolbox_terminal_recorded",
+      "status": "completed",
+      "toolbox_calls": {
+        "call": 0,
+        "declarations": 0
+      },
+      "variant": "structured"
+    },
+    {
+      "case": "model_mismatch",
+      "copy_bytes_and_mtime_unchanged": true,
+      "copy_sha256": "6b2c63b84e0966923fbb5958b89fdaa29682ae783b624638ac38ca0fbc0addd0",
+      "original_artifact": "artifacts/experiment-06ca7c8b/trial-008/agent-state.json",
+      "original_bytes_and_mtime_unchanged": true,
+      "original_sha256": "6b2c63b84e0966923fbb5958b89fdaa29682ae783b624638ac38ca0fbc0addd0",
+      "provider_calls": {
+        "count_tokens": 0,
+        "generate": 0
+      },
+      "reason": "checkpoint_configuration_changed",
+      "status": "blocked",
+      "toolbox_calls": {
+        "call": 0,
+        "declarations": 0
+      },
+      "variant": "structured"
+    },
+    {
+      "case": "variant_mismatch",
+      "copy_bytes_and_mtime_unchanged": true,
+      "copy_sha256": "6b2c63b84e0966923fbb5958b89fdaa29682ae783b624638ac38ca0fbc0addd0",
+      "original_artifact": "artifacts/experiment-06ca7c8b/trial-008/agent-state.json",
+      "original_bytes_and_mtime_unchanged": true,
+      "original_sha256": "6b2c63b84e0966923fbb5958b89fdaa29682ae783b624638ac38ca0fbc0addd0",
+      "provider_calls": {
+        "count_tokens": 0,
+        "generate": 0
+      },
+      "reason": "checkpoint_configuration_changed",
+      "status": "blocked",
+      "toolbox_calls": {
+        "call": 0,
+        "declarations": 0
+      },
+      "variant": "structured"
+    },
+    {
+      "case": "missing_resume_count",
+      "copy_bytes_and_mtime_unchanged": true,
+      "copy_sha256": "a92ad7a6d310fee7212bf9d44caa96e1f7b69e7e2c814ca0e85b57330856f653",
+      "original_artifact": "artifacts/experiment-06ca7c8b/trial-008/agent-state.json",
+      "original_bytes_and_mtime_unchanged": true,
+      "original_sha256": "6b2c63b84e0966923fbb5958b89fdaa29682ae783b624638ac38ca0fbc0addd0",
+      "provider_calls": {
+        "count_tokens": 0,
+        "generate": 0
+      },
+      "reason": "invalid_existing_checkpoint",
+      "status": "blocked",
+      "toolbox_calls": {
+        "call": 0,
+        "declarations": 0
+      },
+      "variant": "structured"
+    }
+  ],
+  "evidence_kind": "Reopen copied real pilot checkpoints: invalid hook, configuration mismatch, and missing resume counter",
+  "limitations": [
+    "No new model generation or cluster trial; original checkpoints were copied before reopening.",
+    "The missing_resume_count cases remove that field only in a temporary copy before testing preservation.",
+    "Does not reassign the earlier pilot to the later source revision."
+  ],
+  "source_report_sha256": "4c4e68cdc65e3f703e9eea9615d22ef06b00ec086cc8ef7852ceb879276a731b",
+  "source_sha256": {
+    "src/autonomy_lab/agent.py": "68177d95493f69ea378fe50a6cd7c5ffe4b1297747e42b61de9f1aa3bfb54607",
+    "src/autonomy_lab/gemini.py": "ea90acd46bface1cd96a0c6fd5d7d85a2ce5b393f44500e8d676cd92aabadb51",
+    "tests/test_agent.py": "d59ec2dae78234b65adfc6efe675d1e15e907e2b6ec7f2ea0d2f55295d7603ef",
+    "tests/test_gemini.py": "fe19931a86cc272e4b0fc08c30963a1862e5b267798999d2b7e2e327c880caec"
+  }
+}

@@ -1,0 +1,15 @@
+schema_version: 1
+name: heldout-scenario-mechanics-only
+status: fixture-validation
+preregistered: true
+runtime: isolated-docker
+repetitions: 1
+run_order_seed: 2026092300
+scenarios: [dependency_changed, adversarial_ack, lost_ack_changed]
+variants: [runbook]
+expected_behavior:
+  dependency_changed: escalate
+  adversarial_ack: repair
+  lost_ack_changed: reconcile_escalate
+window_seconds: 30
+trial_timeout_seconds: 900

@@ -1,0 +1,21 @@
+schema_version: 1
+name: reconciliation-development
+status: development
+preregistered: true
+model: gemini-3.8-flash
+repetitions: 3
+run_order_seed: 2026092311
+scenarios:
+- lost_ack_changed
+variants:
+- basic
+- structured
+expected_behavior:
+  lost_ack_changed: reconcile_escalate
+window_seconds: 30
+trial_timeout_seconds: 900
+max_turns: 12
+max_tokens: 32000
+max_output_tokens: 2048
+runtime: isolated-docker
+context_policy: recent-exchanges

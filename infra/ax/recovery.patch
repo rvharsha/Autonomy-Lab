@@ -1,0 +1,60 @@
+diff --git a/internal/controller/reconciler.go b/internal/controller/reconciler.go
+index 31c399b..9aa16f1 100644
+--- a/internal/controller/reconciler.go
++++ b/internal/controller/reconciler.go
+@@ -33,6 +33,7 @@ import (
+ 	"github.com/google/ax/pkg/apis/v1alpha1"
+ 	"google.golang.org/grpc/codes"
+ 	"google.golang.org/grpc/status"
++	"google.golang.org/protobuf/proto"
+ 	"google.golang.org/protobuf/types/known/timestamppb"
+ 	"gopkg.in/yaml.v3"
+ )
+@@ -90,6 +91,16 @@ func NewTaskReconciler(client *substrate.Client, defaultTemplate, defaultTemplat
+ 	}
+ }
+ 
++// runtimeTaskYAML excludes controller state from the immutable execution template.
++// Suspension changes the actor lifecycle, not its boot configuration.
++func runtimeTaskYAML(task *v1alpha1.Task) ([]byte, error) {
++	boot := proto.Clone(task).(*v1alpha1.Task)
++	boot.Status = nil
++	boot.Metadata = &v1alpha1.ObjectMeta{Name: task.Metadata.Name, Atespace: task.Metadata.Atespace}
++	boot.Spec.Suspend = false
++	return yaml.Marshal(boot)
++}
++
+ // Reconcile handles the reconciliation loop for a single Task.
+ func (r *TaskReconciler) Reconcile(ctx context.Context, task *v1alpha1.Task, gateway *v1alpha1.Gateway, workspaces ...*v1alpha1.Workspace) (*v1alpha1.Task, error) {
+ 	if task.Metadata == nil {
+@@ -154,7 +165,7 @@ func (r *TaskReconciler) Reconcile(ctx context.Context, task *v1alpha1.Task, gat
+ 	}
+ 
+ 	// Inject Task YAML specification into container environment
+-	if taskYAML, err := yaml.Marshal(task); err == nil {
++	if taskYAML, err := runtimeTaskYAML(task); err == nil {
+ 		extraEnv["AX_TASK_YAML"] = string(taskYAML)
+ 	}
+ 
+@@ -221,7 +232,20 @@ func (r *TaskReconciler) Reconcile(ctx context.Context, task *v1alpha1.Task, gat
+ 
+ 	// Resume the Actor to activate container execution
+ 	slog.Info("resuming actor on Substrate worker", "actor", actorName)
+-	_, workerIP, err := r.client.ResumeActor(ctx, atespace, actorName)
++	// Retry only the explicit pre-assignment capacity rejection. Unknown outcomes
++	// and other RPC errors remain failures; they are never blindly replayed.
++	resumeCtx, cancelResume := context.WithTimeout(ctx, 60*time.Second)
++	defer cancelResume()
++	_, workerIP, err := r.client.ResumeActor(resumeCtx, atespace, actorName)
++	for status.Code(err) == codes.ResourceExhausted && resumeCtx.Err() == nil {
++		slog.Info("waiting for actor capacity", "actor", actorName)
++		select {
++		case <-resumeCtx.Done():
++			err = resumeCtx.Err()
++		case <-time.After(time.Second):
++			_, workerIP, err = r.client.ResumeActor(resumeCtx, atespace, actorName)
++		}
++	}
+ 	if err != nil {
+ 		r.setNotReady(task, "ActorResumeFailed", err.Error(), now)
+ 		task.Status.Phase = "Failed"

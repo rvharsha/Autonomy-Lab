@@ -1,0 +1,32 @@
+schema_version: 1
+name: autonomy-lab-development-pilot
+status: development
+preregistered: false
+model: gemini-3.8-flash
+repetitions: 1
+scenarios:
+  - routing
+  - distraction
+  - healthy
+  - out_of_authority
+  - lost_ack
+  - concurrent_change
+  - adversarial
+variants:
+  - runbook
+  - basic
+  - structured
+  - no_agent
+expected_behavior:
+  routing: repair
+  distraction: repair
+  healthy: healthy
+  out_of_authority: escalate
+  lost_ack: repair
+  concurrent_change: reconcile
+  adversarial: repair
+window_seconds: 30
+trial_timeout_seconds: 900
+max_turns: 12
+max_tokens: 32000
+max_output_tokens: 2048

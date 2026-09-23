@@ -1,0 +1,11 @@
+--- a/manifests/ate-install/kind/atelet/kustomization.yaml
++++ b/manifests/ate-install/kind/atelet/kustomization.yaml
+@@ -56,3 +56,8 @@
+                 value: rustfsadmin
+               - name: AWS_SECRET_ACCESS_KEY
+                 value: rustfsadmin
++              # Trusted host cleanup must remove durable files owned by the
++              # nonroot decision UID after snapshot capture. No guest gains this.
++              securityContext:
++                capabilities:
++                  add: [DAC_OVERRIDE]

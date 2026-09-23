@@ -1,0 +1,130 @@
+{
+  "kind": "real local Substrate gVisor lifecycle evidence",
+  "execution": {
+    "started_at": "20260923T075602331711Z",
+    "status": "passed",
+    "phases": [
+      {
+        "phase": "create",
+        "timeout_seconds": 600,
+        "timed_out": false,
+        "exit_code": 0,
+        "elapsed_seconds": 33.229972708038986
+      },
+      {
+        "phase": "install",
+        "timeout_seconds": 1200,
+        "timed_out": false,
+        "exit_code": 0,
+        "elapsed_seconds": 196.95696629188024
+      },
+      {
+        "phase": "counter",
+        "timeout_seconds": 600,
+        "timed_out": false,
+        "exit_code": 0,
+        "elapsed_seconds": 46.11686133313924
+      },
+      {
+        "phase": "check",
+        "timeout_seconds": 300,
+        "timed_out": false,
+        "exit_code": 0,
+        "elapsed_seconds": 2.7257727500982583
+      }
+    ],
+    "cleanup": [
+      {
+        "resource": "autonomy-ax-spike",
+        "status": "deleted"
+      },
+      {
+        "resource": "autonomy-ax-spike-registry",
+        "status": "deleted_or_absent"
+      }
+    ],
+    "limits": {
+      "node_memory_bytes": 5368709120,
+      "node_cpus": 5,
+      "registry_memory_bytes": 268435456
+    },
+    "source_hashes": {
+      "launch/adaptation-record.json": "c4ec03aab4354f65b27fd83befdedeafb804e825142f5359c56f997aabf61b0b",
+      "launch/counter_check.py": "023adef15a18b46c40d266256cd3c7db9a728abb0218e428817c67ee9725850a",
+      "launch/execute_bounded.py": "55ea40521718493a7578ee62a5cab2f961f453bbed28791743353f24c8057f39",
+      "launch/phase.sh": "14a415942f2eaa716a690e68db133e2967436d37a9fb532c8cc3e7bf7ebb11df",
+      "launch/prepare_adaptations.py": "32ac909ece7262b754dc60af78875e8f2e389f597412e84f4f2432f2c2879032",
+      "launch/run.sh": "ee157d509a71a875597fe367c94c30a537e3ef5629cd91bb130a1836a44b3836",
+      "launch/upstream-adaptations.patch": "c24b67f958f67fcc8419755608284a7c19a842096505dfee50953a76a30fc96c"
+    },
+    "substrate_revision": "672533541dbfcd29084e4de2475267088bda3651",
+    "finished_at": "2026-09-23T08:00:44.457508+00:00"
+  },
+  "probe_result": {
+    "runtime": "substrate-gvisor",
+    "actor": "ax-spike-20260923080039264909",
+    "cycles": 1,
+    "status": "passed",
+    "before": [
+      1,
+      1
+    ],
+    "after": [
+      2,
+      2
+    ],
+    "completed_at": "2026-09-23T08:00:41.605678+00:00"
+  },
+  "actor_identity_preserved": true,
+  "states": [
+    {
+      "phase": "running-before",
+      "state": "ACTOR_STATE_RUNNING",
+      "worker_assigned": true,
+      "snapshot_uri_present": false,
+      "snapshot_uri_sha256": null,
+      "raw_sha256": "627bb3d2ddf5d20ead4a15f2592860386169759cffa47778d0bd21c67185f8d2"
+    },
+    {
+      "phase": "suspended",
+      "state": "ACTOR_STATE_SUSPENDED",
+      "worker_assigned": false,
+      "snapshot_uri_present": true,
+      "snapshot_uri_sha256": "30aa33546bab03ffc701829495e8c51bbb70c1df8985f4cdf9e3c036124e529f",
+      "raw_sha256": "77086b00c4d4063839ba2bf12bfbcd8167e6962df31d3277286bdc476a5bd249"
+    },
+    {
+      "phase": "running-after",
+      "state": "ACTOR_STATE_RUNNING",
+      "worker_assigned": true,
+      "snapshot_uri_present": true,
+      "snapshot_uri_sha256": "30aa33546bab03ffc701829495e8c51bbb70c1df8985f4cdf9e3c036124e529f",
+      "raw_sha256": "5478490a85510b081c4fb97915dc8b39d795c4ec93825046b22f1fbed8a40b5b"
+    }
+  ],
+  "raw_probe_result_sha256": "c6082c2c96fccd4308e8679adc8449c6c7db8c20beb7c198f8df7e1a7e2c4cad",
+  "resource_limits": {
+    "source": "docker inspect HostConfig after successful docker update",
+    "containers": [
+      {
+        "name": "autonomy-ax-spike-control-plane",
+        "Memory": 5368709120,
+        "MemorySwap": 5368709120,
+        "NanoCpus": 5000000000
+      },
+      {
+        "name": "autonomy-ax-spike-registry",
+        "Memory": 268435456,
+        "MemorySwap": 268435456,
+        "NanoCpus": 0
+      }
+    ]
+  },
+  "limitations": [
+    "One sequential actor on one worker",
+    "No AX task reconstruction",
+    "No cross-worker migration or abrupt-death recovery",
+    "No agent/broker integration",
+    "Preparation and launcher remain local under .state/ax-spike; not a portable clean-clone installer"
+  ]
+}

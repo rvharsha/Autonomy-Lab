@@ -1,0 +1,1713 @@
+{
+  "reviews": [
+    {
+      "record": "20260923T151033.274438Z-isolation.json",
+      "status": "completed",
+      "scope": "isolation",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 2497,
+            "included": "full_source",
+            "lines": 56,
+            "path": "src/autonomy_lab/authority_worker.py",
+            "sha256": "91a3ea3378cd20e5e20da8797be2307787745a2874e103c8815a4293f5044c4b"
+          },
+          {
+            "bytes": 2537,
+            "included": "full_source",
+            "lines": 67,
+            "path": "src/autonomy_lab/isolated_agent.py",
+            "sha256": "33146f8dfad4b450b62dc33738ec016c55896fe85417914ca2d759a3bbe9a0fd"
+          },
+          {
+            "bytes": 12877,
+            "included": "full_source",
+            "lines": 256,
+            "path": "src/autonomy_lab/isolated_runtime.py",
+            "sha256": "08197bfe7f7ae77f743df55d8c14111295739ceee9a802cc1cff1179fcc7d395"
+          },
+          {
+            "bytes": 1299,
+            "included": "full_source",
+            "lines": 41,
+            "path": "src/autonomy_lab/rpc.py",
+            "sha256": "d659d70b200f34459bdf6898495fc917bddfbf04890d6e49338ad0f3ee000ae3"
+          },
+          {
+            "bytes": 3107,
+            "included": "test_index",
+            "lines": 80,
+            "path": "tests/test_isolated_runtime.py",
+            "sha256": "302f46693ceda28e8e7793e9a836bcbfebea363db29c6781d48f0fbbf4401ea8"
+          }
+        ],
+        "prompt_sha256": "2744dbeb8a3a5d64a0e63079a07861a68ded8a076d2d80f7ba0478bf4be59c35",
+        "review_kind": "initial",
+        "scope": "isolation",
+        "snapshot_id": "947d5b3a0255d80afab53c39e3bd332ef3bb50a06ee0a18c6ab770079a56a405",
+        "source_bytes": 22317
+      },
+      "started_at": "2026-09-23T15:10:33.274842+00:00",
+      "finished_at": "2026-09-23T15:11:16.127730+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 Agent runtime deadline is bypassable by a partial frame (durability/measurement)**\n\n`src/autonomy_lab/isolated_runtime.py:202-204` and `src/autonomy_lab/rpc.py:16`\n\n`select` only confirms that *some* bytes are readable; `read_frame` then calls `stream.readline(MAX_FRAME_BYTES + 1)`, which blocks until a newline or 8 MiB+1 bytes arrive. The untrusted agent container can write a single byte (or any JSON prefix) without `\\n` and then idle.\n\nTrace: agent emits `b\"{\"` \u2192 `select` returns readable \u2192 `read_frame` enters `readline` \u2192 no further bytes \u2192 host blocks indefinitely inside the `while time.monotonic() < deadline` loop; `TimeoutError(\"Agent runtime deadline\")` is never raised, `docker rm -f` in `finally` never runs, and the trial hangs rather than being scored as a timeout. Scoring/budget accounting for the run is therefore never finalized (truthful scoring violated: a stuck agent looks like an in-progress one forever).\n\nMinimal fix: make the read deadline-aware. Either set the pipe non-blocking and accumulate bytes in a loop with `select` on each chunk until `\\n`/limit/deadline, or run `read_frame` under a hard timer, e.g.:\n\n```python\ndef read_frame_with_deadline(stream, deadline):\n    buf = bytearray()\n    fd = stream.fileno()\n    while True:\n        remaining = deadline - time.monotonic()\n        if remaining <= 0 or not select.select([fd], [], [], remaining)[0]:\n            raise TimeoutError(\"Agent runtime deadline\")\n        chunk = os.read(fd, 65536)\n        if not chunk: raise ValueError(\"Missing RPC frame\")\n        buf += chunk\n        if len(buf) > MAX_FRAME_BYTES: raise ValueError(\"Oversized RPC frame\")\n        if buf.endswith(b\"\\n\"): return parse(bytes(buf))\n```\n\nand use it at line 204 (and, for simplicity, also in `AuthorityProcess.call`, line 36, which has the same `select`-then-blocking-`readline` pattern).\n\n**Finding 2 \u2014 Authority RPC has no request correlation; a timeout desynchronizes all later calls (correctness of recovery/indeterminate outcomes)**\n\n`src/autonomy_lab/isolated_runtime.py:32-44`, `src/autonomy_lab/authority_worker.py:30-52`\n\nThe broker/verifier protocol is strictly positional: the host writes a request and reads the next frame as its answer. `AuthorityProcess.call` raises `TimeoutError` at line 35 after 180 s but leaves the worker alive and its eventual response unread on the pipe. The next `call()` (e.g. `lookup` or `reconcile` after a slow `propose`) reads that stale frame and returns the *previous* method's result under the new method's name.\n\nTrace: `propose(op)` \u2192 broker's `patch_service` is slow (kube API stall) \u2192 host raises `TimeoutError` at 180 s \u2192 caller treats outcome as indeterminate and issues `lookup(op)` \u2192 `read_frame` returns the late `propose` result \u2192 `lookup` reports a definite success/failure body produced by a different call, and every subsequent call is shifted by one. The verifier path (`verify`) is likewise off by one, so recovery vs. indeterminate classification can be misattributed \u2014 exactly the ambiguity the journal is meant to preserve.\n\nMinimal fix: add an `id` to authority frames and validate it, and treat any timeout as fatal to the worker:\n\n```python\n# isolated_runtime.AuthorityProcess.call\nself.sequence += 1\nwrite_frame(self.process.stdin, {\"id\": self.sequence, \"method\": method, \"argument\": argument})\nif not select.select([self.process.stdout], [], [], 180)[0]:\n    self.close()                      # never reuse a desynced pipe\n    raise TimeoutError(\"Authority response deadline\")\nresponse = read_frame(self.process.stdout)\nif response.get(\"id\") != self.sequence:\n    self.close(); raise ValueError(\"Authority response identity mismatch\")\n```\n\nand in `authority_worker.main` echo `\"id\": request.get(\"id\")` in both the result and error responses (lines 49, 51).\n\nNo other defects are substantiated from the supplied source alone; test bodies were not inspected and nothing was executed.\n\n947d5b3a0255d80afab53c39e3bd332ef3bb50a06ee0a18c6ab770079a56a405",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 9055,
+        "output_tokens": 2930,
+        "output_tokens_details": {
+          "thinking_tokens": 1377
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.23705,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.69508,
+        "input_margin_tokens": 453,
+        "input_tokens": 9055,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T151116.160118Z-context.json",
+      "status": "failed",
+      "scope": "context",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 34603,
+            "included": "full_source",
+            "lines": 626,
+            "path": "src/autonomy_lab/agent.py",
+            "sha256": "653f4dec830a685b674a02214f59d87545784c8018fb1575b90337b33ad877ae"
+          },
+          {
+            "bytes": 1861,
+            "included": "full_source",
+            "lines": 32,
+            "path": "src/autonomy_lab/context.py",
+            "sha256": "d2889d58837930f5e5baef8d85e92361a11630ac9421c21a26a268d10f8ec24f"
+          },
+          {
+            "bytes": 2151,
+            "included": "test_index",
+            "lines": 49,
+            "path": "tests/test_context.py",
+            "sha256": "0eb7b93e5a14bb041102af64b61066319ade696b57a2dbb61cb270287fc45e81"
+          }
+        ],
+        "prompt_sha256": "3103743266c6e3311b4378a4f442aeb99be7b0ddc8be2b5d0b33dd330fe4c5a3",
+        "review_kind": "initial",
+        "scope": "context",
+        "snapshot_id": "7d8052de23d40482863da5333fd48d7d956383f36bd6e4295d6d3ac82610e796",
+        "source_bytes": 38615
+      },
+      "started_at": "2026-09-23T15:11:16.160165+00:00",
+      "finished_at": "2026-09-23T15:11:16.444768+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 0,
+      "findings_text": null,
+      "usage": null,
+      "usage_cost_estimate_usd": null,
+      "cost_preflight": null,
+      "stop_reason": null
+    },
+    {
+      "record": "20260923T151116.457800Z-cleanup_audit.json",
+      "status": "completed",
+      "scope": "cleanup_audit",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 5410,
+            "included": "full_source",
+            "lines": 103,
+            "path": "src/autonomy_lab/audit.py",
+            "sha256": "f820006f583d66eda26bca05d77f067ad80dbab55dfddff9250e71e788e8bc74"
+          },
+          {
+            "bytes": 12632,
+            "included": "full_source",
+            "lines": 346,
+            "path": "src/autonomy_lab/environment.py",
+            "sha256": "2bfc5d3abd6198d0f58a1a11e2541dfc5860aa061a552843b8f9614b4b888df8"
+          },
+          {
+            "bytes": 2689,
+            "included": "full_source",
+            "lines": 61,
+            "path": "src/autonomy_lab/frozen_experiment.py",
+            "sha256": "f11c1560e165c7e0cfdc857dfaf450a381aafca9b56cce9a77459dfb139e586e"
+          },
+          {
+            "bytes": 4727,
+            "included": "full_source",
+            "lines": 99,
+            "path": "src/autonomy_lab/janitor.py",
+            "sha256": "1bb10acc3ba4a7c06cc0af07cf789b8bcb437f70a086b98793839126e221c9f3"
+          },
+          {
+            "bytes": 1843,
+            "included": "full_source",
+            "lines": 41,
+            "path": "src/autonomy_lab/supervisor.py",
+            "sha256": "1c0669e611e848b9f7230753e9f22579d42ab9958766c104564b88dd2752e074"
+          },
+          {
+            "bytes": 9170,
+            "included": "test_index",
+            "lines": 177,
+            "path": "tests/test_environment.py",
+            "sha256": "ca7396526505f02447d90a1a4251116f7e1e09c014e1690189bb2d489784baf6"
+          },
+          {
+            "bytes": 5899,
+            "included": "test_index",
+            "lines": 120,
+            "path": "tests/test_supervisor.py",
+            "sha256": "a180b0b71134f0f8e4a8fe35f23263db0746b811ea4584a55bc50c44adfc7abd"
+          }
+        ],
+        "prompt_sha256": "beffcc05ebba03adb4f306cc182415d4c28109312788d8f00391ba3ba238a736",
+        "review_kind": "initial",
+        "scope": "cleanup_audit",
+        "snapshot_id": "ce77738026e0394311ddde2db294da004f7146e8e3873b50469de124bce0ed3c",
+        "source_bytes": 42370
+      },
+      "started_at": "2026-09-23T15:11:16.457862+00:00",
+      "finished_at": "2026-09-23T15:12:09.481615+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 Stale worker lease with empty identity aborts janitor cleanup, leaking the cluster**\n\n`src/autonomy_lab/supervisor.py:23` and `src/autonomy_lab/janitor.py:61-63`\n\nTrigger: a worker exits within milliseconds of `Popen` (e.g., the release-drift rejection implied by `test_actual_trial_worker_rejects_release_drift_before_infrastructure`, or an immediate import error). `process_identity(process.pid)` then returns `\"\"` (ps fails), and the supervisor still writes `worker-lease.json` with `{\"pid\": N, \"identity\": \"\"}`. That file persists in `trial-*/`.\n\nTrace at cleanup time (controller dead or lease expired):\n1. `cleanup` globs the stale lease; `pid` is a valid int > 1.\n2. `process_identity(pid)` for the long-dead pid returns `\"\"`, which equals `worker[\"identity\"]` (`\"\"`) \u2014 the liveness guard passes falsely.\n3. `os.getpgid(pid)` raises `ProcessLookupError`.\n4. Exception propagates out of `cleanup` before the `docker ps`/`kind delete` steps; `main` records `{\"status\": \"failed\"}` and re-raises.\n\nResult: the kind cluster, its nodes, and any agent containers are never removed \u2014 the exact failure mode the janitor exists to prevent. Note the same `ProcessLookupError` can also occur via ordinary race (worker dies between the identity check and `getpgid`).\n\nMinimal fix:\n```python\n# supervisor.py:23\nidentity = process_identity(process.pid)\nif identity:\n    save(log_path.parent / \"worker-lease.json\", {\"pid\": process.pid, \"identity\": identity})\n\n# janitor.py:61-63\nif type(pid) is int and pid > 1 and worker.get(\"identity\") and process_identity(pid) == worker[\"identity\"]:\n    try:\n        if os.getpgid(pid) == pid:\n            os.killpg(pid, signal.SIGKILL)\n    except ProcessLookupError:\n        pass\n```\nAlso consider wrapping the worker/agent-removal loops so a failure there does not skip cluster deletion.\n\n**Finding 2 \u2014 Fixed, non-renewable 2-hour lease destroys a live run**\n\n`src/autonomy_lab/janitor.py:21,27,88`\n\nTrigger: any controller run lasting \u2265 7200 s. `start` computes `expires_at = time.time() + 7200` once; `main` reads `janitor-lease.json` once (line 81) and there is no renewal path anywhere in scope. Each trial can spend up to 3\u00d7120 s in `rollout status` (`reset_application`) plus the agent budget, so a multi-trial experiment plausibly exceeds two hours.\n\nTrace:\n1. Controller alive, trial N in progress; `time.time() >= lease[\"expires_at\"]` \u2192 loop breaks.\n2. `cleanup` SIGKILLs the current worker's process group (line 63), `docker rm -f`s the agent container, and `kind delete cluster`s the environment out from under the controller.\n3. The controller's in-flight trial observes a dead worker / unreachable API server. Depending on harness handling this is recorded as failure or indeterminate rather than what the agent actually did; subsequent trials fail at `reset_application`. `environment.json` is flipped to `\"deleted\"` while the controller still believes it owns the cluster.\n\nThis corrupts measurement (attributing infrastructure destruction to the agent/trial) and violates \"journal must survive\" expectations for the broker, since the run is truncated mid-operation.\n\nMinimal fix: make the lease renewable and re-read it in the loop.\n```python\n# janitor.py main loop\nwhile True:\n    lease = json.loads((run_dir / \"janitor-lease.json\").read_text())\n    ...\n```\nand have the controller periodically rewrite `janitor-lease.json` with a fresh `expires_at` (via the existing atomic `save`) while trials are running; alternatively size `lifetime_seconds` from the configured total trial budget plus margin rather than a constant.\n\nNo other defects in this scope rise to the same level of substantiation.\n\nce77738026e0394311ddde2db294da004f7146e8e3873b50469de124bce0ed3c",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 13668,
+        "output_tokens": 3796,
+        "output_tokens_details": {
+          "thinking_tokens": 2356
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.32648,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.74352,
+        "input_margin_tokens": 684,
+        "input_tokens": 13668,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T151209.487135Z-ax_runtime.json",
+      "status": "completed",
+      "scope": "ax_runtime",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 7502,
+            "included": "full_source",
+            "lines": 150,
+            "path": "src/autonomy_lab/ax_runtime.py",
+            "sha256": "dfa381a39fe42690351e445777ed63b9e700341de3d0af4581b9f0115b687a88"
+          },
+          {
+            "bytes": 2537,
+            "included": "full_source",
+            "lines": 67,
+            "path": "src/autonomy_lab/isolated_agent.py",
+            "sha256": "33146f8dfad4b450b62dc33738ec016c55896fe85417914ca2d759a3bbe9a0fd"
+          },
+          {
+            "bytes": 3163,
+            "included": "full_source",
+            "lines": 86,
+            "path": "src/autonomy_lab/mailbox.py",
+            "sha256": "ae988eb3c0408ecfdb4b7e560a1cca47f9870523ef1ba10c43585dac12c67a59"
+          },
+          {
+            "bytes": 1299,
+            "included": "full_source",
+            "lines": 41,
+            "path": "src/autonomy_lab/rpc.py",
+            "sha256": "d659d70b200f34459bdf6898495fc917bddfbf04890d6e49338ad0f3ee000ae3"
+          }
+        ],
+        "prompt_sha256": "0c175c87c98c886308283a39d1a7360bedb4a853c4dee683b26e0a08afcc44af",
+        "review_kind": "initial",
+        "scope": "ax_runtime",
+        "snapshot_id": "09118d794caa5dc8eabd25937ed856fd7e271ea55e1a862e151be2e416fc44dc",
+        "source_bytes": 14501
+      },
+      "started_at": "2026-09-23T15:12:09.487238+00:00",
+      "finished_at": "2026-09-23T15:12:49.964441+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 Restart path is unrecoverable after any run that did not publish `result.json` (durability)**\n\n`src/autonomy_lab/ax_runtime.py:91`\n\n```python\nax.python(task, \"from pathlib import Path;Path('/workspace/rpc/result.json').unlink()\")\n```\n\nTrigger: the first attempt ends without a result \u2014 the runner hits `TimeoutError('AX agent deadline')` (line 150), `ValueError('AX RPC budget exhausted')` (line 132), a host crash, or a `RuntimeError` from any `ax.call` while dispatching. `ax-session.json` was already saved at line 82, so the next invocation takes the `else` branch.\n\nTrace: line 90 writes config \u2192 line 91 runs `Path(...).unlink()` in the guest \u2192 the file does not exist \u2192 `FileNotFoundError` \u2192 guest `python3 -c` exits non-zero \u2192 `AX.call` raises `RuntimeError('AX command failed: ssh')` (line 29, stderr discarded so the cause is hidden) \u2192 suspend/resume never runs, the resumes journal is never appended, and the run cannot be resumed by re-invoking. Exactly the scenario the resume path exists for (recovering an interrupted trial) is the one it fails on; only a run that already *completed* can be \"resumed\".\n\nMinimal fix:\n\n```python\nax.python(task, \"from pathlib import Path;Path('/workspace/rpc/result.json').unlink(missing_ok=True)\")\n```\n\n(and include `result.stderr[-500:]` in the `RuntimeError` at line 29 so the failure is diagnosable).\n\n**Finding 2 \u2014 RPC budget resets on every restart, so `max_turns` is not preserved across resumes (measurement/budget)**\n\n`src/autonomy_lab/ax_runtime.py:112,130-132`\n\n```python\ncount = 0\n...\ncount += 1\nif count > options['max_turns'] * 12:\n    raise ValueError('AX RPC budget exhausted')\n```\n\nTrigger: any run that goes through the resume branch (lines 89\u201398). `count` is a local initialised to 0 per `run_ax_agent` call; nothing in `ax-session.json` records RPCs already dispatched.\n\nTrace: first invocation dispatches `max_turns*12` RPCs, raises at line 132. Operator re-invokes (after Finding 1 is fixed). Resume branch runs, agent restarts from `/workspace/agent-state.json`, `count` is 0 again, and another `max_turns*12` generate/count_tokens/tool RPCs are permitted. Each restart grants a fresh budget; total RPC/model calls per trial are unbounded in the number of restarts, and the trial's scored `usage` and turn accounting no longer reflect a fixed budget. The requirement that trials \"preserve budgets\" across restart is violated by the broker side irrespective of what `run_agent` persists.\n\nMinimal fix: persist the counter in the session record and load it on resume:\n\n```python\nrecord = json.loads(session.read_text())\ncount = record.get('rpc_count', 0)\n...\ncount += 1\nrecord['rpc_count'] = count\nsave(session, record)          # before dispatching the request\nif count > options['max_turns'] * 12:\n    raise ValueError('AX RPC budget exhausted')\n```\n\n(Save before `toolbox.call`/`relay.call` so a crash mid-dispatch still charges the budget; a re-dispatched stale `*.request` after restart is then also visible in the journal rather than silently re-executed.)\n\nNo other defects are substantiated from the supplied source alone; the `Suspended`/`Running` boot-count invariant (line 121) depends on AX semantics not shown here.\n\n09118d794caa5dc8eabd25937ed856fd7e271ea55e1a862e151be2e416fc44dc",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 7357,
+        "output_tokens": 2815,
+        "output_tokens_details": {
+          "thinking_tokens": 1539
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.21432,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.67725,
+        "input_margin_tokens": 368,
+        "input_tokens": 7357,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T151505.817006Z-context.json",
+      "status": "failed",
+      "scope": "context",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 34603,
+            "included": "full_source",
+            "lines": 626,
+            "path": "src/autonomy_lab/agent.py",
+            "sha256": "653f4dec830a685b674a02214f59d87545784c8018fb1575b90337b33ad877ae"
+          },
+          {
+            "bytes": 1861,
+            "included": "full_source",
+            "lines": 32,
+            "path": "src/autonomy_lab/context.py",
+            "sha256": "d2889d58837930f5e5baef8d85e92361a11630ac9421c21a26a268d10f8ec24f"
+          }
+        ],
+        "prompt_sha256": "63405f846eeee53de88beaaf1057f84250df9bd58d1aad4a5d99b553f95ab858",
+        "review_kind": "initial",
+        "scope": "context",
+        "snapshot_id": "6b2776d814ae3b02222d8b53513f48327400eff31992d81de62f6ed25ded7153",
+        "source_bytes": 36464
+      },
+      "started_at": "2026-09-23T15:15:05.817500+00:00",
+      "finished_at": "2026-09-23T15:15:06.124631+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 0,
+      "findings_text": null,
+      "usage": null,
+      "usage_cost_estimate_usd": null,
+      "cost_preflight": null,
+      "stop_reason": null
+    },
+    {
+      "record": "20260923T151552.015201Z-context_logic.json",
+      "status": "completed",
+      "scope": "context_logic",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 1861,
+            "included": "full_source",
+            "lines": 32,
+            "path": "src/autonomy_lab/context.py",
+            "sha256": "d2889d58837930f5e5baef8d85e92361a11630ac9421c21a26a268d10f8ec24f"
+          },
+          {
+            "bytes": 2151,
+            "included": "test_index",
+            "lines": 49,
+            "path": "tests/test_context.py",
+            "sha256": "0eb7b93e5a14bb041102af64b61066319ade696b57a2dbb61cb270287fc45e81"
+          }
+        ],
+        "prompt_sha256": "b0f0d8e708102c1f1ff4853110918489444f44cdd6a13a71288e568b531de03e",
+        "review_kind": "initial",
+        "scope": "context_logic",
+        "snapshot_id": "87e07d4113165e38ea7170836ac280f777a91710fda45a75e71d6a39722fbca9",
+        "source_bytes": 4012
+      },
+      "started_at": "2026-09-23T15:15:52.015402+00:00",
+      "finished_at": "2026-09-23T15:16:30.757802+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 Ledger is not validated against the compacted transcript (correctness / provenance)**\n\n`src/autonomy_lab/context.py:24-25`\n\nThe loop at lines 17\u201323 cryptographically-adjacent checks every model turn against `model_responses` and confirms each tool turn consists only of `functionResponse` parts. But the ledger injected in the model's place (line 24) is built from `state[\"tool_records\"]`, which is never cross-checked against those `functionResponse` parts: no count check, no name/order check, no confirmation that each record's `result` equals what the model actually saw. Once `count > 2`, `history[0..-5]` is dropped and the ledger becomes the *only* representation of earlier evidence.\n\nTrigger: any drift between `tool_records` and `contents` \u2014 a tool call whose record was never appended (crash between tool execution and journaling, an \"indeterminate\" broker outcome recorded only in the transcript), a duplicated record, or a tampered `result`. Trace: `count=3`, history has 7 messages, exchange 1's tool turn contains `functionResponse` for `repair_service`, but `tool_records` has only two entries (both from later steps). Lines 15\u201323 pass; line 24 emits a ledger with no trace of the repair; line 31 returns context missing that turn. The agent is told this is \"the exact public tool ledger,\" so a one-shot mutating action can silently vanish or be re-attempted, and the trial's provenance no longer matches the transcript. Line 24 also raises `KeyError` if any record lacks `\"result\"` (e.g., an unresolved operation the prompt text explicitly asks to preserve).\n\nMinimal fix: derive the ledger from the verified `history` tool turns, or assert equivalence:\n\n```python\nseen = [p[\"functionResponse\"] for i in range(count)\n        for p in history[2 + i * 2][\"parts\"]]\nif len(seen) != len(state[\"tool_records\"]) or any(\n        r[\"name\"] != s[\"name\"] or r.get(\"result\") != s.get(\"response\")\n        for r, s in zip(state[\"tool_records\"], seen)):\n    raise ValueError(\"Tool ledger does not match verified transcript\")\nledger = [{\"name\": r[\"name\"], \"args\": r[\"args\"], \"result\": r.get(\"result\")}\n          for r in state[\"tool_records\"]]\n```\n\n**Finding 2 \u2014 Compaction discards the original task turn (`history[0]`)**\n\n`src/autonomy_lab/context.py:31`\n\nLine 15 requires exactly one leading message before the model/tool pairs, so `history[0]` is the incident/task prompt (the only user text in `contents`). Line 31 replaces it with the ledger message and keeps only `history[-4:]`. The injected text says \"Continue the same incident within the same authority and budgets,\" but that authority/budget statement is no longer in the context unless it lives in a system instruction that this module never sees or asserts. Trigger: `policy=\"recent-exchanges\"`, `count=3`; returned `context[0]` is the ledger message, and the incident description is absent. Effect: agent may lose the target Service/targetPort, budget limits, or scope constraints, producing scoring that reflects context loss rather than model capability.\n\nMinimal fix: retain the original turn:\n\n```python\ncontext = [history[0], {\"role\": \"user\", \"parts\": [{\"text\": text}]}, *history[-4:]]\n```\n\n(or assert the task/authority is carried in a system instruction and document that contract).\n\nBoth are source-level observations from this file only; the named tests were not inspected or run.\n\n87e07d4113165e38ea7170836ac280f777a91710fda45a75e71d6a39722fbca9",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 1320,
+        "output_tokens": 2438,
+        "output_tokens_details": {
+          "thinking_tokens": 1234
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.1351,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.61576,
+        "input_margin_tokens": 256,
+        "input_tokens": 1320,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T151630.764531Z-agent.json",
+      "status": "completed",
+      "scope": "agent",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 34603,
+            "included": "full_source",
+            "lines": 626,
+            "path": "src/autonomy_lab/agent.py",
+            "sha256": "653f4dec830a685b674a02214f59d87545784c8018fb1575b90337b33ad877ae"
+          }
+        ],
+        "prompt_sha256": "07885a26417d1c17e663af91c706c4224036d62871c38df901a2b55d3a3a8637",
+        "review_kind": "initial",
+        "scope": "agent",
+        "snapshot_id": "c9892cb8b57fdc9197b877db39b3564401d0727dc4b6ae32aa2f4ab21d83379f",
+        "source_bytes": 34603
+      },
+      "started_at": "2026-09-23T15:16:30.764592+00:00",
+      "finished_at": "2026-09-23T15:17:37.418943+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 Terminal `finish` result is not durable across interrupt/restart; agent resumes and keeps calling the model after a completed finish (durability/correctness, budget & truthful-scoring impact)**\n\nLocation: `src/autonomy_lab/agent.py` lines 264\u2013271 (`call_tool`), 319\u2013321 (`process_tools`), 417\u2013420 (`run`).\n\nThe only place a terminal outcome is checkpointed is `state[\"terminal\"] = _copy(self.toolbox.terminal)` at line 419, and it is read from the *in-memory* toolbox. `call_tool` persists the `finish` tool record (line 264) but never persists the terminal into `state`, and `run()` never consults `state[\"tool_records\"]`/`state[\"terminal\"]` for a prior finish.\n\nTrace:\n1. `run_agent(..., interrupt_after_tool=\"finish\")` (allowed: `\"finish\"` is in `self.schemas`, line 401) or an int count that lands on the finish call.\n2. Model returns `finish(...)`; `call_tool(\"finish\", ...)` completes, saves the record, sets `interrupt_requested` (line 267\u2013270).\n3. `process_tools` line 319 \u2192 `stop(\"interrupted\", ...)` with `pending_turn` still set (all calls `completed`); `state[\"terminal\"]` is `None` on disk.\n4. Process restarts with a fresh toolbox instance. `run()` passes the status gates (`\"interrupted\"` is not terminal), `process_tools` appends the functionResponses and clears `pending_turn`, then line 417 reads `self.toolbox.terminal` \u2192 `None` on a fresh object (nothing in this file rehydrates it).\n5. Loop continues to line 421+: preflight, another `generate`, more tool calls (including `propose_repair`) after the agent already finished.\n\nConsequences: post-terminal token/tool spend charged to the trial, a second `finish` (or a contradictory one) becoming the \"recorded\" terminal, and a checkpoint whose journal misrepresents when the episode ended. The same crash window (kill between line 258 returning and line 264) also redispatches `finish`, double-counting `tool_calls`.\n\nMinimal fix: persist the terminal in the agent's own checkpoint at the boundary and honor it on resume:\n\n```python\n# call_tool, after line 263:\nif name == \"finish\":\n    state[\"terminal\"] = _copy(result)\nself.save()\n\n# run(), replace lines 417-420:\nterminal = state.get(\"terminal\") if state.get(\"terminal\") is not None else self.toolbox.terminal\nif terminal is not None:\n    state[\"terminal\"] = _copy(terminal)\n    return self.stop(\"completed\", \"toolbox_terminal_recorded\")\n```\n\nAlso short-circuit at the top of `run()`: if `state[\"terminal\"] is not None`, return `stop(\"completed\", ...)` before any model request. Add `\"terminal\"` to the gate at lines 397/608 so a terminal checkpoint is never resumed as an execution attempt.\n\n**Finding 2 \u2014 Tool-call budget is charged twice for a single logical call interrupted mid-dispatch (measurement)**\n\nLocation: lines 238\u2013240 and 316\u2013318.\n\n`tool_calls` is incremented and saved *before* dispatch (line 239\u2013240). If the process dies between line 240 and the completion save at line 264, on resume the pending entry is still `dispatched`; for any tool other than `propose_repair`, line 316 unconditionally redispatches via `call_tool`, incrementing `tool_calls` again. The trial's `usage.tool_calls` then overstates the model's actual decisions by one per crash, and can prematurely trigger `tool_call_budget_exhausted` (line 235). This is an accounting artifact of the harness, not agent behavior, so it distorts cross-variant comparisons.\n\nMinimal fix: charge the budget only for the first dispatch of a pending entry:\n\n```python\n# call_tool, replace lines 235-240:\nif pending.get(\"phase\") != \"dispatched\":\n    if state[\"usage\"][\"tool_calls\"] >= state[\"limits\"][\"max_tool_calls\"]:\n        self.stop(\"budget_exhausted\", \"tool_call_budget_exhausted\")\n        return None\n    state[\"usage\"][\"tool_calls\"] += 1\n    pending[\"phase\"] = \"dispatched\"\n    self.save()\nelse:\n    pending[\"redispatch_count\"] = pending.get(\"redispatch_count\", 0) + 1\n```\n\nRecording `redispatch_count` keeps the ambiguity visible to the verifier rather than hiding it.\n\nNo other defects substantiated from this file alone; behavior of `toolbox`, `request_context`, and omitted tests was not assumed.\n\nc9892cb8b57fdc9197b877db39b3564401d0727dc4b6ae32aa2f4ab21d83379f",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 14299,
+        "output_tokens": 4574,
+        "output_tokens_details": {
+          "thinking_tokens": 2962
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.37169,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.75014,
+        "input_margin_tokens": 715,
+        "input_tokens": 14299,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T152622.588926Z-context_logic.json",
+      "status": "completed",
+      "scope": "context_logic",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 2457,
+            "included": "full_source",
+            "lines": 40,
+            "path": "src/autonomy_lab/context.py",
+            "sha256": "8cb45b1e5fabc3b4be2cc26db698d063edbbbe512321c12d72b5b8f3c4c52643"
+          },
+          {
+            "bytes": 2503,
+            "included": "test_index",
+            "lines": 57,
+            "path": "tests/test_context.py",
+            "sha256": "64cc9beb150a32274296664801d65992426e8e5a2d9e4b07e5ab03294f1364e5"
+          }
+        ],
+        "prompt_sha256": "5a54d60e31d0b26c546e6c1fab568e6e8f28ff9fe1242bbce19b73503e134413",
+        "review_kind": "initial",
+        "scope": "context_logic",
+        "snapshot_id": "b9f70cd667542bc687efcd36dc54a118628f8c92636b7673fca0922dfbe95604",
+        "source_bytes": 4960
+      },
+      "started_at": "2026-09-23T15:26:22.589188+00:00",
+      "finished_at": "2026-09-23T15:27:04.457757+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 Compaction becomes permanently impossible after any non-tool model turn (durability)**\n\n`src/autonomy_lab/context.py` lines 15, 23\u201327.\n\nThe compactor assumes every recorded model response is followed by exactly one user message consisting solely of `functionResponse` parts. If any earlier model turn in the run carried no `functionCall` (text-only reasoning, a refusal, a clarifying statement \u2014 all legal Gemini outputs), then either:\n\n- the harness appended no tool message \u2192 `len(history) != 1 + count*2` \u2192 line 16 raises, or\n- the harness appended a user message without `functionResponse` parts \u2192 line 24 raises.\n\nTrace: `count = 3`, response index 1 is text-only. `request_context(state, \"recent-exchanges\")` \u2192 line 13 skipped (count > 2) \u2192 line 15/16 or 23/24 raises `ValueError`. Because the offending exchange stays in `history` forever, every later call with `recent-exchanges` raises too; the agent can never recover context management for the rest of the incident. The exception message (\"incomplete exchange\") also misdescribes a legitimately complete turn, and if the caller lets it propagate, the trial ends with a context error rather than an agent outcome \u2014 which the scorer may record as failure instead of indeterminate.\n\nMinimal fix: treat a text-only model turn as a zero-call exchange. In the loop, detect `history[1+index*2]` with no `functionCall` parts, append nothing to the ledger, and consume only one history element (track a running offset instead of `1 + index*2`); adjust the length check accordingly. Alternatively, on `ValueError` in this function, fall back to returning `history, list(range(count))` and log the reason, so the run continues with full context rather than aborting.\n\n**Finding 2 \u2014 Retained tail exchanges are duplicated into the \"earlier steps\" ledger (measurement/correctness)**\n\n`src/autonomy_lab/context.py` lines 18 and 39\u201340.\n\nThe ledger loop runs over `range(count)`, i.e. all exchanges, but the context also replays `history[-4:]` verbatim (the last two exchanges) and reports them as the live indices `range(count-2, count)`. So the final two tool calls and their results appear twice: once as JSON in the injected user text labeled \"from earlier steps\", and again as real model/function-response turns.\n\nTrace: `count = 3`, calls A, B, C. Ledger = `[A, B, C]`; retained history = model(B), results(B), model(C), results(C). B and C are presented to the model both as historical ledger and as current exchange.\n\nConsequences: (a) the prompt asserts these are \"earlier\" steps, which is false for B and C, giving the model a misleading picture of what is already concluded versus in-flight; (b) token/budget accounting for the compacted context is inflated by duplicated evidence, so any measurement of context-size savings or per-step budget is overstated in the wrong direction; (c) duplicated results of the single permitted targetPort repair make it easier for the model to believe two repairs occurred.\n\nMinimal fix: at line 18, iterate `for index in range(count - 2):` so the ledger covers only exchanges that are dropped from `history`, keeping the verified `history[-4:]` as the sole representation of the last two exchanges. Keep the verification loop over all `count` exchanges if you still want signature checking of the retained tail, but only `ledger.append` for `index < count - 2`.\n\nNo other defects substantiated from this file alone; tests were not inspected or run.\n\nb9f70cd667542bc687efcd36dc54a118628f8c92636b7673fca0922dfbe95604",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 1568,
+        "output_tokens": 2832,
+        "output_tokens_details": {
+          "thinking_tokens": 1625
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.15728,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.61824,
+        "input_margin_tokens": 256,
+        "input_tokens": 1568,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T152959.701793Z-ax_runtime.json",
+      "status": "completed",
+      "scope": "ax_runtime",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 7870,
+            "included": "full_source",
+            "lines": 151,
+            "path": "src/autonomy_lab/ax_runtime.py",
+            "sha256": "73b691cebbbf2a8912bb128e4e7ec05453f828619a279c1b6f8dfba8dd7e211c"
+          },
+          {
+            "bytes": 2537,
+            "included": "full_source",
+            "lines": 67,
+            "path": "src/autonomy_lab/isolated_agent.py",
+            "sha256": "33146f8dfad4b450b62dc33738ec016c55896fe85417914ca2d759a3bbe9a0fd"
+          },
+          {
+            "bytes": 5905,
+            "included": "full_source",
+            "lines": 139,
+            "path": "src/autonomy_lab/mailbox.py",
+            "sha256": "87ed2a2377d5b9eec1a8278ae087756e431ac24a879c9ab2321ae066d4141dc4"
+          },
+          {
+            "bytes": 3533,
+            "included": "full_source",
+            "lines": 102,
+            "path": "src/autonomy_lab/rpc.py",
+            "sha256": "cf3f3c8b843db87ea613d1f5552392dd0f38a668a194470f52b3f781ab28f617"
+          }
+        ],
+        "prompt_sha256": "bff614247558adc1d4cac1f9be6ab8685e7ade07e73ee6fb6900b1952eb62e34",
+        "review_kind": "initial",
+        "scope": "ax_runtime",
+        "snapshot_id": "8176a8eaa1a6e2fe9cd74355ffdf584217e7b27e112f38fd7a6ef944839892b7",
+        "source_bytes": 19845
+      },
+      "started_at": "2026-09-23T15:29:59.701929+00:00",
+      "finished_at": "2026-09-23T15:30:54.903765+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 stale unanswered `.request` files are re-executed after a restart (duplicate tool execution, budget double-charge)**\n\n`src/autonomy_lab/ax_runtime.py` lines 108\u2013110 and 133\u2013150; `src/autonomy_lab/mailbox.py` lines 85\u201392.\n\nTrigger: the host process dies between `toolbox.call(...)` (line 141) and `ax.write(task, identity + '.response', ...)` (line 150) \u2014 e.g. the broker performed the one permitted targetPort repair, then the host crashed. On restart, the `else` branch (lines 90\u201399) only unlinks `result.json`; the orphaned `<id>.request` (no `.response`) remains in `/workspace/rpc`. The resumed agent process boots fresh and issues a new request with a new uuid. The host's `read` script picks `sorted(p.glob('*.request'))[0]` by lexicographic uuid order, so it may select the stale request first, `charge_rpc` again (line 133), and call `toolbox.call` again (line 141) \u2014 a second real execution of the repair the agent already abandoned. If the stale uuid sorts after the new one, the stale request is served later (still executed, still charged). The journal records a clean second attempt rather than an indeterminate first one, violating \"preserve ambiguous execution outcomes\" and truthful budget accounting.\n\nTrace: request `aaaa\u2026`.request written \u2192 host executes tool, crashes \u2192 restart \u2192 mailbox boots, writes `ffff\u2026`.request \u2192 host loop returns `{'request': aaaa\u2026}` \u2192 tool executed again, budget charged, `aaaa\u2026.response` written to a consumer that no longer exists.\n\nMinimal fix: in the resume branch (after line 92), enumerate `*.request` files lacking `.response` and write an explicit indeterminate response for each (`{'id': id, 'error': {'error_type': 'IndeterminateAfterRestart'}}`) and record them in `record['resumes']`, *before* `suspend`. Additionally have `mailbox.MailboxChannel.call` embed the boot_id in the request and have the host script skip requests whose boot_id \u2260 the latest entry in `agent-boots.json`.\n\n**Finding 2 \u2014 resume journal is written after the side effect, so a crash mid-resume makes a valid run fail the boot-count check**\n\n`src/autonomy_lab/ax_runtime.py` lines 93\u201399 and 124\u2013125.\n\nTrigger: host crashes after `ax.call('resume', 'task', task)` (line 95) but before `save(session, record)` (line 99), or `ax.wait(task, 'Running')` raises `TimeoutError` at line 96 after the task has already been resumed. The agent has genuinely booted again (mailbox appends to `agent-boots.json` line 127\u2013128), but `record['resumes']` is not updated. On the next `run_ax_agent` call the `else` branch runs again, producing boots = 3 vs resumes = 1. At completion, line 124 raises `ValueError('AX did not reconstruct exactly one fresh agent process')`, discarding a correct result and mis-scoring the trial \u2014 the journal did not survive the restart it is supposed to survive.\n\nTrace: resumes=[] \u2192 suspend \u2192 resume (boots now 2) \u2192 crash before save \u2192 restart \u2192 suspend/resume (boots 3), save resumes=[1 entry] \u2192 result \u2192 `3 != 1 + 1` \u2192 ValueError.\n\nMinimal fix: journal intent before acting \u2014 before line 93, `record = json.loads(session.read_text()); record['resumes'].append({'suspended': None, 'resumed': None, 'state': 'started'}); save(session, record)`, then fill in `suspended`/`resumed` and mark `'state': 'complete'` after line 96 and save again. Line 124 should then count all entries (including incomplete ones, which represent real boots), and the verifier should treat incomplete entries as indeterminate rather than failure.\n\n8176a8eaa1a6e2fe9cd74355ffdf584217e7b27e112f38fd7a6ef944839892b7",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 9863,
+        "output_tokens": 3556,
+        "output_tokens_details": {
+          "thinking_tokens": 2205
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.27643,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.70357,
+        "input_margin_tokens": 494,
+        "input_tokens": 9863,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T153003.557879Z-cleanup_audit.json",
+      "status": "completed",
+      "scope": "cleanup_audit",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 5978,
+            "included": "full_source",
+            "lines": 110,
+            "path": "src/autonomy_lab/audit.py",
+            "sha256": "fd47d8c7ffb2acbf827947efdba4c9cdd21622b95552b0e7d0f40a6aa09621a9"
+          },
+          {
+            "bytes": 12684,
+            "included": "full_source",
+            "lines": 346,
+            "path": "src/autonomy_lab/environment.py",
+            "sha256": "d3307cef366eeca529cc26ac3074fe4fcf497ab605949ad4abc2297aec10e18a"
+          },
+          {
+            "bytes": 2689,
+            "included": "full_source",
+            "lines": 61,
+            "path": "src/autonomy_lab/frozen_experiment.py",
+            "sha256": "f11c1560e165c7e0cfdc857dfaf450a381aafca9b56cce9a77459dfb139e586e"
+          },
+          {
+            "bytes": 6072,
+            "included": "full_source",
+            "lines": 125,
+            "path": "src/autonomy_lab/janitor.py",
+            "sha256": "8292ffc7f47940967fae2e88bc72c7514aab0bc8d7a416bd85a862472cef6bc8"
+          },
+          {
+            "bytes": 1912,
+            "included": "full_source",
+            "lines": 43,
+            "path": "src/autonomy_lab/supervisor.py",
+            "sha256": "e1a415e09d75c09bea5e2f4b1845163e9fa3087918ea8c939325bcc8710ffa3b"
+          },
+          {
+            "bytes": 9170,
+            "included": "test_index",
+            "lines": 177,
+            "path": "tests/test_environment.py",
+            "sha256": "ca7396526505f02447d90a1a4251116f7e1e09c014e1690189bb2d489784baf6"
+          },
+          {
+            "bytes": 5899,
+            "included": "test_index",
+            "lines": 120,
+            "path": "tests/test_supervisor.py",
+            "sha256": "a180b0b71134f0f8e4a8fe35f23263db0746b811ea4584a55bc50c44adfc7abd"
+          }
+        ],
+        "prompt_sha256": "4b40478f532700c43532644810ec7b66f422c8cfc518c09907ccd73442f427bf",
+        "review_kind": "initial",
+        "scope": "cleanup_audit",
+        "snapshot_id": "740bd1a9d3b85cca7b655105c4ea469e3ea5137a604f2424aee0e9b4cc6175d7",
+        "source_bytes": 44404
+      },
+      "started_at": "2026-09-23T15:30:03.558028+00:00",
+      "finished_at": "2026-09-23T15:31:22.785479+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 janitor may delete the cluster while the controller is alive (janitor.py:26, 38\u201339, 113; supervisor.py:23; janitor.py:71)**\n\nLiveness is decided by string-equality of `ps -o lstart=` output. `lstart` is rendered in the *calling process's* local time zone. The controller records `controller_identity` under its own environment (janitor.py:26), but the janitor child is spawned with a stripped environment containing only `PATH`, `PYTHONPATH`, `DOCKER_HOST` (janitor.py:38\u201339) \u2014 no `TZ`/`LC_ALL`. If the controller runs with `TZ` set (e.g. CI runners commonly export `TZ=UTC`, or a shell with `TZ=America/New_York`) on a host whose `/etc/localtime` differs, the janitor's `process_identity(controller_pid)` returns a differently formatted timestamp on its first iteration, `alive` is `False` (line 113\u2013114), and `cleanup()` runs immediately: `kind delete cluster` (line 89) fires during `provision()` (environment.py:250\u2013267 is still executing, since `start()` is called at line 248 before cluster creation) or mid-trial, and `environment.json` is overwritten to `\"deleted\"`. The same mismatch makes worker-lease matching (janitor.py:71) silently fail, so worker process groups survive an actual controller death.\n\nTrace: `TZ=UTC python -m autonomy_lab \u2026` on a host set to `Europe/Berlin` \u2192 controller lstart `\"Tue Jun  4 12:00:00 2024\"`, janitor lstart `\"Tue Jun  4 14:00:00 2024\"` \u2192 cleanup after \u22642 s.\n\nMinimal fix \u2014 make identity rendering environment-independent on both sides:\n```python\ndef process_identity(pid):\n    result = subprocess.run([\"ps\", \"-p\", str(pid), \"-o\", \"lstart=\"], capture_output=True, text=True,\n                            timeout=5, env={\"PATH\": os.environ.get(\"PATH\", \"/usr/bin:/bin\"),\n                                            \"TZ\": \"UTC\", \"LC_ALL\": \"C\"})\n```\n(Optionally also forward `TZ`/`LC_ALL` in the Popen env at janitor.py:38.)\n\n**Finding 2 \u2014 any exception in the janitor watch loop orphans the cluster with no record (janitor.py:107\u2013116)**\n\nOnly `cleanup()` is wrapped (lines 117\u2013121). The polling loop calls `json.loads(environment.json)` and `process_identity()` every 2 s unguarded. `process_identity` uses `timeout=5` and does not catch `subprocess.TimeoutExpired`; `ps` stalling >5 s under the load of `kind create` + `docker build` (which run concurrently with the loop), or a read of `environment.json` racing a non-atomic rewrite (environment.py:232, 346 use plain `write_text`), raises out of `main()`. The detached janitor dies with the traceback only in `janitor.log`; no `janitor-result.json` is written, the controller's later death triggers no cleanup, and the kind cluster and any agent containers persist indefinitely \u2014 exactly the durability guarantee the janitor exists for.\n\nTrace: controller alive \u2192 loop iteration \u2192 `environment.json` mid-write at environment.py:346 (empty file) \u2192 `json.loads(\"\")` raises `JSONDecodeError` \u2192 janitor exits at line 109 \u2192 cluster never deleted, no result artifact.\n\nMinimal fix:\n```python\ndef main(run_dir):\n    lease = json.loads((run_dir / \"janitor-lease.json\").read_text())\n    try:\n        while True:\n            try:\n                metadata = json.loads((run_dir / \"environment.json\").read_text())\n                if metadata.get(\"status\") == \"deleted\":\n                    save(run_dir / \"janitor-result.json\", {\"status\": \"normal_cleanup_observed\"})\n                    return\n                alive = process_identity(lease[\"controller_pid\"]) == lease[\"controller_identity\"]\n            except (OSError, ValueError, subprocess.TimeoutExpired):\n                alive = True  # transient; retry rather than exit\n            if not alive or time.time() >= lease[\"expires_at\"]:\n                break\n            time.sleep(2)\n        cleanup(run_dir, lease)\n    except Exception as error:\n        save(run_dir / \"janitor-result.json\", {\"status\": \"failed\", \"error_type\": type(error).__name__})\n        raise\n```\nAlso make `environment.json` writes atomic (use `save`, as teardown at environment.py:346 does not).\n\nNo other defects in this scope are substantiated from the supplied source alone; test bodies were not inspected and nothing was executed.\n\n740bd1a9d3b85cca7b655105c4ea469e3ea5137a604f2424aee0e9b4cc6175d7",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 14506,
+        "output_tokens": 5867,
+        "output_tokens_details": {
+          "thinking_tokens": 4242
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.43841,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.75232,
+        "input_margin_tokens": 726,
+        "input_tokens": 14506,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T153105.955755Z-isolation.json",
+      "status": "completed",
+      "scope": "isolation",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 2540,
+            "included": "full_source",
+            "lines": 57,
+            "path": "src/autonomy_lab/authority_worker.py",
+            "sha256": "046a8ebdd1dd3f675c572eee2874cce89585d23a110ffb2881d6918018962c4c"
+          },
+          {
+            "bytes": 2537,
+            "included": "full_source",
+            "lines": 67,
+            "path": "src/autonomy_lab/isolated_agent.py",
+            "sha256": "33146f8dfad4b450b62dc33738ec016c55896fe85417914ca2d759a3bbe9a0fd"
+          },
+          {
+            "bytes": 14139,
+            "included": "full_source",
+            "lines": 288,
+            "path": "src/autonomy_lab/isolated_runtime.py",
+            "sha256": "d477de425bacf6a4a1ec88d4b3023adad7dbf85bd1b076cfa37f3bc0881fa49a"
+          },
+          {
+            "bytes": 3533,
+            "included": "full_source",
+            "lines": 102,
+            "path": "src/autonomy_lab/rpc.py",
+            "sha256": "cf3f3c8b843db87ea613d1f5552392dd0f38a668a194470f52b3f781ab28f617"
+          },
+          {
+            "bytes": 4651,
+            "included": "test_index",
+            "lines": 134,
+            "path": "tests/test_isolated_runtime.py",
+            "sha256": "9586f456791104017b14143cee17c27ce944ec170a696a5804b8f312b6d94782"
+          }
+        ],
+        "prompt_sha256": "d6a415a8e3e94fdfeb8a54113e09ff25b615a74afd1679524772f9d0e8ba2bc1",
+        "review_kind": "initial",
+        "scope": "isolation",
+        "snapshot_id": "217aebaa6b2a91958d013df9f5aa3fe6a864f6d098af0dec53319a5852189d43",
+        "source_bytes": 27400
+      },
+      "started_at": "2026-09-23T15:31:05.955974+00:00",
+      "finished_at": "2026-09-23T15:32:04.393111+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Findings (2)**\n\n**1. `isolated_runtime.py:116,120` \u2014 root-hosted runs produce an unwritable `/workspace`, so the agent cannot checkpoint at all.**\n\n`container_args` creates the workspace with `mkdir(mode=0o700)` owned by the *host* uid, but selects the container user as `os.getuid() or 10001`. When the host runs as uid 0 (common in CI/containers-in-docker), the directory is `root:root 0700` while the agent process runs as `10001:10001`.\n\nTrace: host uid 0 \u2192 `workspace.mkdir(0o700)` owned by 0:0 \u2192 `docker run --user 10001:10001 --mount type=bind,...,target=/workspace` \u2192 `isolated_agent.main` \u2192 `run_agent(..., Path(\"/workspace/agent-state.json\"))` \u2192 first checkpoint write raises `PermissionError` inside the container \u2192 agent exits without a `result` frame \u2192 host `reader.read` gets EOF \u2192 `ValueError(\"Missing RPC frame\")`. Every trial fails identically; no restart-durability path is exercised. The `checkpoint.exists()` export in `finally` also silently skips, so `state_path` is never written.\n\nMinimal fix: make the workspace owned by the uid the container actually runs as, e.g.\n\n```python\nuid, gid = os.getuid() or 10001, os.getgid() or 10001\nworkspace.mkdir(mode=0o700, parents=True, exist_ok=True)\nif os.getuid() == 0:\n    os.chown(workspace, uid, gid)\nreturn [..., \"--user\", f\"{uid}:{gid}\", ...]\n```\n\n(or simply refuse to run as root with a clear error).\n\n**2. `isolated_runtime.py:221\u2013288` \u2014 `agent-runtime.json` records `\"status\": \"running\"` for every failed/timed-out trial.**\n\n`metadata[\"status\"]` is only updated on the two happy paths (`\"returned\"` line 237, `\"killed\"` line 273). Any exception escaping the loop \u2014 `TimeoutError(\"Agent runtime deadline\")` (line 276), `ValueError(\"Invalid RPC sequence or budget\")` (line 241), reader EOF, `charge_rpc` exhaustion, provider hang \u2014 leaves `metadata[\"status\"] == \"running\"`, and the `finally` at line 288 persists that value *after* the container has been force-removed. Provenance for a trial that was actually torn down for a budget/deadline breach thus claims it is still executing, which misclassifies indeterminate/failed runs for downstream scoring and makes crash-marker vs runtime-metadata reconciliation ambiguous.\n\nReproduction: run with a client whose `generate` blocks past `timeout`; observe `TimeoutError` raised, container removed, and `agent-runtime.json` = `{\"status\": \"running\", ...}`.\n\nMinimal fix:\n\n```python\n    except BaseException as error:\n        metadata[\"status\"] = \"failed\"\n        metadata[\"error_type\"] = type(error).__name__\n        raise\n    finally:\n        ...\n```\n\nplaced before the existing `finally` (wrapping the same `try` body).\n\nNo further defects substantiated from the supplied files; broker/verifier/agent bodies and the listed tests were not inspected.\n\n217aebaa6b2a91958d013df9f5aa3fe6a864f6d098af0dec53319a5852189d43",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 10704,
+        "output_tokens": 3950,
+        "output_tokens_details": {
+          "thinking_tokens": 2833
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.30454,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.7124,
+        "input_margin_tokens": 536,
+        "input_tokens": 10704,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T153111.174785Z-scoring.json",
+      "status": "completed",
+      "scope": "scoring",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 23240,
+            "included": "full_source",
+            "lines": 518,
+            "path": "src/autonomy_lab/scoring.py",
+            "sha256": "6d36054829345e3bce5e41496c4df36441fb36df03ec95f5ea98529053f315d4"
+          },
+          {
+            "bytes": 22753,
+            "included": "test_index",
+            "lines": 596,
+            "path": "tests/test_scoring.py",
+            "sha256": "9bd6b0189f1afc69445a33e24081463437e69bce17539831850a43290161eecd"
+          }
+        ],
+        "prompt_sha256": "e763db5febb1ab3d4a360a07b18a202d689d8435d888086b5b59e138e172a1b9",
+        "review_kind": "initial",
+        "scope": "scoring",
+        "snapshot_id": "ed08686d785018da878ddf222294b90c73e9292d161800af5f0a67be9d87a7f0",
+        "source_bytes": 45993
+      },
+      "started_at": "2026-09-23T15:31:11.174966+00:00",
+      "finished_at": "2026-09-23T15:32:16.389920+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Findings: no substantiated defects in `src/autonomy_lab/scoring.py`.**\n\nI traced the paths most likely to hide truthful-scoring failures and could not produce a concrete counterexample from this file alone:\n\n- **Operator precedence, line 29:** `STALE_REASONS - {\"precondition_failed\"} | {...}` parses as `(STALE - {...}) | {...}`, so `precondition_failed` is correctly excluded from preflight and treated as a possible API-side attempt at line 160.\n- **Type-before-membership guards (lines 78\u201380, 102\u2013103, 134\u2013138):** every `in`-set test on caller-supplied values is preceded by an `isinstance(str)` check, so unhashable inputs raise `ValueError` rather than `TypeError`.\n- **Synthesized operations (line 336):** payloads promoted to operation views have `status \u2208 STATUSES` guaranteed, `request` guaranteed to be a mapping (line 139), and missing `budget_reserved` degrades conservatively to \"dispatch possible\" (line 165). `missing_operations` also blocks `common` (line 425), so a hidden durable record cannot yield success.\n- **Verification staleness (lines 393\u2013408):** `latest_check` is the last `verify_recovery` by log order that also precedes the finish boundary by timestamp; any later proposal whose payload or durable record could have dispatched invalidates it. A non-useful/failed later check correctly becomes `latest_check` and fails the verdict test.\n- **Ordering (`_before`, lines 183\u2013186):** both append-log position and timestamp are required; evidence at the same timestamp as the boundary is allowed only if it precedes in log order, which is consistent with the docstring contract.\n- **Uncertainty reconciliation (lines 274\u2013297):** lookup must bind the same `operation_id` and identical `request`, sit after the first uncertain result and before the claim, and either be terminal or record an inspected desired-state observation; retained uncertainty stays \"covered\" without becoming attribution, matching the stated intent.\n\nOne item I could not verify from this file and therefore do not assert as a defect: line 280's `payload.get(\"request\") != operation[\"request\"]` requires exact dict equality between the `get_operation` observation and the durable record. If the broker persists a Proposal with defaults filled (e.g. `port_name=\"http\"`) but echoes the caller's original sparse request in `get_operation`, uncertainty coverage would never bind and `repair` could never succeed after an uncertain dispatch. Confirming this needs `broker.py`, which is out of scope.\n\nNo changes recommended on this evidence.\n\ned08686d785018da878ddf222294b90c73e9292d161800af5f0a67be9d87a7f0",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 11047,
+        "output_tokens": 4687,
+        "output_tokens_details": {
+          "thinking_tokens": 3775
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.34482,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.716,
+        "input_margin_tokens": 553,
+        "input_tokens": 11047,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T153335.933192Z-experiment_runtime.json",
+      "status": "failed",
+      "scope": "experiment_runtime",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 31629,
+            "included": "full_source",
+            "lines": 639,
+            "path": "src/autonomy_lab/experiments.py",
+            "sha256": "4c03e0e788f3b34c45f08ca3ad42a1b923906efb3df313951f3f4e1f470115e4"
+          },
+          {
+            "bytes": 1912,
+            "included": "full_source",
+            "lines": 43,
+            "path": "src/autonomy_lab/supervisor.py",
+            "sha256": "e1a415e09d75c09bea5e2f4b1845163e9fa3087918ea8c939325bcc8710ffa3b"
+          },
+          {
+            "bytes": 1179,
+            "included": "full_source",
+            "lines": 30,
+            "path": "src/autonomy_lab/trial_worker.py",
+            "sha256": "7ea7b26bc20b1838cbb01d17ccffe4cb91f9c35ba9430417956aa2c7b214b753"
+          },
+          {
+            "bytes": 5549,
+            "included": "test_index",
+            "lines": 151,
+            "path": "tests/test_experiment_boundaries.py",
+            "sha256": "c264243a1c037651b13b5a6d04c565ea21e008462663f65b363988d2af9dc4fa"
+          },
+          {
+            "bytes": 5899,
+            "included": "test_index",
+            "lines": 120,
+            "path": "tests/test_supervisor.py",
+            "sha256": "a180b0b71134f0f8e4a8fe35f23263db0746b811ea4584a55bc50c44adfc7abd"
+          }
+        ],
+        "prompt_sha256": "83b97bf03654a9195794c1b8a1172c2da426dc27469a238e5ad76c97e732efb2",
+        "review_kind": "initial",
+        "scope": "experiment_runtime",
+        "snapshot_id": "b2d1e249a0676251e11c787660091d441243b876321c563c69ab201a8d7223b4",
+        "source_bytes": 46168
+      },
+      "started_at": "2026-09-23T15:33:35.933365+00:00",
+      "finished_at": "2026-09-23T15:33:36.327743+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 0,
+      "findings_text": null,
+      "usage": null,
+      "usage_cost_estimate_usd": null,
+      "cost_preflight": null,
+      "stop_reason": null
+    },
+    {
+      "record": "20260923T153409.930295Z-experiment_logic.json",
+      "status": "completed",
+      "scope": "experiment_logic",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 31629,
+            "included": "full_source",
+            "lines": 639,
+            "path": "src/autonomy_lab/experiments.py",
+            "sha256": "4c03e0e788f3b34c45f08ca3ad42a1b923906efb3df313951f3f4e1f470115e4"
+          }
+        ],
+        "prompt_sha256": "f45921563044a96ec80d74cdf253adc08bf9f59cb36698a573a085c09f76110a",
+        "review_kind": "initial",
+        "scope": "experiment_logic",
+        "snapshot_id": "a9177b8392c4e54181dc137b49e63f7b445730cfe6bef6662fd08bcf38d01eaa",
+        "source_bytes": 31629
+      },
+      "started_at": "2026-09-23T15:34:09.930484+00:00",
+      "finished_at": "2026-09-23T15:35:08.541753+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Findings (experiment_logic scope, `src/autonomy_lab/experiments.py`)**\n\n**1. Supervisor deadline equals agent deadline, so agent timeouts can never be recorded truthfully (measurement/durability)**\n\n- Lines 356, 359: for `ax` / `isolated-docker` runtimes, the agent runner receives `timeout = trial_timeout_seconds`.\n- Line 491\u2013492: `supervise_trial` runs the whole worker under the *same* `trial_timeout_seconds`.\n- The worker spends wall time before the agent starts (identities, baseline `check`, `set_target_port`, `establish_fault`, port-forwards) and after it ends (final `verify_current` with a full `window_seconds`, exports, audit).\n\nTrace: `trial_timeout_seconds=900`, `window_seconds=60`. Worker starts, ~40 s of setup, agent starts at t\u224840 s and stalls on a slow provider. The agent runner would report `status=\"timed_out\"` at t\u2248940 s with budget/usage recorded in `agent-state.json`; the supervisor kills the worker at t=900 s first. `supervise_trial` (line 507) then sees `timed_out=True`, moves `trial.json` to `trial-worker-partial.json`, pops `score`, and records `failed_stage=\"worker\"`. The agent's usage, `terminal`, broker journal export (`operations.json`) and `final-verification.json` are never written, so a provider stall is indistinguishable from an infrastructure kill, and the \"recorded\" accounting (line 587) counts it without any scoring evidence. Even a well-behaved agent that legitimately uses its full budget is killed before final verification runs.\n\nMinimal fix: give the agent a strictly smaller budget, e.g. in `run_trial`\n\n```python\nagent_timeout = max(1, config[\"trial_timeout_seconds\"] - 2 * config[\"window_seconds\"] - 120)\nkwargs[\"timeout\"] = agent_timeout\n```\n\n(and reuse it at line 356), or have `supervise_trial` supervise with `trial_timeout_seconds + setup_and_verify_margin`. The lease computation at line 549 already assumes a +600 s margin; the supervisor should too.\n\n**2. `run_trial` recomputes `release_id` per trial and ignores the frozen one (provenance)**\n\n- Line 344: `release_manifest(config)[\"release_id\"]` is recomputed inside every model-agent trial by re-hashing the working tree (`uv.lock`, all `src/autonomy_lab/*.py`, fixtures \u2026).\n- Line 485: `supervise_trial` persists the experiment's frozen `release_id` in `worker-request.json`, but `run_trial` has no `release_id` parameter and never reads it.\n- Line 524: `config` gains `trial_timeout_seconds` (and `agent_image_id` at 531) *before* `release.json` is written at 532; the recomputed value only matches if the on-disk tree is byte-identical for the entire multi-hour run.\n\nTrace: in `local` runtime (no `.frozen-release` gate, line 521), an operator edits any `src/autonomy_lab/*.py` or `fixtures/expectations.json` while trials 5\u201320 run. Trials 1\u20134 stamp the agent state with the `release.json` ID; later trials stamp a different ID. `results.json`/`REPORT.md` still cite the single `release.json`, so provenance silently diverges and the change to `expectations.json` (which drives the verifier) is invisible in the record.\n\nMinimal fix: thread the frozen ID through and refuse to run on drift:\n\n```python\ndef run_trial(kube, run_dir, scenario, variant, config, *, env_file=None,\n              workspace_prepared=False, release_id=None):\n    ...\n    if release_id is None:\n        release_id = release_manifest(config)[\"release_id\"]\n    elif release_manifest(config)[\"release_id\"] != release_id:\n        raise RuntimeError(\"Source tree changed since release.json was frozen\")\n    kwargs = {\"release_id\": release_id, ...}\n```\n\nand have `trial_worker` pass `request[\"release_id\"]`.\n\nNo other defect in this file is substantiated from the supplied source alone; behavior of `ActionBroker`, `AuthorityProcess`, `run_agent`, and `score_trial` was not inspected.\n\na9177b8392c4e54181dc137b49e63f7b445730cfe6bef6662fd08bcf38d01eaa",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 13465,
+        "output_tokens": 4114,
+        "output_tokens_details": {
+          "thinking_tokens": 2612
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.34035,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.74139,
+        "input_margin_tokens": 674,
+        "input_tokens": 13465,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T153519.670619Z-agent.json",
+      "status": "completed",
+      "scope": "agent",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 35004,
+            "included": "full_source",
+            "lines": 633,
+            "path": "src/autonomy_lab/agent.py",
+            "sha256": "f5f301df162312d23afbc1c83bf9bfb999329a98b7d99f81fd5a79695efa6e07"
+          }
+        ],
+        "prompt_sha256": "58110fc8dc308470adcc18eccc75c5b3e3a6768cda3e16351cb57c9a3f123b0e",
+        "review_kind": "initial",
+        "scope": "agent",
+        "snapshot_id": "5ef183fa6d8d33233003989b056e605c43efae34245eec4f72f222b05192d09d",
+        "source_bytes": 35004
+      },
+      "started_at": "2026-09-23T15:35:19.670931+00:00",
+      "finished_at": "2026-09-23T15:37:06.427839+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Findings (source review only; no tests executed)**\n\n**1. Recovered `propose_repair` leaves no `propose_repair` provenance record \u2014 `src/autonomy_lab/agent.py:275-304`**\n\nTrigger: process dies after `call_tool` marks the proposal `dispatched` (line 238-240) but before line 262-266 save. On resume, `process_tools` (line 312) calls `recover_proposal`, which:\n- issues `get_operation` through `call_tool` \u2192 appends a `tool_records` entry named `get_operation` (line 263);\n- if the journal shows the operation exists with matching request, sets `pending.update(phase=\"completed\", result=<get_operation envelope>, recovered_from=\"get_operation\")` (line 302) and returns.\n\n`call_tool` for `propose_repair` is never run again, so `tool_records` never receives an entry with `name == \"propose_repair\"`, while `state[\"contents\"]` (line 327-331) gets a `functionResponse` named `propose_repair` whose body is the `get_operation` envelope. The `recovered_from` flag lives only inside `pending_turn`, which is set to `None` at line 332 and discarded. Result: the checkpoint's durable record of a mutation that actually reached the broker is a `get_operation` lookup; any scorer/verifier counting mutations or auditing \"was exactly one repair proposed\" from `tool_records` undercounts, and the transcript/record mismatch cannot be reconstructed after the turn closes.\n\nMinimal fix: in `recover_proposal`, before `return True` at line 304, append a durable record:\n```python\nstate[\"tool_records\"].append({\"name\": call[\"name\"], \"args\": _copy(call[\"args\"]),\n    \"result\": result, \"recovered_from\": \"get_operation\", \"timestamp\": _now()})\n```\nand include `recovered_from` in the `functionResponse` (or at least in the record) so downstream consumers see the ambiguity.\n\n**2. Crash-redispatch double-counts `usage.tool_calls` versus `tool_records` \u2014 `src/autonomy_lab/agent.py:235-240, 318-320`**\n\nTrigger: any non-`propose_repair` tool (e.g. `observe_service`) is mid-flight when the process dies after the line-240 save. Trace:\n- Attempt 1: `tool_calls` N\u2192N+1, `pending.phase = \"dispatched\"`, saved. Crash during `toolbox.call`.\n- Resume: `process_tools` sees phase `dispatched`, name \u2260 `propose_repair`, falls to line 319 \u2192 `call_tool` again \u2192 `tool_calls` N+1\u2192N+2, one `tool_records` entry appended.\n\nCheckpoint now has `usage.tool_calls == len(tool_records) + 1` with nothing explaining the gap, and the interrupted attempt is invisible. Budget consumption is therefore not reconcilable with recorded actions; with `interrupt_after_tool` as an int (line 269-271) the interrupt fires one call early relative to visible records. This breaks the \"budgets and provenance preserved across restart\" property for every read-only tool, not just repairs.\n\nMinimal fix: when re-entering a `dispatched` pending call, record the aborted attempt rather than silently retrying, e.g. in `call_tool` before line 238:\n```python\nif pending.get(\"phase\") == \"dispatched\":\n    state[\"tool_records\"].append({\"name\": name, \"args\": _copy(args),\n        \"result\": {\"kind\": \"attempt_lost_on_restart\"}, \"timestamp\": _now()})\n```\n(or keep an `attempts` counter on `pending` and skip the second `tool_calls` increment). Either choice makes `tool_calls` reconcilable with durable records.\n\nNo further defects substantiated within this file at the level of confidence required.\n\n5ef183fa6d8d33233003989b056e605c43efae34245eec4f72f222b05192d09d",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 14463,
+        "output_tokens": 8039,
+        "output_tokens_details": {
+          "thinking_tokens": 6753
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.54658,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.75187,
+        "input_margin_tokens": 724,
+        "input_tokens": 14463,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T153719.156665Z-ax_runtime.json",
+      "status": "completed",
+      "scope": "ax_runtime",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 8412,
+            "included": "full_source",
+            "lines": 159,
+            "path": "src/autonomy_lab/ax_runtime.py",
+            "sha256": "7222360cfed7950b0f8f31fc93175380c4a685b541b6ae194d56525b2e16ea49"
+          },
+          {
+            "bytes": 2537,
+            "included": "full_source",
+            "lines": 67,
+            "path": "src/autonomy_lab/isolated_agent.py",
+            "sha256": "33146f8dfad4b450b62dc33738ec016c55896fe85417914ca2d759a3bbe9a0fd"
+          },
+          {
+            "bytes": 6087,
+            "included": "full_source",
+            "lines": 143,
+            "path": "src/autonomy_lab/mailbox.py",
+            "sha256": "48a90fcfc55d3a98e4b1db502045fecadc3331ce62a22229b86f1e89a82317c9"
+          },
+          {
+            "bytes": 3533,
+            "included": "full_source",
+            "lines": 102,
+            "path": "src/autonomy_lab/rpc.py",
+            "sha256": "cf3f3c8b843db87ea613d1f5552392dd0f38a668a194470f52b3f781ab28f617"
+          }
+        ],
+        "prompt_sha256": "20992af3cd73d409c31d3ec5b5d78a0f4b262f6af315d394ead52a55b5ac0777",
+        "review_kind": "initial",
+        "scope": "ax_runtime",
+        "snapshot_id": "7a7e511e3b0baa5f4f3e13176139e5709f99bf093181995473a442dd80267293",
+        "source_bytes": 20569
+      },
+      "started_at": "2026-09-23T15:37:19.156832+00:00",
+      "finished_at": "2026-09-23T15:38:27.138362+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 Pending-request selection is keyed by filename, but processing/response are keyed by the embedded `id`; mismatch causes unbounded re-execution and budget drain**\n\n`src/autonomy_lab/ax_runtime.py` lines 115\u2013118 (read script), 141\u2013158.\n\nThe read script selects `pending` as any `*.request` whose `<stem>.response` does not exist. The broker then takes `identity = request['id']` (line 143), executes the tool or model call (149/152), and writes `identity + '.response'` (line 158). Nothing checks `f.stem == request['id']`.\n\nTrigger: the in-container agent (or anything that can write `/workspace/rpc`, which the untrusted agent process can) publishes `aaaa\u202632.request` containing `{\"id\": \"bbbb\u202632\", \"boot_id\": <current>, \"method\": \"tool\", ...}`.\n\nTrace:\n1. Loop iteration: `pending[0]` = `aaaa\u2026.request`; broker charges budget (141), runs `toolbox.call` (149) \u2014 a real, possibly side-effecting inventory repair attempt \u2014 and writes `bbbb\u2026.response`.\n2. Next iteration (no sleep on this path): `aaaa\u2026.response` still absent \u2192 same file is pending again \u2192 charge again, execute the tool again, write `bbbb\u2026.response` again.\n3. Repeats every few hundred ms until `charge_rpc` exhausts `max_turns * 12` and raises, or the 900 s deadline fires. The journaled outcome is \"budget exhausted\"/timeout, the tool was executed many times, and the agent never sees a response \u2014 scoring and provenance are both wrong, and the \"one repair\" contract is violated at the broker.\n\nVariant: an `id` that fails the regex at 144 raises `ValueError` *after* the budget was charged at 141, aborting the harness with no journal entry rather than producing an indeterminate/error record.\n\nMinimal fix:\n```python\n# in read script, also emit the stem:\nprint(json.dumps({'request': json.loads(f.read_text()), 'file': f.stem}))\n# in broker:\nrequest = message['request']; identity = message['file']\nif not re.fullmatch(r'[a-f0-9]{32}', identity) or request.get('id') != identity:\n    ax.write(task, identity + '.response', {'id': identity, 'error': {'error_type': 'ValueError'}})\n    continue\ncharge_rpc(...)  # move after validation\n```\nAlways respond under the *file's* stem so a request can never remain pending after handling.\n\n**Finding 2 \u2014 Consistent `atespace` token likely breaks every AX call (verify before treating as a bug)**\n\n`src/autonomy_lab/ax_runtime.py` lines 23\u201324 (`'--atespace'`) and 72, 73, 75 (`metadata.atespace`).\n\nEvery CLI invocation passes `--atespace autonomy-agents`, and every manifest uses `metadata.atespace` instead of a `namespace`-style key. If the AX CLI/API follows Kubernetes conventions, `call()` fails on the first `apply` (line 81) with `RuntimeError('AX command failed: apply')` and the lab can never start; the manifests would also be rejected as unknown fields. Because the token is uniformly wrong across both CLI flag and manifest, this may be a snapshot redaction artifact rather than source \u2014 but as written, the code cannot run. If real: replace with `--namespace` and `'namespace'`. Also note `call()` (line 29) discards `result.stderr`, so this class of failure surfaces with no diagnostic.\n\nNo other defects in this scope are substantiated from the supplied source alone.\n\n7a7e511e3b0baa5f4f3e13176139e5709f99bf093181995473a442dd80267293",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 10175,
+        "output_tokens": 4528,
+        "output_tokens_details": {
+          "thinking_tokens": 3282
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.32815,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.70684,
+        "input_margin_tokens": 509,
+        "input_tokens": 10175,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T153733.945609Z-context_logic.json",
+      "status": "incomplete",
+      "scope": "context_logic",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 2495,
+            "included": "full_source",
+            "lines": 41,
+            "path": "src/autonomy_lab/context.py",
+            "sha256": "b36eb6a628a7ec084a48d64e0d14cd37dd5e027e7825ec0d225cced57a01aaba"
+          },
+          {
+            "bytes": 2661,
+            "included": "test_index",
+            "lines": 61,
+            "path": "tests/test_context.py",
+            "sha256": "b32ab9f778f16ecc9c543715e91edb4102821a2090b22e5f97a6182d633d8657"
+          }
+        ],
+        "prompt_sha256": "d9c0bfb02e6073133ce4f6b59ae4908ae0935cb1a4e9fb37d5234edf74653694",
+        "review_kind": "initial",
+        "scope": "context_logic",
+        "snapshot_id": "c923b0a74eb82960c36b117803fe7b4991d77e22aad23763f3521e538ccaa544",
+        "source_bytes": 5156
+      },
+      "started_at": "2026-09-23T15:37:33.945765+00:00",
+      "finished_at": "2026-09-23T15:37:36.796942+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": null,
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 1582,
+        "output_tokens": 0,
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.01582,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.61838,
+        "input_margin_tokens": 256,
+        "input_tokens": 1582,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "refusal"
+    },
+    {
+      "record": "20260923T153738.019807Z-cleanup_audit.json",
+      "status": "completed",
+      "scope": "cleanup_audit",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 5978,
+            "included": "full_source",
+            "lines": 110,
+            "path": "src/autonomy_lab/audit.py",
+            "sha256": "fd47d8c7ffb2acbf827947efdba4c9cdd21622b95552b0e7d0f40a6aa09621a9"
+          },
+          {
+            "bytes": 12690,
+            "included": "full_source",
+            "lines": 347,
+            "path": "src/autonomy_lab/environment.py",
+            "sha256": "026fdb8aee08c6f04c9682d4986359a9f38b5ed87eab2d961cb0d09af51b67ce"
+          },
+          {
+            "bytes": 2689,
+            "included": "full_source",
+            "lines": 61,
+            "path": "src/autonomy_lab/frozen_experiment.py",
+            "sha256": "f11c1560e165c7e0cfdc857dfaf450a381aafca9b56cce9a77459dfb139e586e"
+          },
+          {
+            "bytes": 6522,
+            "included": "full_source",
+            "lines": 131,
+            "path": "src/autonomy_lab/janitor.py",
+            "sha256": "61cdb6191eb5946d0461eba50121a6fae295c377cb6d48c9de0919afca9927b6"
+          },
+          {
+            "bytes": 1912,
+            "included": "full_source",
+            "lines": 43,
+            "path": "src/autonomy_lab/supervisor.py",
+            "sha256": "e1a415e09d75c09bea5e2f4b1845163e9fa3087918ea8c939325bcc8710ffa3b"
+          },
+          {
+            "bytes": 9170,
+            "included": "test_index",
+            "lines": 177,
+            "path": "tests/test_environment.py",
+            "sha256": "ca7396526505f02447d90a1a4251116f7e1e09c014e1690189bb2d489784baf6"
+          },
+          {
+            "bytes": 5899,
+            "included": "test_index",
+            "lines": 120,
+            "path": "tests/test_supervisor.py",
+            "sha256": "a180b0b71134f0f8e4a8fe35f23263db0746b811ea4584a55bc50c44adfc7abd"
+          }
+        ],
+        "prompt_sha256": "949140798754750e23db1e5293f464180d5a042ed023947719e182bb44ba2207",
+        "review_kind": "initial",
+        "scope": "cleanup_audit",
+        "snapshot_id": "e7048606919c631b602607ca53701552dbd050869b74518622953bbf8bdcb252",
+        "source_bytes": 44860
+      },
+      "started_at": "2026-09-23T15:37:38.019972+00:00",
+      "finished_at": "2026-09-23T15:38:59.674140+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Scope reviewed:** `audit.py`, `environment.py`, `frozen_experiment.py`, `janitor.py`, `supervisor.py` (source only; tests not inspected or run).\n\n---\n\n### Finding 1 \u2014 `audit.read_events` aborts the whole independent audit on one malformed/partial line\n\n**File:** `src/autonomy_lab/audit.py`, lines 45\u201348\n\n**Trigger:** The apiserver writes `events.jsonl` in `blocking` mode with rotation (`audit-log-maxsize=100`). If the kind node is killed mid-write (janitor `kind delete cluster` on controller death, host OOM, `kind create --wait` timeout after partial startup), the last line of `events.jsonl` or a rotated file can be truncated. `read_events` then does:\n\n```\njson.loads(line)            # JSONDecodeError on a partial line\nevent[\"auditID\"]            # KeyError if a line lacks auditID\n```\n\nBoth propagate out of `read_events`, so `assess` never runs and the run has no audit verdict at all \u2014 no `incomplete`, no `unassessed`, just a crash \u2014 even though every complete event on disk is still valid evidence. This directly undermines the \u201cpreserve ambiguous outcomes / indeterminate\u201d requirement: an interrupted trial is exactly when the audit matters most.\n\n**Trace:** `events.jsonl` ends with `{\"kind\":\"Event\",\"stage\":\"ResponseCompl` (no newline) \u2192 `path.read_bytes().splitlines()` yields that fragment \u2192 `json.loads` raises \u2192 caller loses all events from that directory.\n\n**Minimal fix:**\n\n```python\ndef read_events(directory):\n    events, malformed = {}, 0\n    for path in sorted(Path(directory).glob(\"events*\")):\n        if path.is_file() and not path.name.endswith(\".gz\"):\n            for line in path.read_bytes().splitlines():\n                try:\n                    event = json.loads(line)\n                    if event.get(\"stage\") == \"ResponseComplete\":\n                        events[event[\"auditID\"]] = event\n                except (ValueError, KeyError, TypeError):\n                    malformed += 1\n    return list(events.values()), malformed\n```\n\nand have `assess` record `malformed_lines` and force `status = \"incomplete\"` when `malformed > 0`, so truncation is surfaced as indeterminate rather than silently dropped or fatal.\n\n---\n\n### Finding 2 \u2014 `supervise` can raise from `finally`, skipping agent-container removal and masking the trial result\n\n**File:** `src/autonomy_lab/supervisor.py`, lines 33\u201341\n\n**Trigger:** After `os.killpg(..., SIGKILL)`, `process.wait(timeout=5)` is called unconditionally. If the worker is in uninterruptible sleep (e.g. blocked on a hung `docker`/`kubectl` socket, common during the same failure modes that cause timeouts), `wait` raises `subprocess.TimeoutExpired` *inside* `finally`. Consequences:\n\n1. `remove_agent(runtime)` on lines 38\u201341 never executes \u2192 the `autolab-agent-*` container leaks until the janitor fires (up to `lease_seconds=7200`).\n2. The exception replaces the intended return value `{\"timed_out\": True, ...}`, so the caller sees an unexpected exception instead of an accounted timeout; the trial\u2019s budget/exit accounting is lost.\n\nSame applies if `remove_agent` raises (`docker inspect` timeout, `check=True` on `docker rm`): the worker outcome is discarded.\n\n**Trace:** `timeout` expires \u2192 `timed_out=True` \u2192 `finally`: `killpg` OK \u2192 `process.wait(5)` raises \u2192 function exits by exception; `runtime` cleanup skipped; `timed_out`/`exit_code` never returned.\n\n**Minimal fix:**\n\n```python\nfinally:\n    try:\n        os.killpg(process.pid, signal.SIGKILL)\n    except ProcessLookupError:\n        pass\n    try:\n        process.wait(timeout=5)\n    except subprocess.TimeoutExpired:\n        reap_failed = True\n    runtime = log_path.parent / \"agent-runtime.json\"\n    if runtime.exists():\n        try:\n            from autonomy_lab.janitor import remove_agent\n            remove_agent(runtime)\n        except Exception as error:\n            cleanup_error = type(error).__name__\n```\n\nand include `reap_failed` / `cleanup_error` in the returned dict so the trial is recorded (as timed-out/indeterminate) rather than lost, while the janitor\u2019s `worker-lease.json` path remains the backstop.\n\n---\n\nNo other defects in this scope rose to the same level of substantiation from source alone.\n\ne7048606919c631b602607ca53701552dbd050869b74518622953bbf8bdcb252",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 14662,
+        "output_tokens": 5595,
+        "output_tokens_details": {
+          "thinking_tokens": 3988
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.42637,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.75396,
+        "input_margin_tokens": 734,
+        "input_tokens": 14662,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T154103.087273Z-isolation.json",
+      "status": "completed",
+      "scope": "isolation",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 2540,
+            "included": "full_source",
+            "lines": 57,
+            "path": "src/autonomy_lab/authority_worker.py",
+            "sha256": "046a8ebdd1dd3f675c572eee2874cce89585d23a110ffb2881d6918018962c4c"
+          },
+          {
+            "bytes": 2537,
+            "included": "full_source",
+            "lines": 67,
+            "path": "src/autonomy_lab/isolated_agent.py",
+            "sha256": "33146f8dfad4b450b62dc33738ec016c55896fe85417914ca2d759a3bbe9a0fd"
+          },
+          {
+            "bytes": 14522,
+            "included": "full_source",
+            "lines": 295,
+            "path": "src/autonomy_lab/isolated_runtime.py",
+            "sha256": "2c6372b164bdfbbebd1947a352e63566d306dc8be32cdf18eb2687e9985fd90b"
+          },
+          {
+            "bytes": 3533,
+            "included": "full_source",
+            "lines": 102,
+            "path": "src/autonomy_lab/rpc.py",
+            "sha256": "cf3f3c8b843db87ea613d1f5552392dd0f38a668a194470f52b3f781ab28f617"
+          },
+          {
+            "bytes": 4651,
+            "included": "test_index",
+            "lines": 134,
+            "path": "tests/test_isolated_runtime.py",
+            "sha256": "9586f456791104017b14143cee17c27ce944ec170a696a5804b8f312b6d94782"
+          }
+        ],
+        "prompt_sha256": "bd037ce8d2213a106cfb8ebd01fec7cd5a33febe596704efabdeb4ca3193e944",
+        "review_kind": "initial",
+        "scope": "isolation",
+        "snapshot_id": "dccf67b79a45a80e18128b5c314b77585f4653c49b008aa4bfff4936e594b483",
+        "source_bytes": 27783
+      },
+      "started_at": "2026-09-23T15:41:03.087478+00:00",
+      "finished_at": "2026-09-23T15:42:05.111544+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 Remote KeyError is remapped to \"not found\", masking broker faults**\n\n`src/autonomy_lab/isolated_runtime.py:51\u201354`\n\n```python\nif kind == \"KeyError\":\n    raise KeyError(argument)\n```\n\nAny `KeyError` raised anywhere inside the authority worker is reissued on the host as `KeyError(argument)`, the same exception shape a journal miss would produce. The worker has several unrelated `KeyError` sources on the propose path: `authority_worker.py:40` (`request[\"argument\"][\"operation_id\"]`), `:15`/`:23` config lookups, and `Adapter.patch_service:24` (`response[\"metadata\"][\"resourceVersion\"]`) which fires after the Service has already been mutated. The error record carries no message (`rpc.py:33\u201341`), so the host cannot distinguish them.\n\nTrace: broker is run with `withhold_ack=True`; the Kubernetes patch succeeds; the returned object lacks `metadata.resourceVersion` (or the config key is misspelled) \u2192 `KeyError` inside `patch_service` \u2192 worker writes `{\"error\":{\"error_type\":\"KeyError\"}}` \u2192 host raises `KeyError(argument)`. The caller treats the proposal as unknown/rejected while the cluster was actually changed and no response-loss record was written \u2014 the exact ambiguous outcome the journal is supposed to preserve is instead reported as a clean failure. Truthful scoring is compromised.\n\nMinimal fix: only remap when the worker explicitly signals a lookup miss. Have the broker raise a dedicated `OperationNotFound` (or include `record[\"kind\"]=\"lookup_miss\"`) and check for that; let every other `KeyError` surface as `RemoteError` with `error_type=\"KeyError\"`:\n\n```python\nif kind == \"OperationNotFound\":\n    raise KeyError(argument)\n```\n\n**Finding 2 \u2014 Verifier provenance overwritten across authority restart**\n\n`src/autonomy_lab/authority_worker.py:29, 43, 46`\n\n```python\nindex = 0\n...\nindex += 1\nsave(Path(config[\"run_dir\"]) / f\"verification-{index}.json\", result)\n```\n\n`index` is process-local. The task statement says authorities are expected to survive agent restarts, and `AuthorityProcess.call` closes the process on any read/write/timeout failure (`isolated_runtime.py:48\u201350`), after which a fresh worker is spawned. The new worker restarts at `index = 0`, so the next `verify` call writes `verification-1.json` and silently replaces the earlier verdict.\n\nTrace: (1) verify \u2192 `verification-1.json` = \"indeterminate\"; (2) host RPC deadline fires, `AuthorityProcess.close()`; (3) new `AuthorityProcess`, verify \u2192 `verification-1.json` = \"recovery\". The indeterminate record is gone; a later reader sees only a clean recovery, contradicting the \"preserve ambiguous outcomes\" requirement.\n\nMinimal fix: derive the index from existing files or use a unique name:\n\n```python\nexisting = sorted(Path(config[\"run_dir\"]).glob(\"verification-*.json\"))\nindex = len(existing) + 1\n```\n\nor name by `request[\"id\"]` plus `uuid4()`; additionally refuse to overwrite (`open(path, \"xb\")`).\n\nNo other defects are substantiated from the supplied source alone; behaviour of `agent.py`, `broker.py`, and `verifier.py` was not inspected and is not inferred.\n\ndccf67b79a45a80e18128b5c314b77585f4653c49b008aa4bfff4936e594b483",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 10860,
+        "output_tokens": 4166,
+        "output_tokens_details": {
+          "thinking_tokens": 2957
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.3169,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.71403,
+        "input_margin_tokens": 543,
+        "input_tokens": 10860,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T154205.219934Z-agent.json",
+      "status": "completed",
+      "scope": "agent",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 35420,
+            "included": "full_source",
+            "lines": 638,
+            "path": "src/autonomy_lab/agent.py",
+            "sha256": "f718c68b84a1e3e300e9f5e323ad30731d25bc9ae567f1998b6a6e4d44e72fc7"
+          }
+        ],
+        "prompt_sha256": "a7af305d9f0f89789fa5b6886e3d6d2d6e50dcfc968dc5706344384833001f76",
+        "review_kind": "initial",
+        "scope": "agent",
+        "snapshot_id": "3969dd87ea051258a186c541ef3d4ae1883716aa48ef26f3af9cebac64109950",
+        "source_bytes": 35420
+      },
+      "started_at": "2026-09-23T15:42:05.220327+00:00",
+      "finished_at": "2026-09-23T15:44:25.335971+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 Budget gate can convert an unresolved mutation into a plain `budget_exhausted` terminal (truthful-scoring / durability)**\n\n`src/autonomy_lab/agent.py` lines 233\u2013237 and 278\u2013286.\n\n`call_tool` refuses any call once `usage.tool_calls >= limits.max_tool_calls`, and `recover_proposal` routes its reconciliation `get_operation` through that same gate.\n\nTrace:\n1. `tool_calls == max_tool_calls - 1`. Model queues `propose_repair`. `call_tool` passes the gate, sets `pending.phase=\"dispatched\"`, increments to `max_tool_calls`, saves (line 242), then the process dies during/after `toolbox.call` (line 260) before the save at 269.\n2. Resume: `process_tools` sees `dispatched` + `propose_repair` \u2192 `recover_proposal` \u2192 `call_tool(\"get_operation\")` \u2192 gate trips \u2192 `stop(\"budget_exhausted\", \"tool_call_budget_exhausted\")`, returns `None`.\n3. Checkpoint ends `status=\"budget_exhausted\"` with a `pending_turn` still holding a `dispatched` mutation that was never reconciled. Nothing distinguishes this from an ordinary budget stop; the broker journal was never consulted. Downstream scoring that maps `budget_exhausted` to \"failure\" mislabels an ambiguous outcome, and a later re-run cannot resume (`budget_exhausted` is terminal at line 409).\n\nMinimal fix: reconciliation of an already-charged dispatch must not be subject to (or must be exempt from) the budget gate, and if it cannot run, the terminal must say so:\n\n```python\ndef call_tool(self, name, args, pending, *, reconciliation=False):\n    if not reconciliation and state[\"usage\"][\"tool_calls\"] >= state[\"limits\"][\"max_tool_calls\"]:\n        ...\n```\nand in `recover_proposal`: `self.call_tool(\"get_operation\", {...}, recovery, reconciliation=True)`. Alternatively, on gate trip while any `pending_turn` call is `dispatched` with name `propose_repair`, stop with `(\"indeterminate\", \"unreconciled_mutation_tool_budget_exhausted\")`.\n\n**Finding 2 \u2014 Recovery path invokes `get_operation` even when the toolbox never declared it**\n\n`src/autonomy_lab/agent.py` lines 217\u2013220 (declaration validation) and 284 (recovery dispatch).\n\n`_Runner.__init__` only requires declared names to be a *subset* of `EXTERNAL_TOOLS`; it does not require `get_operation` whenever `propose_repair` is declared. `recover_proposal` unconditionally calls `self.toolbox.call(\"get_operation\", ...)`, bypassing `self.schemas`.\n\nTrigger: toolbox declares `propose_repair` but not `get_operation` (permitted by line 219). A crash during `propose_repair` dispatch produces a `dispatched` pending call. On every resume, `recover_proposal` charges a tool call (line 239, saved at 242), then `toolbox.call(\"get_operation\")` on an undeclared tool raises (or returns a non-dict \u2192 `ValueError` at 262). `run_agent` records `status=\"error\"` with `pending_turn` intact, so the next resume repeats the same sequence: the run never reconciles or terminates cleanly and silently drains `tool_calls` until Finding 1's mislabeled stop occurs. The ambiguous repair outcome is never surfaced as `indeterminate`.\n\nMinimal fix in `_Runner.__init__`:\n\n```python\nif \"propose_repair\" in names and \"get_operation\" not in names:\n    raise ValueError(\"propose_repair requires get_operation for recovery\")\n```\n(and optionally fail the contract early in `_execution_contract`). This is a scope-consistency check on the caller's toolbox, so severity depends on whether every shipped toolbox already declares both; the agent code itself does not enforce it.\n\nNo other defects substantiated from this file alone; behavior of the broker journal, verifier, and omitted scope files was not inspected.\n\n3969dd87ea051258a186c541ef3d4ae1883716aa48ef26f3af9cebac64109950",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 14623,
+        "output_tokens": 10194,
+        "output_tokens_details": {
+          "thinking_tokens": 8763
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.65593,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.75355,
+        "input_margin_tokens": 732,
+        "input_tokens": 14623,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T154425.473511Z-experiment_logic.json",
+      "status": "completed",
+      "scope": "experiment_logic",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 32577,
+            "included": "full_source",
+            "lines": 653,
+            "path": "src/autonomy_lab/experiments.py",
+            "sha256": "f963f5b8d436de03bd01f67ccc5e1b62d2abd496e2af4cdd0830355d3c3af6c0"
+          }
+        ],
+        "prompt_sha256": "e6a14497d007d2c432ad599e9c1c94e35e54fbe51353ee4503c05ba576be2725",
+        "review_kind": "initial",
+        "scope": "experiment_logic",
+        "snapshot_id": "3a5605f06635354c896ff816cc8fe9886d557cd08c4da0857ba2f0a123b2ea37",
+        "source_bytes": 32577
+      },
+      "started_at": "2026-09-23T15:44:25.473720+00:00",
+      "finished_at": "2026-09-23T15:45:46.537497+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Scope:** `src/autonomy_lab/experiments.py` only. Two substantiated defects; other observations were not strong enough to report.\n\n---\n\n### 1. Score survives a post\u2011scoring failure, so `infrastructure_error` trials are reported with task\u2011success values\n\n**Location:** `run_trial`, lines 461\u2013478 and 482\u2013489; `supervise_trial` line 524; `experiment_report` line 642.\n\n**Trigger:** Any exception raised *after* `result[\"score\"] = score_trial(...)` (line 461). The concrete in\u2011file case is line 476\u2013477: the server audit exists but `audit[\"status\"] != \"assessed\"` \u2192 `RuntimeError(\"Independent mutation audit is incomplete\")`. `read_events`/`assess` raising (lines 471\u2013473) has the same effect.\n\n**Trace:**\n1. Line 461 sets `result[\"score\"]`.\n2. Line 477 raises; `except Exception` (line 482) sets `status=\"infrastructure_error\"`, `failed_stage=\"scoring\"`, but does **not** remove `score`.\n3. `finally` (line 489) persists `trial.json` with both `status: infrastructure_error` and a full `score`.\n4. Worker exits 0, so `supervise_trial` line 521 is false and the `result.pop(\"score\")` at line 524 never runs.\n5. `experiment_report` line 642 prints `environment_recovered` / `task_success` for the trial as if it were a recorded outcome; downstream aggregation over `results.json` has no marker to exclude it.\n\nThis is a truthful\u2011scoring defect: a trial whose independent mutation audit could not be completed carries a scored verdict.\n\n**Minimal fix:** In the `except Exception` branch (line 483), add `result.pop(\"score\", None)` (and similarly in the `KeyboardInterrupt` branch), or move the audit block (lines 469\u2013477) before scoring so that scoring only runs after audit succeeds.\n\n---\n\n### 2. Resume loop treats `crashed` as a checkpoint interruption and fires scenario mutations that presuppose the interrupt tool ran\n\n**Location:** `run_trial`, lines 376\u2013385.\n\n**Trigger:** Isolated/ax runtime (or any `actor_runner`) returns `state[\"status\"] == \"crashed\"` before the agent has invoked the scenario's `interrupt_after_tool` (`observe_service` for `concurrent_change`/`dependency_changed`, `propose_repair` for `lost_ack_changed`) \u2014 e.g., a crash\u2011boundary or container failure on the first turn.\n\n**Trace:**\n1. Line 376: loop condition is `state[\"status\"] in {\"interrupted\", \"crashed\"}`; no check that the interrupt tool actually fired.\n2. Line 378: `result[\"interruption_triggered\"] = True` unconditionally.\n3. Line 380: emits `agent_checkpoint_interruption` with `after_tool=interrupt`, a false provenance record.\n4. Lines 381\u2013385: for `concurrent_change` the environment is repaired (`set_target_port(8080)`); for `dependency_changed`/`lost_ack_changed` the DB grant is revoked. The scenario premise (\"changed after the agent observed\") is not satisfied, yet the trial is scored against `expected_behavior` for that scenario (line 461) as a valid reconciliation test.\n\nFor `lost_ack*`, line 453\u2013456 partially guards via `response_loss_triggered`, but `concurrent_change` and `dependency_changed` have no equivalent guard, so an early crash produces a mislabeled, mis\u2011scored trial rather than an `infrastructure_error`.\n\n**Minimal fix:** Gate scenario mutations and the `interruption_triggered` flag on a genuine checkpoint, e.g.:\n\n```python\ncheckpointed = state[\"status\"] == \"interrupted\"\nfirst_interruption = checkpointed and not result[\"interruption_triggered\"]\nif checkpointed:\n    result[\"interruption_triggered\"] = True\n    controller_event(\"agent_checkpoint_interruption\", after_tool=interrupt)\nelse:\n    controller_event(\"agent_crash_resume\", reason=state.get(\"reason\"))\n```\n\nand only perform `set_target_port` / `change_dependency()` when `first_interruption` is true. If `crashed` can legitimately follow the interrupt tool, the agent state must expose that fact and it should be checked here rather than inferred.\n\n---\n\n3a5605f06635354c896ff816cc8fe9886d557cd08c4da0857ba2f0a123b2ea37",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 13799,
+        "output_tokens": 5630,
+        "output_tokens_details": {
+          "thinking_tokens": 4123
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.41949,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.74489,
+        "input_margin_tokens": 690,
+        "input_tokens": 13799,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T160115.847813Z-ax_boundary.json",
+      "status": "completed",
+      "scope": "ax_boundary",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 1044,
+            "included": "full_source",
+            "lines": 34,
+            "path": "infra/ax/privilege-drop.patch",
+            "sha256": "a15bdce08eba7b50ed3498b12cd2b2c3e82fd214d29fa278e0ff02a5d261ef3b"
+          },
+          {
+            "bytes": 594,
+            "included": "full_source",
+            "lines": 18,
+            "path": "infra/ax/privilege_drop_test.go",
+            "sha256": "ee25dffd00f38ca83e1fb85bf2bc0da1d535bc7f97f6139661e3725f0e1cc511"
+          },
+          {
+            "bytes": 10020,
+            "included": "full_source",
+            "lines": 183,
+            "path": "src/autonomy_lab/ax_runtime.py",
+            "sha256": "007289bb6811b94336c5097cb7203fa7fa904122958be085f3d598f8e5f446be"
+          },
+          {
+            "bytes": 6429,
+            "included": "full_source",
+            "lines": 153,
+            "path": "src/autonomy_lab/mailbox.py",
+            "sha256": "4b766ee0f581ae06c24a82f8618cfd981f5beae199ac56db267f73bf6b731780"
+          }
+        ],
+        "prompt_sha256": "e94a849eebe2ff0dfb762909b77124f607564bd1158492552000ebcf54500c42",
+        "review_kind": "initial",
+        "scope": "ax_boundary",
+        "snapshot_id": "c4f6b9b5be166b4409615848103ced720b842b07568d9f5ba57a8ac309c236b9",
+        "source_bytes": 18087
+      },
+      "started_at": "2026-09-23T16:01:15.847998+00:00",
+      "finished_at": "2026-09-23T16:02:39.954792+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 Tool side effect can be executed and then forgotten (durability / ambiguous-outcome loss)**\n\nFile: `src/autonomy_lab/ax_runtime.py`, lines 169\u2013182.\n\nTrace: host reads a pending `.request`, calls `charge_rpc`, then `toolbox.call(...)` (line 173) \u2014 for the inventory repair this is the one-shot Service `targetPort` mutation \u2014 and only afterwards publishes the `.response` (line 182). Nothing on the host records \"request `<id>` execution started/finished\" between those steps. If the runner process dies (OOM, SIGKILL, `subprocess.TimeoutExpired` from `ax.call` inside `ax.write`, which is uncaught) after line 173 but before line 182:\n\n1. On rerun, `session.exists()` is true and all `resumes` are `complete`, so line 110 does not return indeterminate.\n2. Lines 113\u2013123 suspend/resume the task; the agent restarts with a new `boot_id`.\n3. The `read` script (line 137) filters pending requests by the *current* boot, so the orphaned `.request` is never surfaced again and never answered.\n4. The agent resumes from `agent-state.json`, which predates the tool call, and re-issues the repair. The broker's single-repair budget is either consumed twice or the second call is rejected, and the verifier scores a trial whose actual effect history the journal does not reflect. The \"one typed repair\" invariant is thus not preserved across agent restart by this component.\n\nMinimal fix: keep a host-side RPC journal (e.g. `state_path.parent / 'rpc-journal.jsonl'`) written with `save()` *before* `toolbox.call` (`{'id': identity, 'state': 'executing'}`) and again after the response is published (`state: 'responded'`). In the resume branch (line 109), if the journal has any `executing` entry without `responded`, return `{'status': 'indeterminate', 'reason': 'tool_execution_outcome_unknown'}` exactly as line 111 does for incomplete transitions, instead of suspending/resuming.\n\n**Finding 2 \u2014 Every in-flight agent exception is scored as \"startup failed\" and the checkpoint is discarded (measurement / truthful scoring)**\n\nFiles: `src/autonomy_lab/mailbox.py` lines 143\u2013149; `src/autonomy_lab/ax_runtime.py` lines 130\u2013131, 144\u2013146.\n\nTrace: `main()` wraps the entire `_main()` \u2014 including `run_agent(...)` \u2014 in one `except BaseException` that writes `/workspace/startup-error.json`. Any mid-trial exception (a `MailboxChannel` 180 s timeout while the host relay is slow, an uncaught `RemoteError` from a provider 5xx, a `ValueError` in the agent loop) therefore produces a \"startup\" error even though config was loaded, a boot was recorded, and tool calls (possibly the repair) already ran. The host `read` script checks that file *first* (line 130) and `run_ax_agent` raises `RuntimeError('AX agent startup failed')` (line 146) without harvesting `agent-state.json`, `agent-boots.json`, or `boundary-checks.json` (the harvesting only happens in the `'result'` branch, lines 148\u2013160). The verifier gets a hard failure with no provenance, and a trial that reached a recoverable/indeterminate state is misclassified.\n\nMinimal fix: in `mailbox.py`, set a module flag after line 134 (`BOOTED = True`); in `main()`, if `BOOTED`, publish to `/workspace/agent-error.json` with `error_type`, `errno`, and `boot_id` instead of `startup-error.json`. In `ax_runtime.py`'s `read` script, surface `agent_error` separately; on receipt, run the same checkpoint/boots/boundary harvest as lines 148\u2013160 and return `{'status': 'failure' or 'indeterminate', 'reason': 'agent_exception', 'error_type': ...}` rather than raising.\n\nBoth findings are from source inspection only; no tests were executed and the Go test bodies beyond the shown file were not inspected.\n\nc4f6b9b5be166b4409615848103ced720b842b07568d9f5ba57a8ac309c236b9",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 9209,
+        "output_tokens": 5821,
+        "output_tokens_details": {
+          "thinking_tokens": 4384
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.38314,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.6967,
+        "input_margin_tokens": 461,
+        "input_tokens": 9209,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T161904.392719Z-ax_boundary.json",
+      "status": "completed",
+      "scope": "ax_boundary",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 1044,
+            "included": "full_source",
+            "lines": 34,
+            "path": "infra/ax/privilege-drop.patch",
+            "sha256": "a15bdce08eba7b50ed3498b12cd2b2c3e82fd214d29fa278e0ff02a5d261ef3b"
+          },
+          {
+            "bytes": 594,
+            "included": "full_source",
+            "lines": 18,
+            "path": "infra/ax/privilege_drop_test.go",
+            "sha256": "ee25dffd00f38ca83e1fb85bf2bc0da1d535bc7f97f6139661e3725f0e1cc511"
+          },
+          {
+            "bytes": 11692,
+            "included": "full_source",
+            "lines": 211,
+            "path": "src/autonomy_lab/ax_runtime.py",
+            "sha256": "5d96857ab48896809f962289656983801b7caaf1f2b24095a169ee7a024b7517"
+          },
+          {
+            "bytes": 7424,
+            "included": "full_source",
+            "lines": 175,
+            "path": "src/autonomy_lab/mailbox.py",
+            "sha256": "4e86574ec83080be70e2eb131a9c74a149f6e0dd7435ea4c4d7a0038b5a5af0b"
+          }
+        ],
+        "prompt_sha256": "dc5697dea8ab49b8fc233f468957711213675b390cdb6264342abfb0522ad315",
+        "review_kind": "initial",
+        "scope": "ax_boundary",
+        "snapshot_id": "e217a7add49caa2fabef5ad1241810fb9e35a5afff8f80fd00b1ae0736fafebe",
+        "source_bytes": 20754
+      },
+      "started_at": "2026-09-23T16:19:04.392902+00:00",
+      "finished_at": "2026-09-23T16:20:37.903144+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Findings (initial source review; no tests executed)**\n\n**1. Non-idempotent RPC budget charging across host restart \u2014 measurement bug**\n`src/autonomy_lab/ax_runtime.py:197`\n\n`charge_rpc(...)` is invoked for every pending request the host observes, keyed on nothing. The response is only published atomically at line 210. If the host process dies (or `ax.write` raises after `charge_rpc`, e.g. `RuntimeError('AX command failed: ssh')` at line 40) between 197 and 210, the same `<id>.request` remains pending. On the next `run_ax_agent` invocation the resume branch (lines 137\u2013151) suspends/resumes the guest, but the request file survives in the durable workspace; however, because the new boot id differs, that stale request is filtered at line 165 and the agent re-issues an equivalent request under the new boot. Even without the restart, a transient `ssh` failure inside the same run (line 210 raising) followed by an external retry re-charges the identical request id. Result: the budget in `rpc-budget.json` is decremented more than once per logical RPC, so a trial that never exceeded `max_turns * 12` can be scored as budget-exhausted (or the guest sees `RemoteError` from a charge failure that is an artefact of the harness, not the agent).\n\nTrace: pending request `abc\u2026` \u2192 line 197 charge #1 \u2192 line 210 `ax.write` \u2192 `subprocess.run` returns non-zero \u2192 `RuntimeError` \u2192 `run_ax_agent` except-branch exports and re-raises \u2192 operator re-invokes \u2192 resume path \u2192 agent re-requests same tool call \u2192 charge #2 for one model/tool action.\n\nMinimal fix: make the charge idempotent per identity \u2014 record charged ids in `rpc-budget.json` (e.g. `{'spent': n, 'ids': [...]}`) and skip `charge_rpc` when `identity` is already present; alternatively charge only after the response file is successfully published, and treat \u201cresponse exists on disk\u201d as the authoritative counter.\n\n**2. Final checkpoint written non-atomically and before validation \u2014 durability/provenance bug**\n`src/autonomy_lab/ax_runtime.py:176-177`, validated only at lines 182\u2013187\n\n`state_path.write_text(checkpoint)` overwrites the host-side state file directly (no temp-file + `os.replace`, unlike `save`/`publish` everywhere else). Then three separate `ax.python` calls (178, 181) and three validity checks run. If any of them raises (`ValueError('AX process isolation check failed')`, boot-count mismatch, root identity, or an `ssh` failure), `state_path` has already been replaced with a checkpoint from a run the harness is about to declare invalid, while `ax-session.json` is *not* updated (line 188 unreached). The persisted evidence is therefore inconsistent: a \u201cfailed\u201d trial leaves a state file indistinguishable from a successful one, and a host crash mid-`write_text` leaves a torn/invalid JSON file that the next invocation (or the verifier) cannot distinguish from agent corruption.\n\nTrace: line 171 returns `{'result': ...}` \u2192 176 reads guest state \u2192 177 truncates and writes `state_path` \u2192 181 `boundary-checks.json` contains a `False` \u2192 183 raises \u2192 outer `except BaseException` exports guest files (some overwriting host copies) \u2192 re-raise. `state_path` now holds unvalidated content with no marker of failure.\n\nMinimal fix: perform all guest reads and the three checks first, keep `checkpoint` in memory, then write via the existing atomic `save` helper (or `tmp.write_text(); os.replace(tmp, state_path)`) immediately before `return message['result']`, and persist the session record in the same step.\n\nNo other defects substantiated from the supplied excerpts; `infra/ax/privilege-drop.patch` and `privilege_drop_test.go` were not evaluated beyond noting the added capabilities are consistent with the guest UID drop and the `CapEff/CapPrm` zero checks in `mailbox.py`.\n\ne217a7add49caa2fabef5ad1241810fb9e35a5afff8f80fd00b1ae0736fafebe",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 10357,
+        "output_tokens": 6334,
+        "output_tokens_details": {
+          "thinking_tokens": 4938
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.42027,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.70875,
+        "input_margin_tokens": 518,
+        "input_tokens": 10357,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T163215.856266Z-ax_boundary.json",
+      "status": "completed",
+      "scope": "ax_boundary",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 3136,
+            "included": "full_source",
+            "lines": 56,
+            "path": "infra/ax/README.md",
+            "sha256": "6feb253181d96ecee47ea380ea8f2fb2fbbfaacdeeeb68e92722401061e536f9"
+          },
+          {
+            "bytes": 515,
+            "included": "full_source",
+            "lines": 11,
+            "path": "infra/ax/durable-cleanup.patch",
+            "sha256": "e27e796567831057dc4d66fe31c7e2be8a5d2c6a51156ddde002b64156a88754"
+          },
+          {
+            "bytes": 1044,
+            "included": "full_source",
+            "lines": 34,
+            "path": "infra/ax/privilege-drop.patch",
+            "sha256": "a15bdce08eba7b50ed3498b12cd2b2c3e82fd214d29fa278e0ff02a5d261ef3b"
+          },
+          {
+            "bytes": 594,
+            "included": "full_source",
+            "lines": 18,
+            "path": "infra/ax/privilege_drop_test.go",
+            "sha256": "ee25dffd00f38ca83e1fb85bf2bc0da1d535bc7f97f6139661e3725f0e1cc511"
+          },
+          {
+            "bytes": 11735,
+            "included": "full_source",
+            "lines": 212,
+            "path": "src/autonomy_lab/ax_runtime.py",
+            "sha256": "1c7c557b68586f6fcaa4c38f302a3170a0fe82a7daa63a385b17775afb1a554f"
+          },
+          {
+            "bytes": 7424,
+            "included": "full_source",
+            "lines": 175,
+            "path": "src/autonomy_lab/mailbox.py",
+            "sha256": "4e86574ec83080be70e2eb131a9c74a149f6e0dd7435ea4c4d7a0038b5a5af0b"
+          }
+        ],
+        "prompt_sha256": "1c55553ffdb72fc89a0e9224d2810528bf463fcc897f7197d5c361bd873c2b86",
+        "review_kind": "initial",
+        "scope": "ax_boundary",
+        "snapshot_id": "697f528475d522fc7d6b2a47070d6767c6a8fb0918f2b9c09f48cd501225ab0c",
+        "source_bytes": 24448
+      },
+      "started_at": "2026-09-23T16:32:15.856428+00:00",
+      "finished_at": "2026-09-23T16:33:37.888626+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 Startup race aborts the run as a hard failure (durability/measurement)**\n\n`src/autonomy_lab/ax_runtime.py` lines 154\u2013171, specifically line 163:\n\n```python\nboot=json.loads(Path('/workspace/agent-boots.json').read_text())[-1]['boot_id']\n```\n\nTrigger: in the fresh-session branch, the controller writes `config.json` (line 135), builds the relay, and immediately executes the `read` script (line 171). The guest `_main` only creates `/workspace/agent-boots.json` *after* it notices `config.json` (mailbox.py lines 144\u2013150; 100 ms poll + read + fsync'd publish). If the controller's first `ssh` exec lands in that window, `read_text()` raises `FileNotFoundError` inside the guest, the exec exits nonzero, `AX.call` raises `RuntimeError('AX command failed: ssh')` (line 40), and `_run_ax_agent` aborts. The outer `run_ax_agent` export path then records nothing meaningful (no `agent-error.json` exists, because the agent did not fail), so the trial surfaces as an infrastructure crash rather than a scored recovery/failure/indeterminate outcome. The `ax-session.json` journal already exists with `resumes: []`, so a naive re-run enters the resume branch and performs a suspend/resume cycle the agent never needed \u2014 the boot count check at line 184 still passes, but the trial's `resume_count`/timing evidence is now polluted by a controller-side race rather than a designed transition.\n\nExecution trace:\n1. line 135 `ax.write(task,'config.json',\u2026)` \u2192 `os.replace` completes in guest.\n2. Guest loop at mailbox.py:144 sleeps up to 0.1 s, then `json.loads`, then `publish(boots_path,\u2026)`.\n3. Controller line 171 `ax.python(task, read)` \u2192 guest interpreter hits line 163 before step 2's `publish` \u2192 traceback, exit 1.\n4. line 40 raises; run ends without a result and without any agent-side error record.\n\nMinimal fix (make the poll tolerate the not-yet-booted window, consistent with the `else: print('{}')` branch):\n\n```python\nelse:\n b=Path('/workspace/agent-boots.json')\n if not b.exists(): print('{}')\n else:\n  boot=json.loads(b.read_text())[-1]['boot_id']\n  pending=[...]\n  ...\n```\n\nOptionally also gate the initial-readiness loop (line 126) on `agent-boots.json` existing before writing config is unnecessary; the guard above suffices and also covers the resume branch, where the old boot's file exists but a crash before the new boot appends would otherwise be silently misattributed.\n\nNo second defect is substantiated with enough confidence from the supplied source alone. The DAC_OVERRIDE grant in `durable-cleanup.patch` broadens access in a container that also carries object-store admin credentials in env, but the README already flags it as pending approval and the patch itself is syntactically what it claims; I have no evidence of a concrete misuse path within this snapshot.\n\n697f528475d522fc7d6b2a47070d6767c6a8fb0918f2b9c09f48cd501225ab0c",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 12057,
+        "output_tokens": 5602,
+        "output_tokens_details": {
+          "thinking_tokens": 4510
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.40067,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.7266,
+        "input_margin_tokens": 603,
+        "input_tokens": 12057,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    },
+    {
+      "record": "20260923T172012.920156Z-agent.json",
+      "status": "completed",
+      "scope": "agent",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 36456,
+            "included": "full_source",
+            "lines": 651,
+            "path": "src/autonomy_lab/agent.py",
+            "sha256": "3eb9614c33d4ac46b37b2779c6dd3796d61dcb3052dead19486d522071e33251"
+          }
+        ],
+        "prompt_sha256": "c5530e28e7e5f06b6e5aa65894469cabadfcb13bd258e15e876ae3a55508ac2f",
+        "review_kind": "initial",
+        "scope": "agent",
+        "snapshot_id": "dcbade77e65d602ef7dd1d6548191322a232e6505b574f81751bbeaff31ce11a",
+        "source_bytes": 36456
+      },
+      "started_at": "2026-09-23T17:20:12.920387+00:00",
+      "finished_at": "2026-09-23T17:22:10.868779+00:00",
+      "requested_model": "claude-fable-5-1",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 harness argument typo permanently terminates a resumable run**\n`src/autonomy_lab/agent.py:596-599, 637-643, 426-427, 633-636`\n\n`run_agent` validates only the *type* of `interrupt_after_tool`. Membership is checked later, inside `_Runner.run()`, after the checkpoint has already been mutated and after `stop()` persists a terminal status.\n\nTrace (resume of a live `interrupted` checkpoint with `interrupt_after_tool=\"probe_backnd\"`):\n1. Line 596: passes (`isinstance(str)`).\n2. Lines 637\u2013642: `limits` shrunk, `resume_count += 1`, `_save`.\n3. Line 426: `\"probe_backnd\" not in self.schemas` \u2192 `stop(\"blocked\", \"invalid_interrupt_tool\")` \u2192 status `blocked` written to disk.\n4. Any later, correctly-configured `run_agent` call hits line 633 and returns the checkpoint unchanged: the run is dead, with a spent `resume_count` and no agent/broker fault. Same outcome for `variant=\"basic\"` with `interrupt_after_tool=\"record_incident\"`.\n\nA caller error is thereby recorded as an agent outcome in the scored journal.\n\nMinimal fix: validate before loading/writing anything:\n```python\nnames = {d[\"name\"] for d in toolbox.declarations()} | ({\"record_incident\"} if variant == \"structured\" else set())\nif isinstance(interrupt_after_tool, str) and interrupt_after_tool not in names:\n    raise ValueError(\"interrupt_after_tool must name a declared tool\")\n```\nand delete lines 426\u2013427 (or make them `raise ValueError`, never `stop`).\n\n**Finding 2 \u2014 an interrupted, side-effect-free `count_tokens` becomes an unrecoverable terminal state**\n`src/autonomy_lab/agent.py:463-470, 483-491, 420-421`\n\nLine 470 checkpoints the preflight with `phase=\"pending\"` *before* `client.count_tokens` runs. Line 488 catches only `Exception`. A `KeyboardInterrupt`/SIGINT (or SIGKILL/power loss) during the count leaves `phase=\"pending\"` on disk. On resume, line 420 issues `stop(\"blocked\", \"pending_token_preflight_no_automatic_retry\")`, which is terminal (line 633), so the run can never continue.\n\nUnlike `pending_model` (line 416), nothing here is ambiguous: `usage[\"model_calls\"]`/`total_tokens` were not incremented, no request was appended to `model_requests`, and `countTokens` is read-only and unbilled against the budget. The stop therefore discards a valid run with intact provenance and misreports the cause as a preflight fault. Any resume-under-interruption test that fires during preflight (a real window: the network call between lines 483\u2013485) will show this.\n\nReproduction: fake `client.count_tokens` that raises `KeyboardInterrupt`; call `run_agent` \u2192 outer handler (line 644) writes `status=\"error\"`, `pending_turn` unchanged/None, preflight pending; call `run_agent` again with a well-behaved client \u2192 returns `blocked/pending_token_preflight_no_automatic_retry`.\n\nMinimal fix (preserve the record, don't terminate):\n```python\n# run(), replacing lines 420-421\nif preflights and preflights[-1][\"phase\"] == \"pending\":\n    preflights[-1].update(phase=\"abandoned_on_resume\", finished_at=_now())\n    self.save()\n```\nand widen line 488 to `except BaseException as error:` (re-raise `KeyboardInterrupt` after marking the preflight `failed`) so an interrupted count is never left `pending` in the first place. Keep the `pending_model` check unchanged; that one is genuinely indeterminate.\n\nNo other defects substantiated from the supplied file alone; broker/verifier shape assumptions (e.g., whether `operation_not_found` payloads echo `operation_id`, line 294 vs 297) depend on omitted files and were not asserted.\n\ndcbade77e65d602ef7dd1d6548191322a232e6505b574f81751bbeaff31ce11a",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 14993,
+        "output_tokens": 8920,
+        "output_tokens_details": {
+          "thinking_tokens": 7511
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.59593,
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.75743,
+        "input_margin_tokens": 750,
+        "input_tokens": 14993,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "stop_reason": "end_turn"
+    }
+  ],
+  "completed": 21,
+  "other_statuses": {
+    "failed": 3,
+    "incomplete": 1
+  },
+  "usage_cost_estimate_usd": 7.65572,
+  "limitations": "Direct Anthropic source reviews; no execution or merge approval. Latest local remediations have unit/real checks; individual review hashes define coverage. Raw responses and private thinking omitted."
+}

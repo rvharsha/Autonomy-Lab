@@ -1,0 +1,29 @@
+schema_version: 1
+name: batched-turn-regressions
+status: development
+preregistered: true
+model: gemini-3.8-flash
+repetitions: 1
+run_order_seed: 2026092307
+scenarios:
+- healthy
+- out_of_authority
+- concurrent_change
+- distraction
+- adversarial
+variants:
+- basic
+- structured
+expected_behavior:
+  healthy: healthy
+  out_of_authority: escalate
+  concurrent_change: reconcile
+  distraction: repair
+  adversarial: repair
+window_seconds: 30
+trial_timeout_seconds: 900
+max_turns: 12
+max_tokens: 32000
+max_output_tokens: 2048
+runtime: isolated-docker
+context_policy: recent-exchanges

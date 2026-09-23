@@ -1,0 +1,127 @@
+{
+  "broker_checks": [
+    {
+      "name": "wrong target rejected",
+      "passed": true
+    },
+    {
+      "name": "stale proposal rejected",
+      "passed": true
+    },
+    {
+      "name": "duplicate returns saved acknowledgement",
+      "passed": true,
+      "patch_calls": 1,
+      "transport_dispatches": 1
+    },
+    {
+      "name": "operation ID binds original request",
+      "passed": true
+    },
+    {
+      "name": "real mutation with lost acknowledgement is uncertain",
+      "passed": true
+    },
+    {
+      "name": "reopened journal reconciles without redispatch",
+      "passed": true,
+      "patch_calls": 1,
+      "resumed_patch_calls": 0,
+      "transport_dispatches": 1
+    },
+    {
+      "name": "API rejects change after broker read",
+      "passed": true
+    },
+    {
+      "exit_code": -9,
+      "journal_dispatches": 0,
+      "journal_integrity": "ok",
+      "name": "SIGKILL after_intent: durable recovery without duplicate dispatch",
+      "passed": true,
+      "persisted_status": "prepared",
+      "resume_patch_calls": 0,
+      "signal": "SIGKILL",
+      "transport_dispatches": 0
+    },
+    {
+      "exit_code": -9,
+      "journal_dispatches": 1,
+      "journal_integrity": "ok",
+      "name": "SIGKILL after_dispatch: durable recovery without duplicate dispatch",
+      "passed": true,
+      "persisted_status": "dispatching",
+      "resume_patch_calls": 0,
+      "signal": "SIGKILL",
+      "transport_dispatches": 1
+    }
+  ],
+  "cleanup": {
+    "status": "deleted"
+  },
+  "finished_at": "2026-09-23T02:30:03.597837+00:00",
+  "implementation_commit": "9004ed51abda49e4ef245b9a416e135e248dacd8",
+  "kind": "real-cluster-acceptance",
+  "limitations": [
+    "Actual local kind execution on macOS/ARM64.",
+    "API mutation instrumentation is not independent server audit.",
+    "No AX runtime or agent-reliability conclusion."
+  ],
+  "phases": [
+    {
+      "actual": "verified_success",
+      "expected": "verified_success",
+      "name": "healthy",
+      "passed": true
+    },
+    {
+      "actual": "verified_failure",
+      "client_path_failed": true,
+      "expected": "verified_failure",
+      "name": "routing-fault",
+      "passed": true
+    },
+    {
+      "actual": "verified_failure",
+      "client_path_failed": true,
+      "expected": "verified_failure",
+      "name": "noop-repair",
+      "passed": true
+    },
+    {
+      "actual": "verified_success",
+      "expected": "verified_success",
+      "name": "scripted-recovery",
+      "passed": true
+    },
+    {
+      "actual": "verified_failure",
+      "expected": "verified_failure",
+      "name": "wrong-http200-total",
+      "passed": true
+    },
+    {
+      "actual": "verified_failure",
+      "expected": "verified_failure",
+      "name": "protected-data-changed",
+      "passed": true
+    },
+    {
+      "actual": "indeterminate",
+      "expected": "indeterminate",
+      "name": "verifier-outage",
+      "passed": true
+    },
+    {
+      "actual": "verified_success",
+      "expected": "verified_success",
+      "name": "final-recovery",
+      "passed": true
+    }
+  ],
+  "run_id": "43a4b5e6",
+  "source_result_sha256": "4dfa0ae6edddbe5d65a7798a1f9ee6a10b61098d3a1ef332b01d44bc934a9f9e",
+  "started_at": "2026-09-23T02:27:23.216666+00:00",
+  "status": "passed",
+  "window_seconds": 30
+}

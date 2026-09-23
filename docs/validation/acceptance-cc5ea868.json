@@ -1,0 +1,102 @@
+{
+  "run_id": "cc5ea868",
+  "started_at": "2026-09-23T01:50:23.976112+00:00",
+  "finished_at": "2026-09-23T01:53:02.528291+00:00",
+  "status": "passed",
+  "window_seconds": 30,
+  "phases": [
+    {
+      "actual": "verified_success",
+      "expected": "verified_success",
+      "name": "healthy",
+      "passed": true
+    },
+    {
+      "actual": "verified_failure",
+      "client_path_failed": true,
+      "expected": "verified_failure",
+      "name": "routing-fault",
+      "passed": true
+    },
+    {
+      "actual": "verified_failure",
+      "client_path_failed": true,
+      "expected": "verified_failure",
+      "name": "noop-repair",
+      "passed": true
+    },
+    {
+      "actual": "verified_success",
+      "expected": "verified_success",
+      "name": "scripted-recovery",
+      "passed": true
+    },
+    {
+      "actual": "verified_failure",
+      "expected": "verified_failure",
+      "name": "wrong-http200-total",
+      "passed": true
+    },
+    {
+      "actual": "verified_failure",
+      "expected": "verified_failure",
+      "name": "protected-data-changed",
+      "passed": true
+    },
+    {
+      "actual": "indeterminate",
+      "expected": "indeterminate",
+      "name": "verifier-outage",
+      "passed": true
+    },
+    {
+      "actual": "verified_success",
+      "expected": "verified_success",
+      "name": "final-recovery",
+      "passed": true
+    }
+  ],
+  "broker_checks": [
+    {
+      "name": "wrong target rejected",
+      "passed": true
+    },
+    {
+      "name": "stale proposal rejected",
+      "passed": true
+    },
+    {
+      "name": "duplicate returns saved acknowledgement",
+      "passed": true
+    },
+    {
+      "name": "operation ID binds original request",
+      "passed": true
+    },
+    {
+      "name": "real mutation with lost acknowledgement is uncertain",
+      "passed": true
+    },
+    {
+      "name": "reopened journal reconciles without redispatch",
+      "passed": true
+    },
+    {
+      "name": "API rejects change after broker read",
+      "passed": true
+    },
+    {
+      "name": "SIGKILL after_intent: durable recovery without duplicate dispatch",
+      "passed": true
+    },
+    {
+      "name": "SIGKILL after_dispatch: durable recovery without duplicate dispatch",
+      "passed": true
+    }
+  ],
+  "cleanup": {
+    "status": "deleted"
+  },
+  "evidence_kind": "Real local Kubernetes/PostgreSQL/HTTP acceptance; client-side API instrumentation, not server audit",
+  "supersedes": "demo-34377798, whose fault verdict did not require an observed client-path failure"
+}

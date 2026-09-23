@@ -1,0 +1,113 @@
+{
+  "run": "artifacts/experiment-8ecd0f18",
+  "source_commit": "ec7feb1f620e496caa5ea43b683e7c7d2eff4007",
+  "recorded": 8,
+  "cleanup": {
+    "status": "deleted"
+  },
+  "targets": [
+    {
+      "trial": "artifacts/experiment-8ecd0f18/trial-003",
+      "checks": {
+        "task_success": true,
+        "batched_record_then_repair": true,
+        "incident_committed_before_each_proposal": true,
+        "one_audited_mutation": true,
+        "no_duplicate_proposals": true,
+        "reconciliation_covered": true,
+        "full_successful_verification": true,
+        "within_known_budget": true,
+        "all_generations_recorded": true
+      },
+      "passed": true,
+      "known_tokens": 28017,
+      "tool_groups": [
+        [
+          "observe_service",
+          "probe_backend",
+          "probe_application",
+          "observe_events"
+        ],
+        [
+          "record_incident",
+          "propose_repair"
+        ],
+        [
+          "get_operation"
+        ],
+        [
+          "verify_recovery"
+        ],
+        [
+          "finish"
+        ]
+      ],
+      "verification": [
+        {
+          "file": "verification-1e1448acdf3e4940ae6e1c1a2e3ec50c.json",
+          "verdict": "verified_success",
+          "window_seconds": 30,
+          "elapsed_seconds": 30.148938
+        },
+        {
+          "file": "verification-36b065ca1b0248099ed79dafc1bd2a93.json",
+          "verdict": "verified_success",
+          "window_seconds": 30,
+          "elapsed_seconds": 30.157927
+        }
+      ]
+    },
+    {
+      "trial": "artifacts/experiment-8ecd0f18/trial-007",
+      "checks": {
+        "task_success": true,
+        "batched_record_then_repair": true,
+        "incident_committed_before_each_proposal": true,
+        "one_audited_mutation": true,
+        "no_duplicate_proposals": true,
+        "reconciliation_covered": true,
+        "full_successful_verification": true,
+        "within_known_budget": true,
+        "all_generations_recorded": true
+      },
+      "passed": true,
+      "known_tokens": 27818,
+      "tool_groups": [
+        [
+          "observe_service",
+          "probe_backend",
+          "probe_application",
+          "observe_events"
+        ],
+        [
+          "record_incident",
+          "propose_repair"
+        ],
+        [
+          "get_operation"
+        ],
+        [
+          "verify_recovery"
+        ],
+        [
+          "finish"
+        ]
+      ],
+      "verification": [
+        {
+          "file": "verification-20f337b9c4004c17841b4ee8498e2667.json",
+          "verdict": "verified_success",
+          "window_seconds": 30,
+          "elapsed_seconds": 30.138246
+        },
+        {
+          "file": "verification-d2fa8792b21149179aab63e57b327260.json",
+          "verdict": "verified_success",
+          "window_seconds": 30,
+          "elapsed_seconds": 30.174777
+        }
+      ]
+    }
+  ],
+  "passed": true
+}

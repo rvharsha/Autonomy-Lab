@@ -1,0 +1,19 @@
+{
+  "ax": {
+    "revision": "d8ed0fe38bceb7842d3c47817d53d16ccdfcb601",
+    "changed_files": {
+      "internal/controller/reconciler.go": "4d53e4e841eaf60b47bb637d08fafef4ab8eac88f1d817b294e66affb452061a",
+      "internal/substrate/client.go": "86612d05ab2facd7b59b06ffaca20ed9bb8738de2e6d248479007d229a1b6f07",
+      "internal/controller/runtime_config_test.go": "c19601a8bc3a4ec470a2d7d468d41a46ed83a7857f9bb8ed3c9fb05a148285f9",
+      "internal/substrate/privilege_drop_test.go": "ee25dffd00f38ca83e1fb85bf2bc0da1d535bc7f97f6139661e3725f0e1cc511"
+    }
+  },
+  "substrate": {
+    "revision": "672533541dbfcd29084e4de2475267088bda3651",
+    "changed_files": {
+      "demos/counter/counter.yaml.tmpl": "93792e5ccce839a7ab40f4295db9b590102baca04c0d5eb0eee8dfa431e6f20c",
+      "hack/create-kind-cluster.sh": "ad27db3fca76dc4e607a7db6b2effa3816acfbb8d15286be12ab8d4066aab263",
+      "manifests/ate-install/kind/atelet/kustomization.yaml": "5d133644a3f4e61eb8aef79865c3eb51207691174bd38cbfa6ddc1d047752167"
+    }
+  }
+}

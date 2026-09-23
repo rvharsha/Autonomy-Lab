@@ -1,0 +1,9 @@
+{
+  "upstream_repository": "https://github.com/google/ax",
+  "upstream_commit": "d8ed0fe38bceb7842d3c47817d53d16ccdfcb601",
+  "file": "internal/substrate/client.go",
+  "original_sha256": "b277c51e35efcef4d8cdcbf52fff801971d790a96e75385937d28a7a3d435014",
+  "patched_sha256": "bbf6ef39299f7327f77b32d05d91b2d9df99a03117c22c49b9bfaeee7aa50051",
+  "patch_sha256": "8270744611576ee8834bc258c2a270b001be24850f6e0a2c0534517cb3571316",
+  "policy": "RESUME_SOURCE_COLD_BOOT for DATA snapshots; FULL snapshots unchanged"
+}

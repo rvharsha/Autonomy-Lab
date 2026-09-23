@@ -1,0 +1,12 @@
+--- a/internal/substrate/client.go
++++ b/internal/substrate/client.go
+@@ -266,7 +266,8 @@
+ 			OnPause:         ateapipb.SnapshotContentScope_SNAPSHOT_CONTENT_SCOPE_DATA,
+ 			OnCommit:        ateapipb.SnapshotContentScope_SNAPSHOT_CONTENT_SCOPE_DATA,
+ 			OnResume: &ateapipb.OnResumeConfig{
+-				FromData: ateapipb.ResumeSource_RESUME_SOURCE_GOLDEN,
++				// Autonomy Lab requires fresh processes with restored durable state.
++				FromData: ateapipb.ResumeSource_RESUME_SOURCE_COLD_BOOT,
+ 			},
+ 		},
+ 		SandboxConfig: &ateapipb.SandboxConfig{
