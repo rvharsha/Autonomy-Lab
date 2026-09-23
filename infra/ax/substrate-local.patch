@@ -1,0 +1,189 @@
+diff --git a/demos/counter/counter.yaml.tmpl b/demos/counter/counter.yaml.tmpl
+index 5e53430..edfeb3f 100644
+--- a/demos/counter/counter.yaml.tmpl
++++ b/demos/counter/counter.yaml.tmpl
+@@ -36,7 +36,7 @@ spec:
+   # networking and metrics, one actor each, and they can run concurrently. A
+   # pool that cannot place every replica is worse than a smaller one -- the
+   # deploy blocks on a rollout that never completes.
+-  replicas: 3
++  replicas: 1 # AX spike: one sequential actor; upstream CI uses three workers.
+   workerImage: ko://github.com/agent-substrate/substrate/cmd/ateom-gvisor
+   template:
+     nodeSelector:
+diff --git a/hack/create-kind-cluster.sh b/hack/create-kind-cluster.sh
+index 280d9d1..860bb9e 100755
+--- a/hack/create-kind-cluster.sh
++++ b/hack/create-kind-cluster.sh
+@@ -17,10 +17,10 @@
+ set -o errexit -o nounset -o pipefail
+ 
+ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+-KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-kind}"
++KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:?use the AX spike launcher}"
+ KUBECTL_CONTEXT="kind-${KIND_CLUSTER_NAME}"
+-reg_name="kind-registry"
+-reg_port="${KIND_REGISTRY_PORT:-5001}"
++reg_name="${KIND_REGISTRY_NAME:?use the AX spike launcher}"
++reg_port="${KIND_REGISTRY_PORT:?use the AX spike launcher}"
+ 
+ if [[ $# -gt 0 ]]; then
+   case "$1" in
+@@ -36,53 +36,38 @@ if [[ $# -gt 0 ]]; then
+   esac
+ fi
+ 
+-# Only ipFamily is set; kind's per-family podSubnet/serviceSubnet defaults are
+-# already what we want.
+-IP_FAMILY="${IP_FAMILY:-ipv4}"
+-case "${IP_FAMILY}" in
+-  ipv4|ipv6|dual)
+-    ;;
+-  *)
+-    echo "error: IP_FAMILY must be one of ipv4, ipv6, dual (got '${IP_FAMILY}')" >&2
+-    exit 1
+-    ;;
+-esac
++# This preparation supports only the isolated IPv4 gVisor spike.
++expected_kubeconfig="$(cd "${ROOT}/../.." && pwd)/runtime/kubeconfig"
++if [[ "${KIND_CLUSTER_NAME}" != "autonomy-ax-spike" ||
++      "${reg_name}" != "autonomy-ax-spike-registry" || "${reg_port}" != "5007" ||
++      "${KUBECONFIG:-}" != "${expected_kubeconfig}" || "${IP_FAMILY:-ipv4}" != "ipv4" ]]; then
++  echo "error: launch inputs must target only the prepared AX spike" >&2
++  exit 1
++fi
++IP_FAMILY=ipv4
++existing_nodes=$(docker ps -a --filter "label=io.x-k8s.kind.cluster=${KIND_CLUSTER_NAME}" --format '{{.Names}}')
++if [[ -n "${existing_nodes}" || -e "${KUBECONFIG}" ]]; then
++  echo "error: spike cluster or kubeconfig already exists; refusing replacement" >&2
++  exit 1
++fi
++if docker container inspect "${reg_name}" >/dev/null 2>&1; then
++  echo "error: spike registry already exists; refusing replacement" >&2
++  exit 1
++fi
+ 
+ mkdir -p "${ROOT}/bin"
+ 
+-# 1. Create registry container unless it already exists
+-echo "Setting up local docker registry '${reg_name}' on port ${reg_port}..."
+-if [ "$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)" == "true" ]; then
+-  if ! docker port "${reg_name}" | grep -q "${reg_port}"; then
+-    echo "Registry exists but is not mapped to port ${reg_port}. Recreating..."
+-    docker rm -f "${reg_name}"
+-  fi
+-fi
+-
+-if [ "$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)" != "true" ]; then
+-  docker run \
+-    -d --restart=always \
+-    --label created-by=agent-substrate \
+-    -p "127.0.0.1:${reg_port}:5000" \
+-    -p "[::1]:${reg_port}:5000" \
+-    --network bridge --name "${reg_name}" \
+-    registry:3
+-fi
++# Create only a new dedicated, architecture-pinned registry; never replace one.
++docker run -d --restart=always \
++  --label created-by=autonomy-lab-ax-spike \
++  -p "127.0.0.1:${reg_port}:5000" \
++  --network bridge --name "${reg_name}" \
++  registry:3@sha256:16c9340cae30cbf9b5ced3f3e77340f3bf4064971685540f4257a0254069c6b2
+ 
+ # 2. Create kind configuration with containerdConfigPatches and feature gates.
+ #
+-# Probe for /dev/kvm where the kind nodes will actually run — inside the Docker
+-# provider VM on macOS (Lima/Colima/Docker Desktop), the host itself on Linux —
+-# and only wire up micro-VM (kata + cloud-hypervisor) support when present.
+-# Without KVM the cluster still works for gVisor.
+-echo "Probing for /dev/kvm in the Docker environment..."
++# First gate exercises gVisor only; do not create a KVM probe container.
+ HAS_KVM=0
+-if docker run --rm --device /dev/kvm busybox true >/dev/null 2>&1; then
+-  HAS_KVM=1
+-  echo "/dev/kvm found: micro-VM (kata + cloud-hypervisor) support will be enabled."
+-else
+-  echo "/dev/kvm not available: micro-VM support disabled (gVisor still works)."
+-fi
+ 
+ echo "Creating kind configuration for cluster '${KIND_CLUSTER_NAME}' (ipFamily=${IP_FAMILY})..."
+ cat <<EOF > "${ROOT}/bin/kind-config.yaml"
+@@ -125,51 +110,21 @@ kubeadmConfigPatches:
+   maxParallelImagePulls: 4
+ EOF
+ 
+-echo "Deleting existing kind cluster '${KIND_CLUSTER_NAME}' if it exists..."
+-"${ROOT}"/hack/kind.sh delete cluster --name "${KIND_CLUSTER_NAME}" || true
+-
+-# kind reuses an existing "kind" network as-is and deleting the cluster does not
+-# drop it, so a v4-only one (older kind, or a daemon with IPv6 off) leaves nodes
+-# without a v6 address — surfacing much later as pods stuck at ContainerCreating.
+-if [[ "${IP_FAMILY}" != "ipv4" &&
+-      "$(docker network inspect kind --format '{{.EnableIPv6}}' 2>/dev/null || echo absent)" == "false" ]]; then
+-  echo "The 'kind' Docker network exists without IPv6; recreating it..."
+-  docker network disconnect kind "${reg_name}" 2>/dev/null || true
+-  if ! docker network rm kind >/dev/null; then
+-    echo "error: could not remove the 'kind' Docker network. Something else is still" >&2
+-    echo "       attached to it; disconnect it and re-run:" >&2
+-    echo "         docker network inspect kind --format '{{json .Containers}}'" >&2
+-    exit 1
+-  fi
+-fi
+-
++# Capture independent API-server audit outside every agent sandbox.
++"${SPIKE_ROOT}/../../.venv/bin/python" - "${SPIKE_ROOT}" "${ROOT}/bin/kind-config.yaml" <<'PYTHON'
++import sys,time
++from pathlib import Path
++spike=Path(sys.argv[1]);sys.path.insert(0,str(spike.parents[1]/"src"))
++from autonomy_lab.audit import configure
++run=spike/"runtime"/("audit-"+str(time.time_ns()));run.mkdir()
++path=configure(run,Path(sys.argv[2]))
++Path(sys.argv[2]).write_bytes(path.read_bytes())
++(spike/"runtime/audit-directory.txt").write_text(str(run/"server-audit"))
++PYTHON
++
++# Existing resources were rejected above. Never delete a cluster or shared network.
+ echo "Creating kind cluster '${KIND_CLUSTER_NAME}'..."
+-"${ROOT}"/hack/kind.sh create cluster --name "${KIND_CLUSTER_NAME}" --config "${ROOT}/bin/kind-config.yaml"
+-
+-# A daemon with IPv6 off hands kind a v4-only network whatever it asked for.
+-if [[ "${IP_FAMILY}" != "ipv4" &&
+-      "$(docker network inspect kind --format '{{.EnableIPv6}}')" != "true" ]]; then
+-  echo "error: the 'kind' Docker network has no IPv6, so the nodes have no v6 address." >&2
+-  echo "       Enable IPv6 in the Docker daemon and re-run. On Linux, add to" >&2
+-  echo "       /etc/docker/daemon.json and restart dockerd:" >&2
+-  echo '         {"ipv6": true, "ip6tables": true}' >&2
+-  exit 1
+-fi
+-
+-# For ipv6 kind writes a kubeconfig pointing at [::1], the address it published
+-# the apiserver on, which only works for a client on the Docker host itself: a
+-# VM-hosted daemon (Lima on macOS) forwards the port to the *v4* loopback, so
+-# every kubectl below fails at connect. localhost is a SAN on the apiserver
+-# cert and lets the client pick a family that works from either side.
+-if [[ "${IP_FAMILY}" == "ipv6" ]]; then
+-  server="$(kubectl config view \
+-    -o jsonpath="{.clusters[?(@.name==\"${KUBECTL_CONTEXT}\")].cluster.server}")"
+-  if [[ "${server}" == "https://[::1]:"* ]]; then
+-    echo "Repointing the kubeconfig for '${KUBECTL_CONTEXT}' at localhost..."
+-    kubectl config set-cluster "${KUBECTL_CONTEXT}" \
+-      --server="https://localhost:${server##*:}" >/dev/null
+-  fi
+-fi
++"${ROOT}"/hack/kind.sh create cluster --name "${KIND_CLUSTER_NAME}" --config "${ROOT}/bin/kind-config.yaml" --kubeconfig "${KUBECONFIG}" --image "${KIND_NODE_IMAGE:?pinned node image required}"
+ 
+ # 2.5 Enable Proxy ARP/NDP on kind nodes for gVisor loopback pod-to-pod networking
+ echo "Enabling Proxy ARP/NDP on kind nodes..."
+diff --git a/manifests/ate-install/kind/atelet/kustomization.yaml b/manifests/ate-install/kind/atelet/kustomization.yaml
+index 7704394..a88c6f7 100644
+--- a/manifests/ate-install/kind/atelet/kustomization.yaml
++++ b/manifests/ate-install/kind/atelet/kustomization.yaml
+@@ -32,7 +32,7 @@ patches:
+             - name: atelet
+               args:
+               - --gcp-auth-for-image-pulls=false
+-              - --localhost-registry-replacement=kind-registry:5000
++              - --localhost-registry-replacement=autonomy-ax-spike-registry:5000
+               - --grpc-server-cred-bundle=/run/podidentity.podcert.ate.dev/credential-bundle.pem
+               - --client-ca-certs=/run/podidentity.podcert.ate.dev/trust-bundle.pem
+               # Kind clusters are dev/CI: run atelet at debug so e2e suites can

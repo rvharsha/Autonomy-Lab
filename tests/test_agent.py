@@ -172,6 +172,18 @@ def test_pending_model_call_never_retries_and_does_not_log_exception_secret(tmp_
     assert second["limits"]["max_turns"] == 12
 
 
+def test_finish_survives_restart_with_fresh_toolbox_and_no_model_request(tmp_path):
+    path = tmp_path / "agent.json"
+    first = run_agent(StubClient(response(finish())), StubToolbox(), path, interrupt_after_tool="finish")
+    assert first["status"] == "interrupted"
+    assert first["terminal"]["outcome"] == "escalated"
+    client, toolbox = StubClient(), StubToolbox()
+    resumed = run_agent(client, toolbox, path)
+    assert resumed["status"] == "completed"
+    assert resumed["terminal"] == first["terminal"]
+    assert client.requests == toolbox.calls == []
+
+
 def test_uncertain_repair_uses_existing_broker_result_without_redispatch(tmp_path):
     path = tmp_path / "agent.json"
     proposal = {"operation_id": "unit-operation", "target_port": 8080}
@@ -197,6 +209,9 @@ def test_uncertain_repair_uses_existing_broker_result_without_redispatch(tmp_pat
     assert recovered["name"] == "propose_repair"
     assert recovered["response"]["source"] == "get_operation"
     assert recovered["response"]["payload"]["status"] == "applied"
+    assert result["recovery_events"][0]["call"]["args"] == proposal
+    assert result["tool_attempts"][0]["phase"] == "dispatched"
+    assert len(result["tool_attempts"]) == result["usage"]["tool_calls"]
 
 
 def test_missing_broker_operation_reuses_saved_identical_request(tmp_path):
@@ -837,7 +852,7 @@ def test_finish_interruption_replays_real_toolbox_journal_without_provider_calls
     interrupted = run_agent(StubClient(response(call("finish", claim))), original, path,
                             variant=variant, interrupt_after_tool="finish")
     assert interrupted["status"] == "interrupted"
-    assert interrupted["terminal"] is None
+    assert interrupted["terminal"] == {"kind": "claim", **claim}
     journal = (tmp_path / "evidence.jsonl").read_bytes()
     reopened = tools()
     assert reopened.terminal == {"kind": "claim", **claim}

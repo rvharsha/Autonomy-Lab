@@ -174,6 +174,17 @@ def add_reconciliation(data, status="uncertain", observation_result="desired_sta
     return lookup
 
 
+def test_changed_dependency_requires_reconciliation_and_current_failed_verification():
+    data = records(outcome="escalated", status="uncertain")
+    data[1]["verdict"] = "verified_failure"
+    data[3][3]["payload"]["verdict"] = "verified_failure"
+    add_reconciliation(data)
+    assert score(data, expected="reconcile_escalate")["task_success"]
+    assert not score(data, expected="escalate")["task_success"]
+    data[3].pop(3)
+    assert not score(data, expected="reconcile_escalate")["task_success"]
+
+
 @pytest.mark.parametrize("observed", ["desired_state_observed", "desired_state_not_observed"])
 def test_lookup_with_retained_uncertainty_and_independent_verification_is_covered(observed):
     data = records(status="uncertain")

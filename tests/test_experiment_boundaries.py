@@ -57,7 +57,7 @@ def test_interrupted_trial_is_persisted_and_counted_before_cleanup(monkeypatch, 
     def interrupt_identity(*args):
         raise KeyboardInterrupt
 
-    def provision(run_dir, run_id):
+    def provision(run_dir, run_id, *, cleanup_on_exit=True, lease_seconds=7200):
         (run_dir / "environment.json").write_text("{}")
         return SimpleNamespace()
 

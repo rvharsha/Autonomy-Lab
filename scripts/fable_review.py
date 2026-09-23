@@ -33,6 +33,11 @@ MAX_INPUT_TOKENS = 50_000
 MAX_OUTPUT_TOKENS = 6_000
 MAX_BUDGET_USD = 1.0
 COMPONENT_SCOPES = {
+    "isolation": ({"isolated_runtime", "isolated_agent", "rpc", "authority_worker"}, {"isolated_runtime"}),
+    "context": ({"agent", "context"}, set()),
+    "context_logic": ({"context"}, {"context"}),
+    "cleanup_audit": ({"environment", "audit", "janitor", "supervisor", "frozen_experiment"}, {"environment", "supervisor"}),
+    "ax_runtime": ({"ax_runtime", "mailbox", "isolated_agent", "rpc"}, set()),
     "broker": ({"broker"}, {"broker"}),
     "agent_runtime": ({"agent", "gemini", "credentials"}, set()),
     "agent": ({"agent"}, set()),
@@ -48,6 +53,7 @@ COMPONENT_SCOPES = {
     "harness": ({"harness"}, set()),
     "experiments": ({"experiments", "supervisor", "trial_worker", "gemini"}, {"experiment_boundaries", "supervisor"}),
     "experiment_runtime": ({"experiments", "supervisor", "trial_worker"}, {"experiment_boundaries", "supervisor"}),
+    "experiment_logic": ({"experiments"}, set()),
 }
 SCOPES = ("foundation", "agents", "all", *COMPONENT_SCOPES)
 REMEDIATION_FINDINGS = {
@@ -98,7 +104,7 @@ FOUNDATION = {
     "quote",
     "verifier",
 }
-AGENTS = {"agent", "credentials", "experiments", "gemini", "runbook", "scoring", "toolbox", "bounded_http", "supervisor", "trial_worker"}
+AGENTS = {"isolated_runtime", "isolated_agent", "authority_worker", "rpc", "context", "ax_runtime", "mailbox", "audit", "janitor", "frozen_experiment", "agent", "credentials", "experiments", "gemini", "runbook", "scoring", "toolbox", "bounded_http", "supervisor", "trial_worker"}
 FOUNDATION_TESTS = {"application", "broker", "environment", "harness", "verifier"}
 AGENT_TESTS = {"agent", "credentials", "experiments", "gemini", "runbook", "scoring", "toolbox"}
 PUBLIC_CONFIG = {

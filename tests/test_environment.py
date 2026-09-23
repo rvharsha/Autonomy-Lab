@@ -23,7 +23,9 @@ def resources():
 
 def test_rbac_grants_only_scoped_service_reads_and_broker_patch(resources):
     roles = {item["metadata"]["name"]: item for item in resources if item["kind"] == "Role"}
-    assert set(roles) == {"broker", "verifier"}
+    assert set(roles) == {"broker", "verifier", "observer"}
+    assert roles["observer"]["rules"] == [roles["verifier"]["rules"][0],
+        {"apiGroups": [""], "resources": ["events"], "verbs": ["list"]}]
     assert not any(item["kind"] in {"ClusterRole", "ClusterRoleBinding"} for item in resources)
     for name, verbs in {"broker": {"get", "patch"}, "verifier": {"get"}}.items():
         assert roles[name]["metadata"]["namespace"] == "autonomy-lab"
@@ -34,7 +36,7 @@ def test_rbac_grants_only_scoped_service_reads_and_broker_patch(resources):
         assert rule["resourceNames"] == ["inventory"]
         assert set(rule["verbs"]) == verbs
     bindings = [item for item in resources if item["kind"] == "RoleBinding"]
-    assert len(bindings) == 2
+    assert len(bindings) == 3
     for binding in bindings:
         name = binding["metadata"]["name"]
         assert binding["metadata"]["namespace"] == "autonomy-lab"
@@ -130,7 +132,7 @@ class IdentityController:
         pytest.fail("unexpected controller request")
 
 
-@pytest.mark.parametrize("identity", ["broker", "verifier"])
+@pytest.mark.parametrize("identity", ["broker", "verifier", "observer"])
 def test_service_identity_replaces_admin_credentials_and_secures_existing_file(tmp_path, identity):
     path = tmp_path / f"{identity}-kubeconfig"
     path.write_text("unit-previous-content")

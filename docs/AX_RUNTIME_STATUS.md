@@ -1,5 +1,26 @@
 # AX local runtime spike status
 
+## Recovery gate passed, 2026-09-23 14:38 UTC
+
+The new source variant passed **3/3 real AX cold-boot suspend/resume cycles**.
+It then passed a separate capacity-loss case: the worker pool was reduced to
+zero, a single resume request encountered real ResourceExhausted responses,
+and restoration to one worker allowed the controller to recover without a
+second manual resume. Five distinct process boot IDs retained the original run
+identity and all preceding durable records. Exactly one task ActorTemplate
+remained. The cluster and registry were deleted.
+
+Source inspection found lifecycle state in AX_TASK_YAML changed the template
+hash on each reconciliation. `infra/ax/recovery.patch` excludes task status and
+suspend state from that boot configuration, and retries only Substrate's explicit
+pre-assignment capacity rejection for at most 60 seconds. The previous cold-boot
+patch is retained. Go controller tests and the ARM build passed. This is a local
+pinned variant, not an upstream release claim. [Selected evidence](validation/ax-recovery.json).
+
+Agent/broker integration, crash-boundary testing, and clean-clone reproduction
+are being validated separately. The historical failed attempts below remain
+part of the record.
+
 ## Executed Substrate gate, 2026-09-23
 
 The first bounded local execution **passed** against the pinned Substrate

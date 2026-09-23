@@ -10,6 +10,7 @@ from pathlib import Path
 
 import yaml
 
+from autonomy_lab.audit import configure
 from autonomy_lab.kubernetes import ROOT, Kubernetes, command
 
 
@@ -99,6 +100,15 @@ def manifests(image: str, postgres_image: str) -> list[dict]:
     broker_binding["subjects"][0]["name"] = "broker"
     broker_binding["roleRef"]["name"] = "broker"
     objects.extend([broker_role, broker_binding])
+    add("ServiceAccount", "observer", automountServiceAccountToken=False)
+    observer_role = copy.deepcopy(next(obj for obj in objects if obj["kind"] == "Role"))
+    observer_role["metadata"]["name"] = "observer"
+    observer_role["rules"].append({"apiGroups": [""], "resources": ["events"], "verbs": ["list"]})
+    observer_binding = copy.deepcopy(broker_binding)
+    observer_binding["metadata"]["name"] = "observer"
+    observer_binding["subjects"][0]["name"] = "observer"
+    observer_binding["roleRef"]["name"] = "observer"
+    objects.extend([observer_role, observer_binding])
 
     for name, port in [("postgres", 5432), ("inventory", 80), ("quote", 80)]:
         target = 5432 if name == "postgres" else 8080
@@ -209,7 +219,7 @@ def manifests(image: str, postgres_image: str) -> list[dict]:
     return objects
 
 
-def provision(run_dir: Path, run_id: str) -> Kubernetes:
+def provision(run_dir: Path, run_id: str, *, cleanup_on_exit=True, lease_seconds=7200) -> Kubernetes:
     toolchain = json.loads((ROOT / "infra/toolchain.json").read_text())
     kind = str(ROOT / ".tools/kind")
     cluster = f"autolab-{run_id}"
@@ -233,6 +243,9 @@ def provision(run_dir: Path, run_id: str) -> Kubernetes:
         )
         + "\n"
     )
+    from autonomy_lab.janitor import start
+    if cleanup_on_exit:
+        start(run_dir, lifetime_seconds=lease_seconds)
     kubeconfig.touch(mode=0o600)
     command(
         [
@@ -244,7 +257,7 @@ def provision(run_dir: Path, run_id: str) -> Kubernetes:
             "--kubeconfig",
             str(kubeconfig),
             "--config",
-            str(ROOT / "infra/kind.yaml"),
+            str(configure(run_dir, ROOT / "infra/kind.yaml")),
             "--image",
             toolchain["node_image"],
             "--wait",
@@ -270,12 +283,24 @@ def provision(run_dir: Path, run_id: str) -> Kubernetes:
         "apply", "-f", "-", input=yaml.safe_dump_all(manifests(image, toolchain["postgres_image"]))
     )
     for name in ["postgres", "inventory", "quote"]:
-        kube.call("rollout", "status", f"deployment/{name}", "--timeout=120s")
+        try:
+            kube.call("rollout", "status", f"deployment/{name}", "--timeout=120s")
+        except Exception:
+            for label, arguments in [
+                ("pods", ("get", "pods", "-o", "json")),
+                ("events", ("get", "events", "-o", "json")),
+                ("failed-deployment", ("logs", f"deployment/{name}", "--all-containers", "--tail=150")),
+            ]:
+                try:
+                    (run_dir / f"provision-{label}.log").write_text(kube.call(*arguments, timeout=30))
+                except Exception:
+                    pass
+            raise
     return kube
 
 
 def service_identity(kube: Kubernetes, run_dir: Path, identity: str) -> Kubernetes:
-    if identity not in {"broker", "verifier"}:
+    if identity not in {"broker", "verifier", "observer"}:
         raise ValueError("Unknown lab identity")
     config = yaml.safe_load(kube.call("config", "view", "--raw", "--minify"))
     token = kube.call("create", "token", identity, "--duration=1h").strip()
@@ -303,6 +328,7 @@ def reset_application(kube: Kubernetes, image: str, postgres_image: str):
 
 
 def teardown(run_dir: Path):
+    from autonomy_lab.harness import save
     metadata = json.loads((run_dir / "environment.json").read_text())
     kube = Kubernetes(run_dir / "kubeconfig", metadata["cluster"])
     command(
@@ -318,4 +344,4 @@ def teardown(run_dir: Path):
         timeout=120,
     )
     metadata["status"] = "deleted"
-    (run_dir / "environment.json").write_text(json.dumps(metadata, indent=2) + "\n")
+    save(run_dir / "environment.json", metadata)

@@ -1,0 +1,255 @@
+{
+  "status": "passed",
+  "cycles_planned": 3,
+  "cycles_completed": 3,
+  "run_id": "2b89227008d04f0fb8240db05fa1c3c3",
+  "task": "lifecycle-2b89227008d0",
+  "reads": [
+    {
+      "run_id": "2b89227008d04f0fb8240db05fa1c3c3",
+      "startups": [
+        {
+          "boot_id": "60745635-ccfd-4e86-ba95-667e7578b30d",
+          "pid": 9,
+          "parent_pid": 1,
+          "started_at": 1790174293.4456139,
+          "process_stat": "9 (python3) R 1 9 1 0 0 0 0 0 0 0 12 0 0 0 20 0 1 0 10 27254784 4535 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+        }
+      ]
+    },
+    {
+      "run_id": "2b89227008d04f0fb8240db05fa1c3c3",
+      "startups": [
+        {
+          "boot_id": "60745635-ccfd-4e86-ba95-667e7578b30d",
+          "pid": 9,
+          "parent_pid": 1,
+          "started_at": 1790174293.4456139,
+          "process_stat": "9 (python3) R 1 9 1 0 0 0 0 0 0 0 12 0 0 0 20 0 1 0 10 27254784 4535 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+        },
+        {
+          "boot_id": "4c8c9f78-875e-4b59-bcda-1de0420e57a7",
+          "pid": 9,
+          "parent_pid": 1,
+          "started_at": 1790174300.1911218,
+          "process_stat": "9 (python3) R 1 9 1 0 0 0 0 0 0 0 11 1 0 0 20 0 1 0 10 27254784 4805 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+        }
+      ]
+    },
+    {
+      "run_id": "2b89227008d04f0fb8240db05fa1c3c3",
+      "startups": [
+        {
+          "boot_id": "60745635-ccfd-4e86-ba95-667e7578b30d",
+          "pid": 9,
+          "parent_pid": 1,
+          "started_at": 1790174293.4456139,
+          "process_stat": "9 (python3) R 1 9 1 0 0 0 0 0 0 0 12 0 0 0 20 0 1 0 10 27254784 4535 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+        },
+        {
+          "boot_id": "4c8c9f78-875e-4b59-bcda-1de0420e57a7",
+          "pid": 9,
+          "parent_pid": 1,
+          "started_at": 1790174300.1911218,
+          "process_stat": "9 (python3) R 1 9 1 0 0 0 0 0 0 0 11 1 0 0 20 0 1 0 10 27254784 4805 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+        },
+        {
+          "boot_id": "34eb101e-c03a-43a9-bf67-870e4b6d66f2",
+          "pid": 9,
+          "parent_pid": 1,
+          "started_at": 1790174305.3311899,
+          "process_stat": "9 (python3) R 1 9 1 0 0 0 0 0 0 0 14 2 0 0 20 0 1 0 10 27254784 4865 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+        }
+      ]
+    },
+    {
+      "run_id": "2b89227008d04f0fb8240db05fa1c3c3",
+      "startups": [
+        {
+          "boot_id": "60745635-ccfd-4e86-ba95-667e7578b30d",
+          "pid": 9,
+          "parent_pid": 1,
+          "started_at": 1790174293.4456139,
+          "process_stat": "9 (python3) R 1 9 1 0 0 0 0 0 0 0 12 0 0 0 20 0 1 0 10 27254784 4535 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+        },
+        {
+          "boot_id": "4c8c9f78-875e-4b59-bcda-1de0420e57a7",
+          "pid": 9,
+          "parent_pid": 1,
+          "started_at": 1790174300.1911218,
+          "process_stat": "9 (python3) R 1 9 1 0 0 0 0 0 0 0 11 1 0 0 20 0 1 0 10 27254784 4805 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+        },
+        {
+          "boot_id": "34eb101e-c03a-43a9-bf67-870e4b6d66f2",
+          "pid": 9,
+          "parent_pid": 1,
+          "started_at": 1790174305.3311899,
+          "process_stat": "9 (python3) R 1 9 1 0 0 0 0 0 0 0 14 2 0 0 20 0 1 0 10 27254784 4865 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+        },
+        {
+          "boot_id": "751e9c1f-7e2e-45c2-8ab5-e1d410ef1796",
+          "pid": 9,
+          "parent_pid": 1,
+          "started_at": 1790174311.2777555,
+          "process_stat": "9 (python3) R 1 9 1 0 0 0 0 0 0 0 15 4 0 0 20 0 1 0 11 27254784 4803 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+        }
+      ]
+    }
+  ],
+  "suspended_actors": [
+    {
+      "state": "ACTOR_STATE_SUSPENDED",
+      "snapshot_present": true,
+      "uid": "676a9a1e-f06b-46aa-8dea-a002338bf64e"
+    },
+    {
+      "state": "ACTOR_STATE_SUSPENDED",
+      "snapshot_present": true,
+      "uid": "676a9a1e-f06b-46aa-8dea-a002338bf64e"
+    },
+    {
+      "state": "ACTOR_STATE_SUSPENDED",
+      "snapshot_present": true,
+      "uid": "676a9a1e-f06b-46aa-8dea-a002338bf64e"
+    }
+  ],
+  "capacity_recovery": {
+    "status": "passed",
+    "manual_resume_requests": 1,
+    "state": {
+      "run_id": "2b89227008d04f0fb8240db05fa1c3c3",
+      "startups": [
+        {
+          "boot_id": "60745635-ccfd-4e86-ba95-667e7578b30d",
+          "pid": 9,
+          "parent_pid": 1,
+          "started_at": 1790174293.4456139,
+          "process_stat": "9 (python3) R 1 9 1 0 0 0 0 0 0 0 12 0 0 0 20 0 1 0 10 27254784 4535 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+        },
+        {
+          "boot_id": "4c8c9f78-875e-4b59-bcda-1de0420e57a7",
+          "pid": 9,
+          "parent_pid": 1,
+          "started_at": 1790174300.1911218,
+          "process_stat": "9 (python3) R 1 9 1 0 0 0 0 0 0 0 11 1 0 0 20 0 1 0 10 27254784 4805 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+        },
+        {
+          "boot_id": "34eb101e-c03a-43a9-bf67-870e4b6d66f2",
+          "pid": 9,
+          "parent_pid": 1,
+          "started_at": 1790174305.3311899,
+          "process_stat": "9 (python3) R 1 9 1 0 0 0 0 0 0 0 14 2 0 0 20 0 1 0 10 27254784 4865 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+        },
+        {
+          "boot_id": "751e9c1f-7e2e-45c2-8ab5-e1d410ef1796",
+          "pid": 9,
+          "parent_pid": 1,
+          "started_at": 1790174311.2777555,
+          "process_stat": "9 (python3) R 1 9 1 0 0 0 0 0 0 0 15 4 0 0 20 0 1 0 11 27254784 4803 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+        },
+        {
+          "boot_id": "6f3dad6b-fe86-415a-bc3b-5a666a62c08f",
+          "pid": 9,
+          "parent_pid": 1,
+          "started_at": 1790174332.463005,
+          "process_stat": "9 (python3) R 1 9 1 0 0 0 0 0 0 0 11 4 0 0 20 0 1 0 10 27254784 4954 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+        }
+      ]
+    }
+  },
+  "finished_at": "2026-09-23T14:38:54.231561+00:00",
+  "templates_count": 1,
+  "evidence_sha256": "7ad6385fbffdb4f154a08b29335f026308ca7295ac187d234e1a3f6f070bd86b",
+  "execution": {
+    "started_at": "20260923T143554704157Z",
+    "status": "passed",
+    "phases": [
+      {
+        "phase": "create",
+        "timeout_seconds": 600,
+        "timed_out": false,
+        "exit_code": 0,
+        "elapsed_seconds": 18.466207042103633
+      },
+      {
+        "phase": "install",
+        "timeout_seconds": 1200,
+        "timed_out": false,
+        "exit_code": 0,
+        "elapsed_seconds": 76.89107975014485
+      },
+      {
+        "phase": "counter",
+        "timeout_seconds": 600,
+        "timed_out": false,
+        "exit_code": 0,
+        "elapsed_seconds": 25.436725041130558
+      },
+      {
+        "phase": "ax_install",
+        "timeout_seconds": 600,
+        "timed_out": false,
+        "exit_code": 0,
+        "elapsed_seconds": 15.917113207979128
+      },
+      {
+        "phase": "ax_check",
+        "timeout_seconds": 600,
+        "timed_out": false,
+        "exit_code": 0,
+        "elapsed_seconds": 42.44947591703385
+      }
+    ],
+    "cleanup": [
+      {
+        "resource": "autonomy-ax-spike",
+        "status": "deleted"
+      },
+      {
+        "resource": "autonomy-ax-spike-registry",
+        "status": "deleted_or_absent"
+      }
+    ],
+    "limits": {
+      "node_memory_bytes": 5368709120,
+      "node_cpus": 5,
+      "registry_memory_bytes": 268435456
+    },
+    "source_hashes": {
+      "launch/adaptation-record.json": "c4ec03aab4354f65b27fd83befdedeafb804e825142f5359c56f997aabf61b0b",
+      "launch/ax_check.py": "80817c6bf3e84fa66a10ec84c1f09dd175a3befe0536a3eb34175494b4e0ebb1",
+      "launch/ax_install.py": "22876303801f8d3c682d060892b11bce987a6fbd35ed8df46e530eda2dbd22fb",
+      "launch/ax_probe_task.py": "4b3bb5092ea8e7de01c916ff4b667789a831dff72bfeca2e1acabc5b85b60dac",
+      "launch/build_cold_boot.py": "bb49b50e7ab232f2b4360e140831c4d0408f23a8dc565d8e8257839c7c4428cb",
+      "launch/counter_check.py": "023adef15a18b46c40d266256cd3c7db9a728abb0218e428817c67ee9725850a",
+      "launch/execute_ax.py": "7449ebb889c2d6faec15c2f3ae283c8882127d9481df94e07954306f8a1b574f",
+      "launch/execute_bounded.py": "55ea40521718493a7578ee62a5cab2f961f453bbed28791743353f24c8057f39",
+      "launch/phase.sh": "14a415942f2eaa716a690e68db133e2967436d37a9fb532c8cc3e7bf7ebb11df",
+      "launch/phase_ax.sh": "a6060c88bb8cddd7b7ed5956285b82990619e582f937065a1ec6f8aa3486f0c8",
+      "launch/prepare_adaptations.py": "32ac909ece7262b754dc60af78875e8f2e389f597412e84f4f2432f2c2879032",
+      "launch/prepare_recovery.py": "9087e8239f25252b16669d51166dfec34bc18274a377b96e766f5a0cd461f61d",
+      "launch/run.sh": "ee157d509a71a875597fe367c94c30a537e3ef5629cd91bb130a1836a44b3836",
+      "launch/run_ax.sh": "0d57680e41c790694224778f2ff45ac7ffb79550b8ac2dc70387e1e261a44803",
+      "launch/upstream-adaptations.patch": "c24b67f958f67fcc8419755608284a7c19a842096505dfee50953a76a30fc96c"
+    },
+    "substrate_revision": "672533541dbfcd29084e4de2475267088bda3651",
+    "ax_revision": "d8ed0fe38bceb7842d3c47817d53d16ccdfcb601",
+    "ax_compatibility_patch": {
+      "upstream_repository": "https://github.com/google/ax",
+      "upstream_commit": "d8ed0fe38bceb7842d3c47817d53d16ccdfcb601",
+      "file": "internal/substrate/client.go",
+      "original_sha256": "b277c51e35efcef4d8cdcbf52fff801971d790a96e75385937d28a7a3d435014",
+      "patched_sha256": "bbf6ef39299f7327f77b32d05d91b2d9df99a03117c22c49b9bfaeee7aa50051",
+      "patch_sha256": "8270744611576ee8834bc258c2a270b001be24850f6e0a2c0534517cb3571316",
+      "policy": "RESUME_SOURCE_COLD_BOOT for DATA snapshots; FULL snapshots unchanged"
+    },
+    "recovery_patch_sha256": "54cb8c187b114de9c1fb50c67bb21b8b8caf566205bca76046cb175ec714f729",
+    "ax_controller_binary": {
+      "path": "tools/bin/ax-controller-cold-boot-linux-arm64",
+      "sha256": "defa03843da2d3bb2d6b4d9e9a3608036f34b86957c4df4c1e0bac2c4cada59c",
+      "source_sha256": "bbf6ef39299f7327f77b32d05d91b2d9df99a03117c22c49b9bfaeee7aa50051",
+      "build_record": "logs/cold-boot-build-20260923T143512284431Z"
+    },
+    "finished_at": "2026-09-23T14:38:57.603975+00:00"
+  }
+}

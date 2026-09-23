@@ -34,7 +34,7 @@ def command(args: list[str], *, input: str | None = None, timeout: float = 180) 
 
 class Kubernetes:
     def __init__(self, kubeconfig: Path, cluster_name: str, namespace: str = "autonomy-lab"):
-        if not re.fullmatch(r"autolab-[a-f0-9]{8}", cluster_name):
+        if cluster_name != "autonomy-ax-spike" and not re.fullmatch(r"autolab-[a-f0-9]{8}", cluster_name):
             raise ValueError("Only an explicitly named Autonomy Lab cluster is permitted")
         self.kubeconfig = kubeconfig.resolve()
         self.cluster_name = cluster_name
@@ -81,6 +81,9 @@ class Kubernetes:
             cadata=base64.b64decode(cluster["certificate-authority-data"]).decode()
         )
         headers = {"Content-Type": "application/json-patch+json"}
+        operation_id = getattr(self, "audit_operation_id", None)
+        if operation_id is not None:
+            headers["User-Agent"] = "autonomy-lab-operation/" + operation_id
         record = {
             "timestamp": datetime.now(UTC).isoformat(),
             "actor": context["user"],

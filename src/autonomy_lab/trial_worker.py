@@ -18,7 +18,7 @@ def main(path: Path) -> int:
         kube = Kubernetes(Path(request["kubeconfig"]), request["cluster_name"], request["namespace"])
         run_trial(kube, path.parent, request["scenario"], request["variant"], config,
                   env_file=Path(request["env_file"]) if request["env_file"] else None,
-                  workspace_prepared=True)
+                  workspace_prepared=True, release_id=request["release_id"])
         return 0
     except Exception as error:
         # Exception messages and tracebacks may contain credentials.

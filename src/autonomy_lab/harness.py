@@ -585,7 +585,7 @@ def run_demo(*, window_seconds: float = 30, keep: bool = False) -> Path:
     kube = None
     try:
         print(f"Provisioning {run_id}; evidence: {run_dir}", flush=True)
-        kube = provision(run_dir, run_id)
+        kube = provision(run_dir, run_id, cleanup_on_exit=not keep)
         verifier_kube = verifier_identity(kube, run_dir)
         save(run_dir / "cluster-version.json", json.loads(kube.call("version", "-o", "json")))
         save(run_dir / "pods.json", json.loads(kube.call("get", "pods", "-o", "json")))
