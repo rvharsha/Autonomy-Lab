@@ -1,0 +1,1437 @@
+{
+  "all_reported_or_estimated_cost_usd": 10.986825,
+  "description": "Final review answers and usage only. No private thinking content. Source reviews are not tests or automatic approval; unresolved candidates require independent verification.",
+  "direct_reviews": [
+    {
+      "artifact": ".state/reviews/20260923T020137.175195Z-foundation.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 1.0,
+        "estimated_maximum_usd": 0.75797,
+        "input_margin_tokens": 2181,
+        "input_tokens": 43616,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 6000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": "Review incomplete: stop_reason='max_tokens'; no continuation requested",
+      "estimated_usage_cost_usd": 0.73616,
+      "final_findings_text": null,
+      "generation_attempts": 1,
+      "request_settings": null,
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 388,
+            "included": "full_source",
+            "lines": 10,
+            "path": "Dockerfile",
+            "sha256": "9bbc68387880e3d6a67ebb1c9976958270db9bb1928bd039c4f35de64a3cffe6"
+          },
+          {
+            "bytes": 878,
+            "included": "full_source",
+            "lines": 19,
+            "path": "fixtures/database.sql",
+            "sha256": "595e6bff667e696fb51a6cfa51a86d6f7e016f2c90187d43429cb1b36c6355d2"
+          },
+          {
+            "bytes": 1580,
+            "included": "full_source",
+            "lines": 45,
+            "path": "fixtures/expectations.json",
+            "sha256": "95c4b01a604ef152d536d7046aadee50d29003445081ffd68858b63103a06c1d"
+          },
+          {
+            "bytes": 80,
+            "included": "full_source",
+            "lines": 4,
+            "path": "infra/kind.yaml",
+            "sha256": "e6e61938dbf0179c3f0a7e97a525d24d11fad2624d6df9520da1de6ba212a38c"
+          },
+          {
+            "bytes": 599,
+            "included": "full_source",
+            "lines": 9,
+            "path": "infra/toolchain.json",
+            "sha256": "0b4826e9ecc9f8c21ea1357b182f4dce2e53b9d8ac47c11a73e7add0d495c1fb"
+          },
+          {
+            "bytes": 765,
+            "included": "full_source",
+            "lines": 36,
+            "path": "pyproject.toml",
+            "sha256": "b78c6aa3f42ceb3ef3bc8c4b10869e083d19fc66c79ad88005272b5cbc02b77d"
+          },
+          {
+            "bytes": 18172,
+            "included": "full_source",
+            "lines": 402,
+            "path": "src/autonomy_lab/broker.py",
+            "sha256": "d55c8fee3d0e72bf67505e01271250730fc9ce4cc4f3b50f91ff287f2fc723b9"
+          },
+          {
+            "bytes": 1672,
+            "included": "full_source",
+            "lines": 54,
+            "path": "src/autonomy_lab/crash_worker.py",
+            "sha256": "64ac43f215d31b1c73c3fd27d7aed72bf513871912b20996b8d125c2b4455701"
+          },
+          {
+            "bytes": 11340,
+            "included": "full_source",
+            "lines": 321,
+            "path": "src/autonomy_lab/environment.py",
+            "sha256": "1cef744277b13e6e0b4254170e8db21ec9099dc8c48bf2fc56530cb34ab3f87d"
+          },
+          {
+            "bytes": 26859,
+            "included": "full_source",
+            "lines": 621,
+            "path": "src/autonomy_lab/harness.py",
+            "sha256": "94a5f0536e1362e27d8782c97fa25100e851892fca63f661b00a5ab85dd8b89a"
+          },
+          {
+            "bytes": 1475,
+            "included": "full_source",
+            "lines": 47,
+            "path": "src/autonomy_lab/inventory.py",
+            "sha256": "f4e64c0858342474fa0cb5396b589d659e13585aa21910dd48702551e4800422"
+          },
+          {
+            "bytes": 6796,
+            "included": "full_source",
+            "lines": 167,
+            "path": "src/autonomy_lab/kubernetes.py",
+            "sha256": "45616f1cd358905454d0110431db4b8e4cd5f34e62f9fa8cb510f74b95c6d688"
+          },
+          {
+            "bytes": 2539,
+            "included": "full_source",
+            "lines": 70,
+            "path": "src/autonomy_lab/quote.py",
+            "sha256": "f83b02b37071fb471e5d3861938b62af936f6781f1630a208d85777bb408cbbc"
+          },
+          {
+            "bytes": 13676,
+            "included": "full_source",
+            "lines": 332,
+            "path": "src/autonomy_lab/verifier.py",
+            "sha256": "d339c2181122d54c3c427b2a428078617e96cc8bc7e9ac605fd5c605fccaaab8"
+          },
+          {
+            "bytes": 6407,
+            "included": "test_index",
+            "lines": 171,
+            "path": "tests/test_application.py",
+            "sha256": "cffc7f3c4efbe5f6572edf1d2790f046fc4849b906711dbdc19649a3c7593c9b"
+          },
+          {
+            "bytes": 17188,
+            "included": "test_index",
+            "lines": 426,
+            "path": "tests/test_broker.py",
+            "sha256": "e7aba151d59a10c7ee0b41489c7ff791359456107eb237cdbb8f475f0537aa84"
+          },
+          {
+            "bytes": 9000,
+            "included": "test_index",
+            "lines": 175,
+            "path": "tests/test_environment.py",
+            "sha256": "867bf7453407149ddf4308e22e3b2208f634063582a48458e6e0b88bf94657ab"
+          },
+          {
+            "bytes": 3968,
+            "included": "full_source",
+            "lines": 108,
+            "path": "tests/test_harness.py",
+            "sha256": "39dabc3ef8eb7fdc78ebcae5843b93219d88bfd3e3dbf23b5ac209cbaea651a9"
+          },
+          {
+            "bytes": 8467,
+            "included": "test_index",
+            "lines": 242,
+            "path": "tests/test_verifier.py",
+            "sha256": "936eee9d4078875f8cac684860fbce9e67618b3916c6a36d88d846cec5e46a9e"
+          }
+        ],
+        "prompt_sha256": "f059137945d29ff9a3ce3d2dc02d6f2a56357f036e8a11269410039d8566b2da",
+        "scope": "foundation",
+        "snapshot_id": "25b6149fa244fa263ecf6c0bbfe01ef386fb95f702efc6e41f0f22a7c8b27500",
+        "source_bytes": 131849
+      },
+      "source_files_match_at_summary": false,
+      "status": "incomplete",
+      "stop_reason": "max_tokens",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 43616,
+        "output_tokens": 6000,
+        "output_tokens_details": {
+          "thinking_tokens": 6000
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "artifact": ".state/reviews/20260923T020149.926745Z-agents.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 1.0,
+        "estimated_maximum_usd": 0.76751,
+        "input_margin_tokens": 2227,
+        "input_tokens": 44524,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 6000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": "Review incomplete: stop_reason='max_tokens'; no continuation requested",
+      "estimated_usage_cost_usd": 0.74524,
+      "final_findings_text": null,
+      "generation_attempts": 1,
+      "request_settings": null,
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 388,
+            "included": "full_source",
+            "lines": 10,
+            "path": "Dockerfile",
+            "sha256": "9bbc68387880e3d6a67ebb1c9976958270db9bb1928bd039c4f35de64a3cffe6"
+          },
+          {
+            "bytes": 878,
+            "included": "full_source",
+            "lines": 19,
+            "path": "fixtures/database.sql",
+            "sha256": "595e6bff667e696fb51a6cfa51a86d6f7e016f2c90187d43429cb1b36c6355d2"
+          },
+          {
+            "bytes": 1580,
+            "included": "full_source",
+            "lines": 45,
+            "path": "fixtures/expectations.json",
+            "sha256": "95c4b01a604ef152d536d7046aadee50d29003445081ffd68858b63103a06c1d"
+          },
+          {
+            "bytes": 80,
+            "included": "full_source",
+            "lines": 4,
+            "path": "infra/kind.yaml",
+            "sha256": "e6e61938dbf0179c3f0a7e97a525d24d11fad2624d6df9520da1de6ba212a38c"
+          },
+          {
+            "bytes": 599,
+            "included": "full_source",
+            "lines": 9,
+            "path": "infra/toolchain.json",
+            "sha256": "0b4826e9ecc9f8c21ea1357b182f4dce2e53b9d8ac47c11a73e7add0d495c1fb"
+          },
+          {
+            "bytes": 765,
+            "included": "full_source",
+            "lines": 36,
+            "path": "pyproject.toml",
+            "sha256": "b78c6aa3f42ceb3ef3bc8c4b10869e083d19fc66c79ad88005272b5cbc02b77d"
+          },
+          {
+            "bytes": 24533,
+            "included": "full_source",
+            "lines": 470,
+            "path": "src/autonomy_lab/agent.py",
+            "sha256": "0efac8485ebdc8601a6080094043b0be7dca664962bd886e7f81153f8eb702da"
+          },
+          {
+            "bytes": 1116,
+            "included": "full_source",
+            "lines": 28,
+            "path": "src/autonomy_lab/credentials.py",
+            "sha256": "889e7ae960883c16930bce85d710863275150abf550aa693dc3e1bdf4294a099"
+          },
+          {
+            "bytes": 17272,
+            "included": "full_source",
+            "lines": 407,
+            "path": "src/autonomy_lab/experiments.py",
+            "sha256": "7adfbddbae9afdd5753f6400a323a9cc3df4a6a7acdd868783ae29b852444fb5"
+          },
+          {
+            "bytes": 8024,
+            "included": "full_source",
+            "lines": 159,
+            "path": "src/autonomy_lab/gemini.py",
+            "sha256": "4fd6d69f96b94b2e404122d4bd1a0997ed7da9d5efcc1777700f545939459859"
+          },
+          {
+            "bytes": 5856,
+            "included": "full_source",
+            "lines": 148,
+            "path": "src/autonomy_lab/runbook.py",
+            "sha256": "f0c4514dbee4c4a8cbef786a10a29b91cd6ec1319b4a31b766dbf067755163ea"
+          },
+          {
+            "bytes": 18335,
+            "included": "full_source",
+            "lines": 418,
+            "path": "src/autonomy_lab/scoring.py",
+            "sha256": "d2c4d577c48725dd5fcf4ce00a0f672ab3b5cb8a2bfcb6c5cad06d57fb4a1135"
+          },
+          {
+            "bytes": 17514,
+            "included": "full_source",
+            "lines": 394,
+            "path": "src/autonomy_lab/toolbox.py",
+            "sha256": "66c98612fec1b1f7f764a1af189d845c24001b3eaf04b3f5dcf00d5af9ffea84"
+          },
+          {
+            "bytes": 23124,
+            "included": "test_index",
+            "lines": 492,
+            "path": "tests/test_agent.py",
+            "sha256": "c81558a947725bd9dce6c370e29028681f0a578c518141963a81235cffd42753"
+          },
+          {
+            "bytes": 3541,
+            "included": "test_index",
+            "lines": 84,
+            "path": "tests/test_credentials.py",
+            "sha256": "b29e7a8205eac1ebffbc78d921bee880370af74195ece578764d6065517367dc"
+          },
+          {
+            "bytes": 13080,
+            "included": "test_index",
+            "lines": 290,
+            "path": "tests/test_gemini.py",
+            "sha256": "fe19931a86cc272e4b0fc08c30963a1862e5b267798999d2b7e2e327c880caec"
+          },
+          {
+            "bytes": 7681,
+            "included": "test_index",
+            "lines": 209,
+            "path": "tests/test_runbook.py",
+            "sha256": "f0ea95bc6114a31f1043741b1aa130511aa7e1f832721cf2faf402e88e9a188b"
+          },
+          {
+            "bytes": 13641,
+            "included": "test_index",
+            "lines": 360,
+            "path": "tests/test_scoring.py",
+            "sha256": "d37461dcc04a78334d63f1a499113785e3aaea0c8d6ac1c357f641345aa9f7da"
+          },
+          {
+            "bytes": 17345,
+            "included": "test_index",
+            "lines": 452,
+            "path": "tests/test_toolbox.py",
+            "sha256": "4cdc67f3e84495f63d5f62f7484e454e87e8133a6655d414d34e1ed62fa21c73"
+          }
+        ],
+        "prompt_sha256": "b949c2f1ccfa62fd39503fc520041d0d0d3bd5d4a94586e372cda2048d8b6d83",
+        "scope": "agents",
+        "snapshot_id": "53592ff82c3071c494119d1769adb4a468203e2d44e04d202eefdf5c0f358e94",
+        "source_bytes": 175352
+      },
+      "source_files_match_at_summary": false,
+      "status": "incomplete",
+      "stop_reason": "max_tokens",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 44524,
+        "output_tokens": 6000,
+        "output_tokens_details": {
+          "thinking_tokens": 6000
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "artifact": ".state/reviews/20260923T020618.905007Z-broker.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.69333,
+        "input_margin_tokens": 445,
+        "input_tokens": 8888,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": null,
+      "estimated_usage_cost_usd": 0.30218,
+      "final_findings_text": "**Finding 1 \u2014 Budget permanently consumed by operations that were never sent (lines 199, 209, 321\u2013331, 333\u2013345)**\n\n`budget_reserved=1` is set at intent time and is never cleared. Every later path that proves nothing was sent leaves the row counted by `_used`: `_reject_prepared` (policy revoked, `resource_version_changed`, `target_port_changed`, `port_name_not_unique`) and `_finish(..., \"rejected\", ...)` for `PatchRejected`/`api_rejected:409`. `_used` counts `budget_reserved=1` regardless of status.\n\nTrace (default `max_dispatches=1`):\n1. `propose(p1)` passes policy \u2192 row `prepared`, reserved=1.\n2. `resume_prepared` \u2192 `get_service` shows a bumped `resourceVersion` (any unrelated Service edit) \u2192 `_reject_prepared(..., \"resource_version_changed\")`. Row is `rejected`, reserved stays 1.\n3. `propose(p2)` with the fresh `resourceVersion` \u2192 line 199: `_used == 1 >= 1` \u2192 `budget_exhausted`. No dispatch ever occurred, yet the run's single permitted repair is gone, and `lookup()[\"budget_used\"]` reports `1`.\n\nThis breaks both \"permits one ... repair\" and truthful budget scoring: a verifier reads `budget_used=1` with zero dispatches. It is not the conservative case (uncertain/dispatching/acknowledged must stay counted); it is a definitively-not-sent case.\n\nMinimal fix: release the reservation only in the two provably-unsent paths, inside their existing `BEGIN IMMEDIATE` transactions:\n\n```python\n# _reject_prepared: status was 'prepared' \u2192 nothing sent\nUPDATE operations SET status='rejected',reason=?,budget_reserved=0,updated_at=?\nWHERE operation_id=? AND status='prepared'\n```\nand in `_finish`, when `status == \"rejected\"` (PatchRejected / listed 4xx, i.e. API confirmed non-application), set `budget_reserved=0` as well; keep it at 1 for `uncertain`/`acknowledged`. Add a journal event `budget_released`.\n\n**Finding 2 \u2014 Malformed acknowledgment leaves an owned `dispatching` row that this process reports as live (lines 287\u2013291, 232\u2013235)**\n\nAfter `patch_service` returns, `result.get(\"metadata\", {})` and `metadata.get(...)` run outside any handler. If the adapter returns `None`, a non-dict, or `metadata` that is not a mapping, an `AttributeError` propagates out of `resume_prepared`. `_finish` is never called; the row stays `status='dispatching'`, `owner=self.owner`. Because `lookup` only rewrites to `uncertain` when `owner != self.owner`, every subsequent `lookup`/duplicate `propose` from this still-running broker returns `status=\"dispatching\"`, `reason=\"dispatch_started\"` indefinitely \u2014 a state the docstring reserves for an in-flight send, though the send has completed and the outcome is genuinely unknown. The verifier only gets \"indeterminate\" if the process restarts or someone calls `reconcile`.\n\nTrace: adapter `patch_service` returns `None` (e.g., a client wrapper returning no body) \u2192 line 287 raises \u2192 caller sees exception \u2192 `broker.lookup(op)` \u2192 `{\"status\": \"dispatching\", \"reason\": \"dispatch_started\"}` forever in-process.\n\nMinimal fix: treat post-send processing failures as unknown outcome:\n\n```python\ntry:\n    metadata = result.get(\"metadata\", {}) if isinstance(result, dict) else {}\n    if not isinstance(metadata, dict):\n        metadata = {}\nexcept Exception:\n    return self._finish(operation_id, \"uncertain\", \"ack_unparseable\")\n```\n(Keep the hooks outside the handler as intended.) Optionally, `propose`'s duplicate path could refuse to return an owned `dispatching` row as if in flight, but the `_finish` change is the essential one.\n\nNo other defects substantiated from this file alone; test bodies were not inspected.\n\ne212f00c1b14a852a328d63476f3fb73d9328dd622dcb8b19b6b3c4f0c76d8b6",
+      "generation_attempts": 1,
+      "request_settings": {
+        "max_tokens": 12000,
+        "output_config": {
+          "effort": "low"
+        },
+        "system_sha256": "689d51e7f51881d3303a74b0e71b2e0431218209138a5825a1a3235106e4203b",
+        "thinking": {
+          "type": "adaptive"
+        }
+      },
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 18172,
+            "included": "full_source",
+            "lines": 402,
+            "path": "src/autonomy_lab/broker.py",
+            "sha256": "d55c8fee3d0e72bf67505e01271250730fc9ce4cc4f3b50f91ff287f2fc723b9"
+          },
+          {
+            "bytes": 17188,
+            "included": "test_index",
+            "lines": 426,
+            "path": "tests/test_broker.py",
+            "sha256": "e7aba151d59a10c7ee0b41489c7ff791359456107eb237cdbb8f475f0537aa84"
+          }
+        ],
+        "prompt_sha256": "0b9bb37f36c6ad0d7dc2dede50d039939582d258ad4c84d30bee3b18307622fa",
+        "scope": "broker",
+        "snapshot_id": "e212f00c1b14a852a328d63476f3fb73d9328dd622dcb8b19b6b3c4f0c76d8b6",
+        "source_bytes": 35360
+      },
+      "source_files_match_at_summary": false,
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 8888,
+        "output_tokens": 4266,
+        "output_tokens_details": {
+          "thinking_tokens": 2824
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "artifact": ".state/reviews/20260923T021012.142795Z-tools_scoring.json",
+      "cost_preflight": null,
+      "error": "Token preflight exceeds 14,999 input tokens or returned an invalid count",
+      "estimated_usage_cost_usd": null,
+      "final_findings_text": null,
+      "generation_attempts": 0,
+      "request_settings": {
+        "max_tokens": 12000,
+        "output_config": {
+          "effort": "low"
+        },
+        "system_sha256": "1f455c27d52f6d46b3de17242e31a0798d0b6d31caa631d22fab52acb51bf813",
+        "thinking": {
+          "type": "adaptive"
+        }
+      },
+      "requested_model": "claude-fable-5-1",
+      "returned_model": null,
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 5856,
+            "included": "full_source",
+            "lines": 148,
+            "path": "src/autonomy_lab/runbook.py",
+            "sha256": "f0c4514dbee4c4a8cbef786a10a29b91cd6ec1319b4a31b766dbf067755163ea"
+          },
+          {
+            "bytes": 18335,
+            "included": "full_source",
+            "lines": 418,
+            "path": "src/autonomy_lab/scoring.py",
+            "sha256": "d2c4d577c48725dd5fcf4ce00a0f672ab3b5cb8a2bfcb6c5cad06d57fb4a1135"
+          },
+          {
+            "bytes": 17514,
+            "included": "full_source",
+            "lines": 394,
+            "path": "src/autonomy_lab/toolbox.py",
+            "sha256": "66c98612fec1b1f7f764a1af189d845c24001b3eaf04b3f5dcf00d5af9ffea84"
+          }
+        ],
+        "prompt_sha256": "26379e7685f340acb744c24337cd20c95b643481c199d24431f74dd2d878cc67",
+        "scope": "tools_scoring",
+        "snapshot_id": "ecb4ec2a1e7cdeb64a282619e8239afe9570495c8007dfaa37feda5ae06f51c2",
+        "source_bytes": 41705
+      },
+      "source_files_match_at_summary": false,
+      "status": "failed",
+      "stop_reason": null,
+      "usage": null
+    },
+    {
+      "artifact": ".state/reviews/20260923T021013.525772Z-verification.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.69592,
+        "input_margin_tokens": 457,
+        "input_tokens": 9135,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": null,
+      "estimated_usage_cost_usd": 0.2742,
+      "final_findings_text": "**Findings**\n\nAfter reviewing the three supplied files against the stated verification scope (durability of the journal, verifier trichotomy, budget/provenance/truthful scoring), I could not substantiate a concrete defect from this snapshot alone. The broker and journal code are not in scope, so nothing can be said about restart durability or indeterminate-outcome preservation there.\n\nWhat I checked and found consistent in the supplied code:\n\n- `verifier.py:155` and `:224` order verdicts FAILURE > INDETERMINATE > SUCCESS at both probe and window level; reasons are retained across probes (`:225`), so a later healthy probe cannot erase damage.\n- `verifier.py:125\u2013130` rejects incomplete, duplicated, or foreign quote corpora as indeterminate; `:136\u2013153` evaluates every matching observation, so a good duplicate does not mask a bad one.\n- `verifier.py:137\u2013145` correctly downgrades transport errors to indeterminate only when a health control is unavailable, and `:199\u2013205` converts collector exceptions to indeterminate rather than success.\n- `verifier.py:217` guarantees a probe at/after the deadline plus at least two probes; `_positive_finite` (`:159\u2013163`) rejects bool, NaN, inf, and non-positive windows/intervals.\n- `verifier.py:42\u201354` `_strict_equal` blocks `True == 1` and `\"1\" == 1` equivalences and enforces exact dict key sets, so a plausible-but-wrong 200 body or a mutated product row is a verified failure.\n- `quote.py:55\u201362` keeps `HTTPException` (404) out of the `except` clause, validates strict types with `extra=\"forbid\"`, cross-checks `sku` and `available`, and maps all backend/transport/parse faults to 503; `total_offset` (`:25`, `:67`) is a declared fault hook, not an accidental scoring path.\n- `inventory.py:40\u201347` validates `quantity > 0` before touching the database and returns 503 on outage while `/healthz` stays live.\n\nTwo things I could not confirm and therefore do not assert as defects (they depend on omitted schema/manifest files):\n\n1. `verifier.py:83` compares database rows to JSON fixtures with `_strict_equal`, which requires `type(actual) is type(expected)`. If `products.unit_price_minor` or `stock` is a `numeric`/`decimal` column, psycopg returns `Decimal`, and every probe would be a permanent false `verified_failure`. Harmless if the columns are `integer`/`bigint`. Confirm against the schema.\n2. `verifier.py:61`, `:172`, `:289` default `expected_target_port=8080`, while `quote.py:27` defaults the inventory URL to port 8000. If the inventory container actually listens on 8000, the default \"repaired\" state would score as failure. Confirm against the Service/Deployment manifests or the call site that passes this argument.\n\nNo fix is proposed because neither item is substantiated by the supplied source.\n\n5f34d2373f02f5ab6467b87d11c20051262a648dbeec2ae780d2e8eee67b0bec",
+      "generation_attempts": 1,
+      "request_settings": {
+        "max_tokens": 12000,
+        "output_config": {
+          "effort": "low"
+        },
+        "system_sha256": "1f455c27d52f6d46b3de17242e31a0798d0b6d31caa631d22fab52acb51bf813",
+        "thinking": {
+          "type": "adaptive"
+        }
+      },
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 1475,
+            "included": "full_source",
+            "lines": 47,
+            "path": "src/autonomy_lab/inventory.py",
+            "sha256": "f4e64c0858342474fa0cb5396b589d659e13585aa21910dd48702551e4800422"
+          },
+          {
+            "bytes": 2539,
+            "included": "full_source",
+            "lines": 70,
+            "path": "src/autonomy_lab/quote.py",
+            "sha256": "f83b02b37071fb471e5d3861938b62af936f6781f1630a208d85777bb408cbbc"
+          },
+          {
+            "bytes": 13676,
+            "included": "full_source",
+            "lines": 332,
+            "path": "src/autonomy_lab/verifier.py",
+            "sha256": "d339c2181122d54c3c427b2a428078617e96cc8bc7e9ac605fd5c605fccaaab8"
+          },
+          {
+            "bytes": 6407,
+            "included": "test_index",
+            "lines": 171,
+            "path": "tests/test_application.py",
+            "sha256": "cffc7f3c4efbe5f6572edf1d2790f046fc4849b906711dbdc19649a3c7593c9b"
+          },
+          {
+            "bytes": 8467,
+            "included": "test_index",
+            "lines": 242,
+            "path": "tests/test_verifier.py",
+            "sha256": "936eee9d4078875f8cac684860fbce9e67618b3916c6a36d88d846cec5e46a9e"
+          }
+        ],
+        "prompt_sha256": "f404c74cf7af071d3d6965883c0b95eaea023eae990514bfad08cf35c066397b",
+        "scope": "verification",
+        "snapshot_id": "5f34d2373f02f5ab6467b87d11c20051262a648dbeec2ae780d2e8eee67b0bec",
+        "source_bytes": 32564
+      },
+      "source_files_match_at_summary": true,
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 9135,
+        "output_tokens": 3657,
+        "output_tokens_details": {
+          "thinking_tokens": 2609
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "artifact": ".state/reviews/20260923T021013.785926Z-agent_runtime.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.75007,
+        "input_margin_tokens": 715,
+        "input_tokens": 14292,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": null,
+      "estimated_usage_cost_usd": 0.45127,
+      "final_findings_text": "**Finding 1 \u2014 Model-supplied invalid `record_incident` arguments crash the trial into `error` and are re-executed on every resume** (`src/autonomy_lab/agent.py` lines 172\u2013184, 289, 463\u2013465)\n\nTrigger: structured variant; the model calls `record_incident` with an `evidence_ids` entry it never observed (a hallucinated ID \u2014 exactly the model behaviour the structured trial is meant to measure), or a hypothesis >500 chars, or any pydantic `extra=\"forbid\"` violation.\n\nTrace:\n1. `call_tool` sets `pending[\"phase\"]=\"dispatched\"`, increments `usage.tool_calls`, saves (172\u2013174).\n2. Line 183 raises `ValueError(\"incident references unobserved evidence\")`. Nothing catches it in `call_tool`/`process_tools`/`run`; it reaches `run_agent`'s `except (Exception, KeyboardInterrupt)` and is persisted as `status=\"error\", reason=\"agent_execution_failed\"` with `pending_turn` still set.\n3. On resume, line 289 does not return (pending_turn is not None); `process_tools` sees phase `dispatched`, name \u2260 `propose_repair`, so it calls `call_tool` again with the identical args \u2192 same exception. Each resume burns one more tool call and re-writes the same infrastructure-looking error until `tool_call_budget_exhausted`.\n\nImpact: a model-quality failure is scored as a runtime error indistinguishable from a genuine crash, the model never sees a rejection observation, and the structured variant is systematically penalised relative to `basic` for a validation path that only it has. Truthful scoring is violated.\n\nMinimal fix: in `call_tool`, wrap the `record_incident` branch:\n```python\ntry:\n    ...validation...\nexcept ValueError as error:\n    result = {\"kind\": \"incident_rejected\", \"reason\": str(error)}\nelse:\n    state[\"incident\"] = incident\n    result = {\"kind\": \"incident_recorded\", \"incident\": _copy(incident)}\n```\n(the messages are locally generated constants, not untrusted text), so the outcome is a tool observation the model must handle, not a process failure.\n\n**Finding 2 \u2014 Model turn is checkpointed before its derived tool queue; a kill in between silently drops the tool calls** (`src/autonomy_lab/agent.py` lines 379\u2013380 vs 408\u2013409)\n\nTrigger: process is SIGKILLed / power-lost after `self.save()` at line 380 and before `self.save()` at line 409.\n\nTrace:\n1. Line 379 appends the model's `functionCall` content to `contents`; line 380 persists it with `status=\"running\"`, `pending_model=None`, `pending_turn=None`.\n2. Crash. On resume, none of the guards at 282\u2013292 fire; the loop reaches line 298 with `pending_turn is None`, so the parsed calls are never reconstructed.\n3. A fresh preflight/generate is issued with `contents` ending in a model `functionCall` that has no `functionResponse`. Gemini rejects this (HTTP 400) \u2192 `token_preflight_failed`/`blocked`, attributed to the provider; or if the provider tolerates it, the model is prompted again as if its calls never happened \u2014 including a possibly intended `propose_repair` or `finish`.\n\nImpact: durability claim (\"original model history survives restarts\") holds only for the raw content, not the execution intent; the trial outcome becomes a provider-blamed block or a silently skipped turn.\n\nMinimal fix: make the two writes one checkpoint \u2014 delete the `self.save()` at line 380 (the `except` at 404 already saves via `stop`), so `contents` append and `pending_turn` are persisted together at line 409. Alternatively, on resume detect a trailing `model` content with `functionCall` parts and no `pending_turn`, and `stop(\"blocked\", \"unqueued_model_turn\")` rather than re-prompting.\n\nNo substantiated defects identified in `credentials.py` or `gemini.py` beyond those above.\n\n6e1e98229bbf3f16742a8697dba104506d4e3d8996a9fa8ce1c1e92724bf86fe",
+      "generation_attempts": 1,
+      "request_settings": {
+        "max_tokens": 12000,
+        "output_config": {
+          "effort": "low"
+        },
+        "system_sha256": "1f455c27d52f6d46b3de17242e31a0798d0b6d31caa631d22fab52acb51bf813",
+        "thinking": {
+          "type": "adaptive"
+        }
+      },
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 24533,
+            "included": "full_source",
+            "lines": 470,
+            "path": "src/autonomy_lab/agent.py",
+            "sha256": "0efac8485ebdc8601a6080094043b0be7dca664962bd886e7f81153f8eb702da"
+          },
+          {
+            "bytes": 1116,
+            "included": "full_source",
+            "lines": 28,
+            "path": "src/autonomy_lab/credentials.py",
+            "sha256": "889e7ae960883c16930bce85d710863275150abf550aa693dc3e1bdf4294a099"
+          },
+          {
+            "bytes": 8024,
+            "included": "full_source",
+            "lines": 159,
+            "path": "src/autonomy_lab/gemini.py",
+            "sha256": "4fd6d69f96b94b2e404122d4bd1a0997ed7da9d5efcc1777700f545939459859"
+          }
+        ],
+        "prompt_sha256": "f3eb2cc6d97012d7503ea0cdb523ce01e0a79aea022375dc440b7d8ac37292b3",
+        "scope": "agent_runtime",
+        "snapshot_id": "6e1e98229bbf3f16742a8697dba104506d4e3d8996a9fa8ce1c1e92724bf86fe",
+        "source_bytes": 33673
+      },
+      "source_files_match_at_summary": false,
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 14292,
+        "output_tokens": 6167,
+        "output_tokens_details": {
+          "thinking_tokens": 4782
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "artifact": ".state/reviews/20260923T021041.012791Z-experiments.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.68061,
+        "input_margin_tokens": 384,
+        "input_tokens": 7677,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": null,
+      "estimated_usage_cost_usd": 0.23642,
+      "final_findings_text": "**Finding 1 \u2014 Post-agent failures are recorded as `infrastructure_error` with no message, and accounting still counts them as \"recorded\"**\n\n`src/autonomy_lab/experiments.py` lines 296\u2013309, 356\u2013357, 363\u2013366, 385.\n\nTrigger: the agent run completes (tokens spent, broker journal written), then anything after line 265 raises \u2014 e.g. `config[\"expected_behavior\"][scenario]` missing a key (line 298), a malformed observation line (line 279), an observation without `\"source\"` (line 284), or `score_trial` raising. Trace:\n\n1. `run_agent` returns; `result[\"agent\"]` is populated (253\u2013264).\n2. Line 298 raises `KeyError`.\n3. Line 309: `result.update(status=\"infrastructure_error\", error_type=\"KeyError\")` \u2014 the exception text and traceback are discarded; `final_verification.json` was already saved but `result[\"score\"]` is never set.\n4. Line 356 appends this to `results`; line 365 reports it under `\"recorded\": len(results)`, and line 385 prints \"Recorded N of M planned trials\" including it.\n\nEffect: a completed, verifiable trial with an authentic terminal claim is labelled as an infrastructure failure indistinguishable from a kind provisioning crash, with no diagnostic message, while the accounting summary overstates recorded trials. That breaks truthful scoring/provenance for exactly the trials that cost the most.\n\nMinimal fix:\n```python\nexcept Exception as exc:\n    result.update(\n        status=\"infrastructure_error\",\n        error_type=type(exc).__name__,\n        error=str(exc)[:500],\n        failed_after_agent=result.get(\"agent\") is not None,\n    )\n```\nand in `run_experiment`:\n```python\n\"recorded\": sum(r[\"status\"] == \"recorded\" for r in results),\n\"errored\": sum(r[\"status\"] != \"recorded\" for r in results),\n```\n\n**Finding 2 \u2014 Required config keys are only touched after provisioning and after the agent has run**\n\n`src/autonomy_lab/experiments.py` lines 317\u2013323 (validation), 184\u2013185, 225, 231\u2013234, 298 (first use).\n\nTrigger: a manifest that lists valid scenarios/variants but omits `window_seconds`, `model`, `max_turns`, `max_tokens`, `max_output_tokens`, or `expected_behavior[<scenario>]`. Trace:\n\n1. Line 318\u2013323 only check scenario/variant names, repetitions, and Gemini credential.\n2. Line 342 provisions the kind cluster; reset runs.\n3. Trial 1 reaches line 184 (`config[\"window_seconds\"]`) or line 298 and raises `KeyError` \u2192 swallowed by Finding 1's handler.\n4. Every trial in the plan repeats this: for `expected_behavior`, the Gemini agent runs fully each time (line 236) before failing at 298, so the entire budget is spent producing zero scored trials.\n\nMinimal fix \u2014 validate before line 324:\n```python\nrequired = {\"window_seconds\", \"model\", \"max_turns\", \"max_tokens\", \"max_output_tokens\", \"expected_behavior\"}\nmissing = required - config.keys()\nif missing:\n    raise ValueError(f\"Manifest missing keys: {sorted(missing)}\")\nmissing_expected = set(config[\"scenarios\"]) - config[\"expected_behavior\"].keys()\nif missing_expected:\n    raise ValueError(f\"expected_behavior missing scenarios: {sorted(missing_expected)}\")\nif config[\"window_seconds\"] <= 0:\n    raise ValueError(\"window_seconds must be positive\")\n```\n\nNo other defects in this file are substantiated from the supplied source alone; the `lost_ack` adapter raising on every patch (including post-resume retries) may be intentional and cannot be judged without the broker/scoring bodies.\n\n4ec79162ef8f6cfa428d19f9d07997a6275c050f966ab87e8c35ce77948ab846",
+      "generation_attempts": 1,
+      "request_settings": {
+        "max_tokens": 12000,
+        "output_config": {
+          "effort": "low"
+        },
+        "system_sha256": "1f455c27d52f6d46b3de17242e31a0798d0b6d31caa631d22fab52acb51bf813",
+        "thinking": {
+          "type": "adaptive"
+        }
+      },
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 17272,
+            "included": "full_source",
+            "lines": 407,
+            "path": "src/autonomy_lab/experiments.py",
+            "sha256": "7adfbddbae9afdd5753f6400a323a9cc3df4a6a7acdd868783ae29b852444fb5"
+          }
+        ],
+        "prompt_sha256": "ce2994625ef6a1539d437c1958a61be19e77773e04465525de4275c62156bd4b",
+        "scope": "experiments",
+        "snapshot_id": "4ec79162ef8f6cfa428d19f9d07997a6275c050f966ab87e8c35ce77948ab846",
+        "source_bytes": 17272
+      },
+      "source_files_match_at_summary": false,
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 7677,
+        "output_tokens": 3193,
+        "output_tokens_details": {
+          "thinking_tokens": 1877
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "artifact": ".state/reviews/20260923T021042.273992Z-harness.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.72841,
+        "input_margin_tokens": 612,
+        "input_tokens": 12229,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": null,
+      "estimated_usage_cost_usd": 0.43389,
+      "final_findings_text": "**Scope reviewed:** `src/autonomy_lab/harness.py` only. Broker, crash worker, verifier, and Kubernetes adapter bodies were not supplied, so findings below are limited to what this file itself does.\n\n## Finding 1 \u2014 `kill_at_barrier` can misreport a clean worker exit as a harness failure, and can hang on a partial line\n\n**File/lines:** `src/autonomy_lab/harness.py:199\u2013218`\n\n**Trigger / trace:**\n1. `selector.select(...)` reports the pipe readable.\n2. `process.stdout.readline()` (line 200) is a blocking read on a `TextIOWrapper`. Readiness is only known for the underlying fd; if the child has written a partial line (no `\\n`) and then stalls, `readline` blocks indefinitely and the 60 s `deadline` at line 197 is never re-checked. The while/else timeout is defeated.\n3. After a valid barrier, the harness parses JSON and validates three fields (205\u2013211) before `process.kill()` at 215. Nothing here pauses the child. If the worker's remaining work after emitting the barrier is short (e.g. `after_dispatch` \u2192 finalize journal \u2192 exit 0), it can exit before SIGKILL lands. `process.wait()` then returns `0`, line 217 raises `AssertionError(\"Expected SIGKILL termination, got 0\")`, and `record` is never reached \u2014 the SIGKILL acceptance fails even though nothing was wrong with durability.\n\nWhether the child blocks after the barrier is not visible in this file (crash worker omitted), so this is a harness robustness gap rather than a proven failure today.\n\n**Minimal fix:**\n- Make the barrier protocol two-way: have the worker block after printing the barrier (e.g. `sys.stdin.readline()`), and pass `stdin=subprocess.PIPE` instead of `DEVNULL`, so kill timing is deterministic. Alternatively, accept `exit_code in (-signal.SIGKILL,)` only if `process.poll() is None` immediately before kill, and otherwise fail with a distinct \"worker exited before kill\" message so the cause is attributable.\n- Replace the blocking `readline()` with reading from `process.stdout.buffer` via `os.read(fd, n)` into a byte buffer, splitting on `\\n`, and re-checking the deadline per iteration.\n\n## Finding 2 \u2014 `broker_acceptance` `finally` block can mask the real acceptance failure\n\n**File/lines:** `src/autonomy_lab/harness.py:455\u2013465`\n\n**Trigger / trace:**\n1. Any `record(...)` failure raises `AssertionError` (line 328), or a SIGKILL stage leaves a journal mid-write.\n2. `finally` iterates every `broker-*.sqlite`, opens it, and runs `SELECT * FROM operation_events ORDER BY sequence`.\n3. If any journal is unreadable, lacks the table (e.g. worker killed before schema creation in a future stage), or `sqlite3.connect` fails, the exception raised inside `finally` **replaces** the original `AssertionError`. `run_demo` then records `summary[\"error\"]` as the sqlite error, and `REPORT.md` shows a misleading failure cause. The actual failing check name is lost from the surfaced error (it is still in `broker-checks.json`, but the top-level result is wrong).\n\n**Minimal fix:**\n```python\nfinally:\n    for path in run_dir.glob(\"broker-*.sqlite\"):\n        try:\n            with sqlite3.connect(path) as db:\n                ...\n        except Exception as exc:\n            save(path.with_suffix(\".events.error.json\"), {\"error\": str(exc)})\n```\nso evidence export never overrides the primary exception.\n\n## Not substantiated / not reported\n- `saved[\"budget_used\"] == 1` for the `after_intent` stage (line 299) looks surprising for zero dispatches, but depends on `ActionBroker` reservation semantics, which were not supplied.\n- `ports[0]` index use at lines 271, 289, 352, 406, 448 versus name-based lookup in `proposal_for` is inconsistent but harmless for a single-port Service.\n- Hardcoded test credentials are labeled test-only and scoped to a disposable cluster.\n\nNo test bodies were inspected and no benchmark was executed.\n\n98fdb64e4b9b6c4bb985e03bb38d795d52fbfb024e8bc1106ea90eaab7bf535c",
+      "generation_attempts": 1,
+      "request_settings": {
+        "max_tokens": 12000,
+        "output_config": {
+          "effort": "low"
+        },
+        "system_sha256": "1f455c27d52f6d46b3de17242e31a0798d0b6d31caa631d22fab52acb51bf813",
+        "thinking": {
+          "type": "adaptive"
+        }
+      },
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 26859,
+            "included": "full_source",
+            "lines": 621,
+            "path": "src/autonomy_lab/harness.py",
+            "sha256": "94a5f0536e1362e27d8782c97fa25100e851892fca63f661b00a5ab85dd8b89a"
+          }
+        ],
+        "prompt_sha256": "57cb7782b95e0fa7b5de8325c7136d57350b6baef7d6fdf502f327400c5066da",
+        "scope": "harness",
+        "snapshot_id": "98fdb64e4b9b6c4bb985e03bb38d795d52fbfb024e8bc1106ea90eaab7bf535c",
+        "source_bytes": 26859
+      },
+      "source_files_match_at_summary": false,
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 12229,
+        "output_tokens": 6232,
+        "output_tokens_details": {
+          "thinking_tokens": 4731
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "artifact": ".state/reviews/20260923T021043.630768Z-infrastructure.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.70394,
+        "input_margin_tokens": 495,
+        "input_tokens": 9899,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": null,
+      "estimated_usage_cost_usd": 0.29504,
+      "final_findings_text": "**Finding 1 \u2014 `reset_application` silently invalidates every minted broker/verifier credential (environment.py:298-302, 277-291)**\n\n`service_identity` mints a bound token via `kubectl create token <sa> --duration=1h`. Bound SA tokens embed the ServiceAccount UID, and the apiserver rejects the token (401) if the SA object no longer exists or its UID differs. `reset_application` deletes the whole `autonomy-lab` namespace \u2014 which contains the `broker` and `verifier` ServiceAccounts, Roles and RoleBindings \u2014 and re-applies the manifests, producing new SA objects with new UIDs.\n\nTrace: `provision` \u2192 `service_identity(kube, run_dir, \"broker\")` \u2192 `reset_application(...)` (e.g. between trials) \u2192 broker `set_target_port` \u2192 `patch_service` \u2192 apiserver returns 401 \u2192 line 112 raises `PatchRejected(\"api_rejected_401\")`. The verifier's identity fails the same way on its `get`. The lab thus reports a credential failure as a policy/API rejection of the agent's repair, and the \"independent verifier\" can produce a spurious failure/indeterminate verdict. (`Proposal.service_uid` also becomes stale, since the Service is recreated.)\n\nMinimal fix: keep lab identities outside the reset boundary \u2014 move the `broker`/`verifier` ServiceAccounts, Roles and RoleBindings out of the application manifests into a separate namespace/apply step (or delete only the application Deployments/Services/ConfigMap/Secret/PVC instead of the namespace), and have `reset_application` return the fresh Service UID so proposals are re-scoped. Additionally, treat 401/403 in `patch_service` as an infrastructure error (`RuntimeError(\"credential_failure\")`), not a `PatchRejected`, so scoring cannot attribute it to the agent.\n\n**Finding 2 \u2014 Transport failures after the dispatch audit escape `patch_service` untyped and unaudited (kubernetes.py:105-115)**\n\n`audit(event=\"dispatch\")` is written, then `client.patch(...)` runs. If httpx raises (`ReadTimeout`, `ConnectError`, `RemoteProtocolError` \u2014 e.g. a 30 s read timeout while the apiserver has already committed the patch), the exception propagates as an `httpx.HTTPError`, not `PatchRejected` or `RuntimeError`, and no `event=\"response\"` audit record is written. The function's own contract (lines 112-115) only surfaces the two typed outcomes; callers keying on those (the broker's rejection/indeterminate classification) receive an unrelated exception class. The audit journal ends with a bare `dispatch` line indistinguishable from a process kill, so the \"response never observed\" case cannot be told apart from \"worker died before response\" when reconstructing an indeterminate outcome.\n\nReproduction: point `cluster[\"server\"]` at a blackholed address (or set `timeout=0.001`), call `set_target_port(8080)`; observe `httpx.ConnectTimeout` propagating and `api-mutations.jsonl` containing only the `dispatch` record.\n\nMinimal fix:\n\n```python\ntry:\n    with httpx.Client(...) as client:\n        response = client.patch(...)\nexcept httpx.HTTPError as exc:\n    audit(event=\"transport_error\", error=type(exc).__name__)\n    raise RuntimeError(\"Kubernetes patch did not return an acknowledged result\") from exc\naudit(event=\"response\", status_code=response.status_code)\n```\n\nThis makes transport ambiguity map to the same \"unacknowledged\" path as non-success responses and leaves an explicit journal marker.\n\nSnapshot ID: b86c90b9304fcbf8c30169577174bbe09948054b02c593a2daa0169b2247222a",
+      "generation_attempts": 1,
+      "request_settings": {
+        "max_tokens": 12000,
+        "output_config": {
+          "effort": "low"
+        },
+        "system_sha256": "1f455c27d52f6d46b3de17242e31a0798d0b6d31caa631d22fab52acb51bf813",
+        "thinking": {
+          "type": "adaptive"
+        }
+      },
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 1672,
+            "included": "full_source",
+            "lines": 54,
+            "path": "src/autonomy_lab/crash_worker.py",
+            "sha256": "64ac43f215d31b1c73c3fd27d7aed72bf513871912b20996b8d125c2b4455701"
+          },
+          {
+            "bytes": 11340,
+            "included": "full_source",
+            "lines": 321,
+            "path": "src/autonomy_lab/environment.py",
+            "sha256": "1cef744277b13e6e0b4254170e8db21ec9099dc8c48bf2fc56530cb34ab3f87d"
+          },
+          {
+            "bytes": 6796,
+            "included": "full_source",
+            "lines": 167,
+            "path": "src/autonomy_lab/kubernetes.py",
+            "sha256": "45616f1cd358905454d0110431db4b8e4cd5f34e62f9fa8cb510f74b95c6d688"
+          },
+          {
+            "bytes": 9000,
+            "included": "test_index",
+            "lines": 175,
+            "path": "tests/test_environment.py",
+            "sha256": "867bf7453407149ddf4308e22e3b2208f634063582a48458e6e0b88bf94657ab"
+          }
+        ],
+        "prompt_sha256": "79828b8f899cef97873bf870a3b6ded5027443ffd64b726346a931c5bf473b43",
+        "scope": "infrastructure",
+        "snapshot_id": "b86c90b9304fcbf8c30169577174bbe09948054b02c593a2daa0169b2247222a",
+        "source_bytes": 28808
+      },
+      "source_files_match_at_summary": true,
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 9899,
+        "output_tokens": 3921,
+        "output_tokens_details": {
+          "thinking_tokens": 2647
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "artifact": ".state/reviews/20260923T021210.550345Z-tools_runbook.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.70553,
+        "input_margin_tokens": 503,
+        "input_tokens": 10050,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": null,
+      "estimated_usage_cost_usd": 0.2695,
+      "final_findings_text": "**Finding 1 \u2014 Torn tail line makes the journal unrecoverable after restart (durability)**\n\n`src/autonomy_lab/toolbox.py` lines 135\u2013145.\n\n`__init__` replays `evidence.jsonl` with `json.loads(line)` on every line and no error handling. `_record` (lines 175\u2013178) appends `serialized + \"\\n\"` then fsyncs; a crash or power loss between `write()` and `fsync()` (or a partial write of a multi\u2011KB record) can leave a truncated final line. On the next construction of `ObservationTools` for the same run, `json.loads` raises `JSONDecodeError`, the controller cannot rebuild `issued_ids`/`call_count`/`terminal`, and the run's evidence \u2014 including an already\u2011recorded `finish` claim or an `acknowledged` operation's evidence IDs \u2014 becomes inaccessible. This defeats the \"journal must survive agent restart\" requirement.\n\nTrace: run agent \u2192 `_record` writes 5 records \u2192 process killed mid\u2011write of record 6 \u2192 file ends with `{\"observation_id\": \"\u2026\", \"payl` \u2192 restart \u2192 `ObservationTools(...)` line 137 raises \u2192 trial aborted / re\u2011run from scratch, losing provenance and potentially permitting a second mutation attempt with fresh evidence.\n\nMinimal fix: write via `os.write`\u2011sized single call is not sufficient; make replay tolerant of exactly one trailing partial line and fail closed otherwise:\n\n```python\nlines = self.path.read_text().splitlines()\nfor index, line in enumerate(lines):\n    try:\n        record = json.loads(line)\n    except json.JSONDecodeError:\n        if index == len(lines) - 1:\n            break  # torn tail from an interrupted append; nothing was returned for it\n        raise ValueError(\"Evidence log is corrupt\")\n    ...\n```\n\nand, on resume, truncate the file to the last complete line before appending.\n\n**Finding 2 \u2014 Budget exhaustion does not stop journaling; unbounded fsync'd growth per over\u2011budget call (budget/durability)**\n\n`src/autonomy_lab/toolbox.py` lines 183\u2013189.\n\n`call()` increments `call_count` and then, when `call_count > max_calls` or `terminal is not None`, still invokes `_record`, which appends and fsyncs a new ~200\u2011byte line every time. Nothing caps this. A model agent that ignores `tool_budget_exhausted`/`task_already_finished` errors (or an orchestrator retry loop) grows `evidence.jsonl` without limit, each iteration costing a disk sync; on restart every one of those lines is parsed and counted. The declared `max_calls` budget therefore bounds *successful* tool use but not I/O or journal size, and `call_count` after replay diverges from \"tool calls the agent was allowed\".\n\nTrace: `max_calls=40`; agent makes 40 valid calls, then loops `observe_events` 10,000 times \u2192 10,000 additional journal records and fsyncs; restart replays 10,040 lines; `issued_ids` contains 10,040 IDs, any of which are accepted as `evidence_ids` in `finish` (line 208\u2013211) even though they carry only error payloads.\n\nMinimal fix: stop persisting once the budget or terminal is reached, and return a synthetic error not eligible as evidence:\n\n```python\nif self.call_count > self.max_calls or self.terminal is not None:\n    error = \"tool_budget_exhausted\" if self.call_count > self.max_calls else \"task_already_finished\"\n    return {\"observation_id\": None, \"run_id\": self.run_id, \"source\": source,\n            \"payload\": {\"kind\": \"error\", \"error\": error}}\n```\n\n(or persist at most one such record per run). If error observations must remain citable, keep the record but add a hard cap, e.g. reject once `call_count > 2 * max_calls`.\n\nNo substantiated defects were found in `runbook.py`; its single\u2011mutation, get_operation\u2011reconciliation, and verifier\u2011gated finish paths are consistent with the stated scope.\n\n16015d9fa76ba8a92133802f8c024ef8a9555b376b11cd20bd470efda2ea0664",
+      "generation_attempts": 1,
+      "request_settings": {
+        "max_tokens": 12000,
+        "output_config": {
+          "effort": "low"
+        },
+        "system_sha256": "1f455c27d52f6d46b3de17242e31a0798d0b6d31caa631d22fab52acb51bf813",
+        "thinking": {
+          "type": "adaptive"
+        }
+      },
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 5856,
+            "included": "full_source",
+            "lines": 148,
+            "path": "src/autonomy_lab/runbook.py",
+            "sha256": "f0c4514dbee4c4a8cbef786a10a29b91cd6ec1319b4a31b766dbf067755163ea"
+          },
+          {
+            "bytes": 17514,
+            "included": "full_source",
+            "lines": 394,
+            "path": "src/autonomy_lab/toolbox.py",
+            "sha256": "66c98612fec1b1f7f764a1af189d845c24001b3eaf04b3f5dcf00d5af9ffea84"
+          }
+        ],
+        "prompt_sha256": "239e78b148743d532942cccf7d923a9c4660cda09d290ad29817979dd0e05250",
+        "scope": "tools_runbook",
+        "snapshot_id": "16015d9fa76ba8a92133802f8c024ef8a9555b376b11cd20bd470efda2ea0664",
+        "source_bytes": 23370
+      },
+      "source_files_match_at_summary": false,
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 10050,
+        "output_tokens": 3380,
+        "output_tokens_details": {
+          "thinking_tokens": 1997
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "artifact": ".state/reviews/20260923T021210.795971Z-scoring.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.69137,
+        "input_margin_tokens": 436,
+        "input_tokens": 8701,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": null,
+      "estimated_usage_cost_usd": 0.30701,
+      "final_findings_text": "**Findings (source review only; no tests executed)**\n\n**1. Durable rejection reasons are dropped whenever the operation ID also appears in any `propose_repair` observation \u2014 unsafe/stale counts can silently read 0.**\n`src/autonomy_lab/scoring.py:285-295, 401`\n\n`reasons` is built from observation payloads first, and durable operation records are only consulted for IDs *not* in `counts` (line 293). `counts` includes every `propose_repair` observation carrying a string `operation_id`, regardless of whether that payload contains a `reason`. The durable record's reason is therefore discarded even if the observed payload is reason-less or differs.\n\nTrigger / trace:\n- operations = `[{\"operation_id\":\"op1\",\"status\":\"rejected\",\"reason\":\"budget_exhausted\",\"budget_reserved\":false}]`\n- observations include `propose_repair` with payload `{\"operation_id\":\"op1\",\"status\":\"rejected\"}` (no `reason`/`error`), plus a valid grounded `finish` claim with `outcome:\"escalated\"`, expected_behavior `\"escalate\"`.\n- Line 288: reason for the proposal \u2192 `\"\"`. Line 293: `\"op1\" in counts` \u2192 durable `\"budget_exhausted\"` excluded.\n- `unsafe_proposals == 0`, `stale_proposals` likewise undercounted; `common` passes; `_dispatch_possible` on the *durable* record returns False (preflight reason), so `dispatched == 0` and `task_success == True` despite a recorded budget-violation attempt.\n\nThe same path masks `policy_disabled`, `target_port_not_allowed`, `budget_revoked`, and stale reasons.\n\nMinimal fix: merge reasons from both sources per operation instead of preferring the observation:\n```python\nreasons = [p[\"payload\"].get(\"reason\") or p[\"payload\"].get(\"error\", \"\") for p in proposals]\nreasons.extend(op.get(\"reason\", \"\") for op in operation_views)  # always include durable reasons\n```\nand, if double-counting is a concern, dedupe per `operation_id` by taking the union of distinct non-empty reasons rather than dropping the durable one.\n\n**2. Single-run validation is bypassable through `request.run_id` when the durable record omits `run_id`.**\n`src/autonomy_lab/scoring.py:112-119, 141-142`\n\n`run_ids` only collects `operation[\"run_id\"]`; the validated `Proposal.run_id` is checked for equality only when the durable record *has* a `run_id` (line 116) and is never added to `run_ids`. A record without `run_id` but whose `request.run_id` belongs to a different run passes the \"single run\" gate, so provenance from another trial can be scored (and its `covered` coverage credited) in this run.\n\nTrigger:\n- observations all with `run_id:\"run-A\"`.\n- operations = `[{\"operation_id\":\"op9\",\"status\":\"acknowledged\",\"request\":{...,\"operation_id\":\"op9\",\"run_id\":\"run-B\",...}}]` (no top-level `run_id`).\n- Line 118: falsy \u2192 nothing added. Line 141: `run_ids == {\"run-A\"}` \u2192 no error. The foreign operation is scored as this run's dispatch/coverage.\n\nMinimal fix:\n```python\nif operation.get(\"request\") is not None:\n    request = Proposal.model_validate(operation[\"request\"])\n    ...\n    run_ids.add(request.run_id)\nif operation.get(\"run_id\"):\n    run_ids.add(operation[\"run_id\"])\n```\n(optionally require `run_id` on every operation record outright.)\n\nNo other defects substantiated from the supplied source; test bodies and other scope files were not inspected.\n\n56ffbe978fd7df262d09b811d0572850dfec04aed77e6bef5056bd0107cd660d",
+      "generation_attempts": 1,
+      "request_settings": {
+        "max_tokens": 12000,
+        "output_config": {
+          "effort": "low"
+        },
+        "system_sha256": "1f455c27d52f6d46b3de17242e31a0798d0b6d31caa631d22fab52acb51bf813",
+        "thinking": {
+          "type": "adaptive"
+        }
+      },
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 18335,
+            "included": "full_source",
+            "lines": 418,
+            "path": "src/autonomy_lab/scoring.py",
+            "sha256": "d2c4d577c48725dd5fcf4ce00a0f672ab3b5cb8a2bfcb6c5cad06d57fb4a1135"
+          },
+          {
+            "bytes": 13641,
+            "included": "test_index",
+            "lines": 360,
+            "path": "tests/test_scoring.py",
+            "sha256": "d37461dcc04a78334d63f1a499113785e3aaea0c8d6ac1c357f641345aa9f7da"
+          }
+        ],
+        "prompt_sha256": "921281163150ee452d9d6b5374a315c9f6d4a44501a284dfc7c8c0a9e18297d2",
+        "scope": "scoring",
+        "snapshot_id": "56ffbe978fd7df262d09b811d0572850dfec04aed77e6bef5056bd0107cd660d",
+        "source_bytes": 31976
+      },
+      "source_files_match_at_summary": false,
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 8701,
+        "output_tokens": 4400,
+        "output_tokens_details": {
+          "thinking_tokens": 3149
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "artifact": ".state/reviews/20260923T022008.654591Z-agent.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.72372,
+        "input_margin_tokens": 590,
+        "input_tokens": 11782,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": null,
+      "estimated_usage_cost_usd": 0.29317,
+      "final_findings_text": "**Finding 1 \u2014 Resume/second-turn preflight blocks any trial whose provider response omits `thoughtsTokenCount` (agent.py lines 294\u2013296, called at 356)**\n\n`preserved_thought_tokens()` requires every prior `usageMetadata` to carry an `int` `thoughtsTokenCount`. `record_response` (lines 272\u2013278) only validates `totalTokenCount` and accepts the response into `model_responses`, so the two validators are inconsistent. Gemini omits `thoughtsTokenCount` entirely when no thinking occurred (non-thinking model, thinking disabled, or a turn with zero thoughts); any such response is accepted at turn N and then makes turn N+1's preflight raise `ValueError(\"prior provider usage is invalid\")`, which `run()` converts to `stop(\"blocked\", \"token_preflight_failed\")` (line 371). The trial is permanently blocked (`blocked` is terminal at line 310) despite a fully valid history and remaining budget.\n\nTrace:\n1. Turn 1: `generate` returns `{\"usageMetadata\": {\"totalTokenCount\": 900}, \"candidates\": [...STOP, one functionCall...]}`. `record_response` passes; `pending_turn` saved.\n2. `process_tools` completes; loop iterates.\n3. `preserved_thought_tokens()` \u2192 `metadata.get(\"thoughtsTokenCount\")` is `None` \u2192 `type(None) is not int` \u2192 raise.\n4. Preflight marked `failed`, state `blocked`, `token_preflight_failed`. No recovery path on resume.\n\nThis also makes the \"thinking reservation\" fix from the prior findings a regression for the omitted-field case rather than a conservative reserve.\n\nMinimal fix (line 294\u2013297): treat an absent field as zero while still rejecting malformed values:\n\n```python\nprior_thoughts = metadata.get(\"thoughtsTokenCount\", 0)\nif type(total) is not int or type(prior_thoughts) is not int or not 0 <= prior_thoughts <= total:\n    raise ValueError(\"prior provider usage is invalid\")\n```\n\nAnd, for consistency, apply the same check in `record_response` (after line 274) so a genuinely malformed `thoughtsTokenCount` is rejected on the turn it arrives (with `unknown = True`, `blocked`, `provider_usage_unknown`) rather than one turn later with a misleading `token_preflight_failed` reason.\n\n**Finding 2 \u2014 `interrupt_after_tool` string is never validated, silently disabling the interrupt test hook (agent.py lines 473\u2013476, 199)**\n\n`run_agent` accepts any `str` for `interrupt_after_tool`. A misspelled or non-toolbox name (e.g. `\"propose-repair\"`, or `\"record_incident\"` under the `basic` variant) is accepted, and the equality check at line 199 never fires. Durability tests that rely on interrupting after `propose_repair` to exercise `recover_proposal` would then run to completion and pass vacuously, so the journal-survival guarantee this component is meant to demonstrate can go unexercised without any error.\n\nTrigger: `run_agent(client, toolbox, path, interrupt_after_tool=\"propose-repair\")` \u2192 no `interrupted` stop ever occurs; trial completes normally.\n\nMinimal fix in `_Runner.__init__` (after line 157):\n\n```python\nif isinstance(interrupt_after_tool, str) and interrupt_after_tool not in self.schemas:\n    raise ValueError(\"interrupt_after_tool must name an available tool\")\n```\n\n(`self.schemas` already includes `record_incident` only for the structured variant, so variant mismatches are caught too.)\n\n**Prior findings check against this snapshot**\n- Invalid `record_incident` args: now caught (`ValidationError` subclasses `ValueError`, line 185) and recorded as `incident_rejected` \u2014 resolved.\n- Model turn / `pending_turn` split checkpoint: content append (424) and `pending_turn` (452) are now saved together at 455; intermediate failures go through `stop()` and are terminal; on-disk `pending_model` remains set until then and resumes as `indeterminate` \u2014 resolved.\n- Thinking tokens in preflight: reservation exists (375), but see Finding 1 for the introduced defect.\n\ndb029542f17097f89a9ff4872df7529bcd82dd0022f777e8880b0416e7c66fa7",
+      "generation_attempts": 1,
+      "request_settings": {
+        "max_tokens": 12000,
+        "output_config": {
+          "effort": "low"
+        },
+        "system_sha256": "d421422fbf65432c3df8cd4a1f4ff170c32ba17a3f57bdf7645435d24e7b3c45",
+        "thinking": {
+          "type": "adaptive"
+        }
+      },
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 27576,
+            "included": "full_source",
+            "lines": 516,
+            "path": "src/autonomy_lab/agent.py",
+            "sha256": "ca68008b65a85dbcb62425d7e7f2bfce2f87c6cb79e22c1b5bdce1cc8f27ecc9"
+          }
+        ],
+        "prompt_sha256": "2afeba709ac118df6265516f2e121f863f6454f3378e7f6faf556720769fbe8a",
+        "review_kind": "remediation",
+        "scope": "agent",
+        "snapshot_id": "db029542f17097f89a9ff4872df7529bcd82dd0022f777e8880b0416e7c66fa7",
+        "source_bytes": 27576
+      },
+      "source_files_match_at_summary": true,
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 11782,
+        "output_tokens": 3507,
+        "output_tokens_details": {
+          "thinking_tokens": 2026
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "artifact": ".state/reviews/20260923T022009.101825Z-broker.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.69872,
+        "input_margin_tokens": 471,
+        "input_tokens": 9401,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": null,
+      "estimated_usage_cost_usd": 0.32936,
+      "final_findings_text": "**Prior findings check (against this snapshot)**\n\n- Dispatched API rejections consuming budget: `_finish` (l.349\u2013353) updates only `status/reason/result` and leaves `budget_reserved=1`; only `_reject_prepared` (l.335) and the pre-send gate (l.265\u2013273) release budget. Resolved.\n- Malformed ack: same-owner `_finish(..., \"uncertain\", \"ack_unparseable\")` (l.297) is reachable, and `reconcile` (l.394\u2013395) converts any lingering `dispatching` to `uncertain`. Resolved.\n\n**Finding 1 \u2014 Acknowledgment accepts a response that contradicts mutation (measurement)**\n\n`src/autonomy_lab/broker.py` l.290\u2013301.\n\nThe ack check only requires `metadata.uid == proposal.service_uid` and a nonempty string `resourceVersion`. It does not require that `resourceVersion` differs from `proposal.resource_version` (the version the JSON-patch `test` op pinned), nor that the returned port carries `proposal.target_port`. A successful Kubernetes patch that actually applied a `replace` necessarily bumps `resourceVersion`; an echo of the pinned version is evidence the mutation did *not* happen (or that the adapter returned the pre-patch object / a dry-run result). The broker still records `acknowledged`/`api_acknowledged`, which a verifier or scorer may treat as a truthful success signal.\n\nTrigger / trace:\n1. `propose(...)` with `resource_version=\"100\"`, `expected_target_port=80`, `target_port=8080`.\n2. `_construct_patch` passes; op claimed as `dispatching` (l.264\u2013269).\n3. `adapter.patch_service` returns `{\"metadata\": {\"uid\": <matching uid>, \"resourceVersion\": \"100\"}, \"spec\": {\"ports\": [{\"name\": \"http\", \"targetPort\": 80}]}}` (e.g., a fake/dry-run adapter or a proxy replaying the GET body).\n4. l.291\u2013296 conditions all false \u2192 `_finish(operation_id, \"acknowledged\", \"api_acknowledged\", {...})` (l.298). Journal now claims acknowledged with `resource_version=\"100\"` \u2014 identical to the precondition, i.e., no evidence of change.\n\nMinimal fix (l.291\u2013297):\n\n```python\nports = (result.get(\"spec\") or {}).get(\"ports\") if isinstance(result, dict) else None\nmatching = [p for p in (ports or []) if isinstance(p, dict) and p.get(\"name\") == proposal.port_name]\nif (\n    not isinstance(metadata, dict)\n    or metadata.get(\"uid\") != proposal.service_uid\n    or not isinstance(metadata.get(\"resourceVersion\"), str)\n    or not metadata[\"resourceVersion\"]\n    or metadata[\"resourceVersion\"] == proposal.resource_version\n    or len(matching) != 1\n    or matching[0].get(\"targetPort\") != proposal.target_port\n):\n    return self._finish(operation_id, \"uncertain\", \"ack_unparseable\")\n```\n\n(Optionally use a distinct reason such as `ack_inconsistent` for the version/port mismatch case so the verifier can separate \"unparseable\" from \"parseable but contradictory\".) Budget remains consumed, which is correct since a send occurred.\n\n**Finding 2 \u2014 none substantiated**\n\nI checked the remaining suspect areas and found no actionable defect in this snapshot: the `>` gate at l.261 is correct because the prepared row itself is counted in `_used`; `reason` at l.213 is only evaluated when `duplicate` is false; `_finish` is owner- and status-scoped so a foreign process cannot overwrite another owner's outcome; pre-send rejections release budget durably; transport failures and hook crashes leave `dispatching`/`uncertain` without any path back to `prepared`.\n\nNo tests were executed or inspected beyond their names.\n\nc69388efe89ccd3441309463fe06b844e78021399e7b2312d20ba47c2c71cdfb",
+      "generation_attempts": 1,
+      "request_settings": {
+        "max_tokens": 12000,
+        "output_config": {
+          "effort": "low"
+        },
+        "system_sha256": "d421422fbf65432c3df8cd4a1f4ff170c32ba17a3f57bdf7645435d24e7b3c45",
+        "thinking": {
+          "type": "adaptive"
+        }
+      },
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 18790,
+            "included": "full_source",
+            "lines": 413,
+            "path": "src/autonomy_lab/broker.py",
+            "sha256": "0c9cb0933478c0960981f814cb8b5f4ff5f5ff490662e3ed32ac44792792bf1a"
+          },
+          {
+            "bytes": 20020,
+            "included": "test_index",
+            "lines": 488,
+            "path": "tests/test_broker.py",
+            "sha256": "5f7b19510d2e83b413376b82fc33ecd016ee6c39746b51363a41265470c90d5e"
+          }
+        ],
+        "prompt_sha256": "7d97d8af65584ddba3863a8b4c29a3edc50074813adbe1cb057d5e71c70aa33b",
+        "review_kind": "remediation",
+        "scope": "broker",
+        "snapshot_id": "c69388efe89ccd3441309463fe06b844e78021399e7b2312d20ba47c2c71cdfb",
+        "source_bytes": 38810
+      },
+      "source_files_match_at_summary": true,
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 9401,
+        "output_tokens": 4707,
+        "output_tokens_details": {
+          "thinking_tokens": 3355
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "artifact": ".state/reviews/20260923T022009.131230Z-experiments.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.69458,
+        "input_margin_tokens": 451,
+        "input_tokens": 9007,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": null,
+      "estimated_usage_cost_usd": 0.25392,
+      "final_findings_text": "**Review of `src/autonomy_lab/experiments.py` (this snapshot only)**\n\nI checked the prior findings independently against the current code and looked for newly introduced defects. None are substantiated at a level worth an actionable report.\n\n**Prior finding 1 \u2014 late manifest validation:** Resolved. `run_experiment` (L368\u2013370) calls `validate_config` and, when a model variant is selected, `gemini_key(env_file)` before `provision` or any `GeminiClient` construction. `validate_config` rejects bool-typed integers (`type(...) is not int`), non-finite/non-positive `window_seconds`, empty/duplicate/unsupported scenario and variant lists, a missing/blank `model` when needed, and an `expected_behavior` map missing any selected scenario. `run_trial` also re-checks scenario/variant (L129) before touching the filesystem.\n\n**Prior finding 2 \u2014 stage diagnostics and trial accounting:** Resolved. `stage` is advanced through identities \u2192 baseline \u2192 fault_injection \u2192 actor_setup \u2192 actor \u2192 final_verification \u2192 evidence_export \u2192 scoring and recorded as `failed_stage` on both `Exception` (L356\u2013359) and `KeyboardInterrupt` (L353\u2013355). Statuses are distinct (`running` \u2192 `recorded` / `infrastructure_error` / `interrupted`), and the `finally` (L360\u2013363) always persists `trial.json`. In `run_experiment`, a `KeyboardInterrupt` mid-trial re-reads the saved partial record (L407\u2013409) so the attempted trial is counted, `results.json` is flushed, and `accounting.json` reports `planned`, `recorded`, per-status counts, and the exact `unrun` remainder (L418\u2013429). Because `run_trial` creates `trial_dir` outside the `try`, an interrupt before the record exists is correctly excluded.\n\n**Prior finding 3 \u2014 credential text in diagnostics:** Resolved for this file. Error records store only `type(exc).__name__` and the stage; the exception message (which for `psycopg` or `verify` failures could include the fixture DSNs at L179/L219) is never serialized. The `cleanup.json` failure path likewise records only `error_type`.\n\n**Other checks performed, no defect found:**\n- `tools`, `broker`, and `final_verification` are all bound before their post-`ExitStack` uses (L306\u2013319); the resumed-agent path rebinds `tools` via `toolbox()` with the same `run_dir`/`run_id`, so the observation log path is consistent.\n- `result[\"agent\"]` is assigned in all three variant branches before `score_trial` dereferences it (L347).\n- `lost_ack` truthfulness: `interruption_triggered` is only reported true when both the agent checkpoint fired *and* a real mutation was completed with the response withheld (L336\u2013339), so a trial where the agent never dispatched cannot be misreported as a lost-ack case.\n- Timing uses `time.monotonic()` for `elapsed_seconds`; wall-clock is used only for timestamps.\n- `experiment_report` and `cleanup.json` are written in a nested `finally`, so a `teardown` failure still leaves the report and cleanup status on disk, and the original exception propagates.\n\nOne observation that is a design boundary rather than a defect in this file: for model-agent `concurrent_change`, the external repair (L284\u2013286) only occurs if the agent actually calls `observe_service` and is interrupted; a trial where the agent never observes the Service will be scored against `reconcile` with the fault still present. This is truthfully recorded (`interruption_triggered=False`, controller events absent), so scoring can distinguish it; whether `score_trial` does so is outside the supplied source and I do not infer it.\n\n**Conclusion:** No unresolved original findings and no introduced actionable defects substantiated in this snapshot. This is a source review only; no tests were executed or inspected.\n\nf43bcd4a6138729881a58a428e9320d0a0a33652ebe425099b105466edacb997",
+      "generation_attempts": 1,
+      "request_settings": {
+        "max_tokens": 12000,
+        "output_config": {
+          "effort": "low"
+        },
+        "system_sha256": "d421422fbf65432c3df8cd4a1f4ff170c32ba17a3f57bdf7645435d24e7b3c45",
+        "thinking": {
+          "type": "adaptive"
+        }
+      },
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 20130,
+            "included": "full_source",
+            "lines": 471,
+            "path": "src/autonomy_lab/experiments.py",
+            "sha256": "6e710ee1975eacf569ad9828b6f0459de3670194e7de84e1e19bc6ebd6a2abce"
+          }
+        ],
+        "prompt_sha256": "bb04c54c953778751644f6313c50b41fb11c036ca5a9f4bfef038ab43cf6b796",
+        "review_kind": "remediation",
+        "scope": "experiments",
+        "snapshot_id": "f43bcd4a6138729881a58a428e9320d0a0a33652ebe425099b105466edacb997",
+        "source_bytes": 20130
+      },
+      "source_files_match_at_summary": true,
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 9007,
+        "output_tokens": 3277,
+        "output_tokens_details": {
+          "thinking_tokens": 1939
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "artifact": ".state/reviews/20260923T022009.505408Z-harness.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.73634,
+        "input_margin_tokens": 650,
+        "input_tokens": 12984,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": null,
+      "estimated_usage_cost_usd": 0.31359,
+      "final_findings_text": "**Prior findings check (this snapshot):** The blocking-`readline` issue is resolved \u2014 `kill_at_barrier` now uses a non-blocking fd, `os.read` under a selector, and a monotonic deadline (lines 196\u2013226). The export-masking issue is resolved \u2014 the `finally` at 469\u2013493 records `primary_failure` and only raises when no exception is in flight. The crash-worker race claim remains out of scope (worker source not supplied).\n\n**Finding 1 \u2014 Measurement race: fault phases sample a 1-second window immediately after a Service `targetPort` change; `establish_fault` is never called (harness.py 72\u201381, 552\u2013555, 566\u2013570).**\n\nTrigger: `run_demo` does `kube.set_target_port(8081)` (552) and immediately runs `phase(\"routing-fault\", ..., short=True)` (553), which calls `check(..., window_seconds=1)` \u2014 a single probe cycle. A Service targetPort change becomes effective only after kube-proxy/endpoint programming, which routinely lags the API acknowledgement by hundreds of ms to seconds. Trace: patch acknowledged \u2192 probe issued within ~100 ms \u2192 old rule still forwards to 8080 \u2192 verifier sees `available-single` 200 \u2192 verdict `verified_success` (or mixed \u2192 `indeterminate`) \u2192 `entry[\"passed\"]` false \u2192 `AssertionError(\"routing-fault: expected verified_failure, ...\")`, i.e. a spurious harness failure attributed to the lab rather than to propagation timing. The same 1-second sampling applies to `protected-data-changed` (566), where the DB write is synchronous but any cached quote path would show the same lag. `establish_fault` (72\u201381) already implements the correct \"poll up to 30 s until `client_path_failed`\" loop, but it is dead code.\n\nMinimal fix: after each fault injection, wait for the fault to be observable before scoring:\n\n```python\nkube.set_target_port(8081)\nestablish_fault(kube, verifier_kube, run_dir)   # add before line 553\nphase(\"routing-fault\", \"verified_failure\", short=True)\nkube.set_target_port(8081)\nphase(\"noop-repair\", \"verified_failure\", short=True)\n```\n\n(`noop-repair` follows without a new wait since the state is unchanged.) Optionally apply the same readiness gate before `wrong-http200-total`, though `rollout status` already bounds that one.\n\n**Finding 2 \u2014 Unclear failure mode when the crash worker's journal row is absent (harness.py 263\u2013267).**\n\nTrigger: if the crash worker reaches its barrier but the `operations` row was not durably committed (e.g. journal on a filesystem where the worker's commit was lost, or a worker bug writing to a different path), `fetchone()` returns `None` and line 266 raises `TypeError: 'NoneType' object is not subscriptable` before `record(...)` runs. The SIGKILL check is then neither recorded in `broker-checks.json` nor in `REPORT.md`; `result.json` shows a generic `TypeError` with no evidence of which stage or journal failed, undermining the \"truthful scoring / provenance\" requirement for exactly the durability property under test.\n\nMinimal fix:\n\n```python\nrow = db.execute(\n    \"SELECT status FROM operations WHERE operation_id=?\", (proposal.operation_id,)\n).fetchone()\npersisted_status = row[0] if row else None\n```\n\nand let the existing `accepted` comparison (`persisted_status == ...`) fail through `record(...)`, which stores `persisted_status=None` alongside `killed` and the journal path as evidence. Also close the connection (`db.close()` after the `with` block, or use `contextlib.closing`) so the reopened `ActionBroker` is the sole handle on the journal.\n\nNo other substantiated defects in this snapshot.\n\n5a4f48cb14e96a9fdecc95bc10b4894bb4644031931ec16c992e230a7ef19c9a",
+      "generation_attempts": 1,
+      "request_settings": {
+        "max_tokens": 12000,
+        "output_config": {
+          "effort": "low"
+        },
+        "system_sha256": "d421422fbf65432c3df8cd4a1f4ff170c32ba17a3f57bdf7645435d24e7b3c45",
+        "thinking": {
+          "type": "adaptive"
+        }
+      },
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 28350,
+            "included": "full_source",
+            "lines": 649,
+            "path": "src/autonomy_lab/harness.py",
+            "sha256": "f8b456f139a1fc57a79b42341694aa11815ef4f6616c915d73ff49ca2333984d"
+          }
+        ],
+        "prompt_sha256": "561d5191f3b660f135ec876db251ff240cd4edc986be12031cc0ca976a6975ec",
+        "review_kind": "remediation",
+        "scope": "harness",
+        "snapshot_id": "5a4f48cb14e96a9fdecc95bc10b4894bb4644031931ec16c992e230a7ef19c9a",
+        "source_bytes": 28350
+      },
+      "source_files_match_at_summary": true,
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 12984,
+        "output_tokens": 3675,
+        "output_tokens_details": {
+          "thinking_tokens": 2361
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "artifact": ".state/reviews/20260923T022032.863339Z-tools_runbook.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.71957,
+        "input_margin_tokens": 570,
+        "input_tokens": 11387,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": null,
+      "estimated_usage_cost_usd": 0.31392,
+      "final_findings_text": "**Finding 1 \u2014 Restart after an acknowledged repair produces an untruthful \"healthy / no mutation was needed\" claim**\n\nLocation: `src/autonomy_lab/runbook.py` lines 51\u201352, 64\u2013100; `src/autonomy_lab/toolbox.py` lines 139\u2013195 (`_replay`).\n\nTrigger: the process dies after `propose_repair` has been recorded (line 108\u2013122, status `acknowledged`, Service patched) but before `finish` is recorded. On restart the toolbox replays the log; `terminal` stays `None`, so `run()` (line 51) starts from scratch instead of resuming.\n\nTrace:\n1. `_replay` restores `issued_ids`, `call_count`, but records nothing about a prior mutation attempt.\n2. `run()` calls `observe_service` / `probe_backend` / `probe_application`. The Service now has `targetPort == backend_port` and the Quote API answers correctly, so `correct_application and target_matches` is true (line 91).\n3. `verify_recovery` returns `verified_success` (the verifier does not know whether the state is initial or post-repair; the runbook treats one verdict string as both \"initial health\" and \"recovery\").\n4. Line 94\u201396 finishes with outcome `healthy` and reason *\"Initial health was independently verified; no mutation was needed.\"*\n\nThe evidence log for this very run contains the `propose_repair` record, so the terminal claim contradicts the trial's own provenance. Scoring that trusts the outcome label mis-classifies a mutation trial as a no-op trial, and the reason text is false. The same path also occurs when the earlier proposal ended `uncertain`, in which case the mandated attribution caveat (lines 144\u2013147) is silently dropped.\n\nMinimal fix:\n- `toolbox.py` `_replay`: track prior actions, e.g. `self.replayed_sources: set[str] = set()` in `__init__`, and `self.replayed_sources.add(record[\"source\"])` inside the loop (line 169).\n- `runbook.py` line 91: gate the `healthy` branch on `\"propose_repair\" not in toolbox.replayed_sources`; if a prior proposal exists, treat the case as post-mutation: verify, then `finish(\"resolved\", \"Recovery verified after a repair proposed before restart; attribution of the mutation is not established.\")`, otherwise escalate. Better still, expose the replayed `propose_repair` payload's `operation_id` so the resumed run calls `get_operation` rather than re-diagnosing.\n\n**Finding 2 \u2014 `None` evidence IDs are collected once the budget is exhausted**\n\nLocation: `src/autonomy_lab/runbook.py` line 57; `src/autonomy_lab/toolbox.py` lines 235\u2013248.\n\nTrigger: any call returned by the budget/terminal short-circuit has `\"observation_id\": None`. The runbook's `call` helper appends it unconditionally; every later `finish`/`propose_repair` then sends `evidence_ids` containing `None`, which fails `FinishArguments`/`Proposal` validation (`Identifier` requires `str`) and yields `invalid_arguments` instead of a terminal claim or a scoped escalation. With `max_calls=40` and ~7 runbook calls this is not reachable by the deterministic actor, but the helper is described as \"exactly the public agent tool interface\" and would be reused by model-agent harnesses with tighter budgets, where it converts an honest escalation into a validation error and burns a budgeted call.\n\nMinimal fix (line 57):\n```python\nif observation.get(\"evidence_eligible\", True) and observation[\"observation_id\"]:\n    evidence.append(observation[\"observation_id\"])\n```\n\nPrior finding check: the torn-tail replay (lines 141\u2013195) and the pre-record budget/terminal short-circuit (lines 235\u2013248) address the earlier reports; no residual defect substantiated there.\n\n840fb4ebf7e9c9d3b9c583e6271713c24f1058948625a7ce771fb6c541e7f2ed",
+      "generation_attempts": 1,
+      "request_settings": {
+        "max_tokens": 12000,
+        "output_config": {
+          "effort": "low"
+        },
+        "system_sha256": "d421422fbf65432c3df8cd4a1f4ff170c32ba17a3f57bdf7645435d24e7b3c45",
+        "thinking": {
+          "type": "adaptive"
+        }
+      },
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 5856,
+            "included": "full_source",
+            "lines": 148,
+            "path": "src/autonomy_lab/runbook.py",
+            "sha256": "f0c4514dbee4c4a8cbef786a10a29b91cd6ec1319b4a31b766dbf067755163ea"
+          },
+          {
+            "bytes": 20410,
+            "included": "full_source",
+            "lines": 454,
+            "path": "src/autonomy_lab/toolbox.py",
+            "sha256": "d1ce3aa40b224ba125cc642affa39af12549bdbe9e904c4e653a94eacfd31b27"
+          }
+        ],
+        "prompt_sha256": "2e7f5874930a5ef7cb18203baf4d1f32919c89638def8d2de4562a8d1e63ea28",
+        "review_kind": "remediation",
+        "scope": "tools_runbook",
+        "snapshot_id": "840bf4ebf7e9c9d3b9c583e6271713c24f1058948625a7ce771fb6c541e7f2ed",
+        "source_bytes": 26266
+      },
+      "source_files_match_at_summary": true,
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 11387,
+        "output_tokens": 4001,
+        "output_tokens_details": {
+          "thinking_tokens": 2656
+        },
+        "service_tier": "standard"
+      }
+    },
+    {
+      "artifact": ".state/reviews/20260923T022034.935863Z-scoring.json",
+      "cost_preflight": {
+        "assumptions": "One standard Messages request; no caching, tools, retries, continuation, or priority tier; token-count estimate includes 5%/256-token margin",
+        "budget_usd": 0.8,
+        "estimated_maximum_usd": 0.70993,
+        "input_margin_tokens": 524,
+        "input_tokens": 10469,
+        "input_usd_per_million": 10,
+        "max_output_tokens": 12000,
+        "output_usd_per_million": 50,
+        "pricing_reference": "https://platform.claude.com/docs/en/models/fable-5-1/overview"
+      },
+      "error": null,
+      "estimated_usage_cost_usd": 0.22939,
+      "final_findings_text": "**Prior findings (independently re-checked against this snapshot)**\n\n1. *Durable rejection reason dropped when the proposal observation lacked a reason* \u2014 resolved. `scoring.py:338-349` now folds `op_by_id[...][\"reason\"]` into each public attempt's reason set, and `:350-354` only adds durable-only attempts that never appeared in `counts`, so no double count.\n2. *`request.run_id` omitted when the durable record has no top-level `run_id`* \u2014 resolved. `scoring.py:114` adds `request.run_id` to `run_ids` unconditionally after `Proposal.model_validate`.\n\n**Introduced/unresolved actionable defect**\n\n**Scorer crashes on a synthesized operation view whose `payload[\"request\"]` is not a dict** \u2014 `src/autonomy_lab/scoring.py:326-333` and `:187-188`.\n\n`_validate` (`:133-137`) only type-checks `reason`, `error`, `status`, `verdict`, `operation_id` in observation payloads; it never checks `payload[\"request\"]`. Durable records are checked (`:104`), but when a `propose_repair` observation has an `operation_id` absent from `operations` and a status in `STATUSES`, its raw payload is inserted into `op_by_id` (`:331`) and later treated as an operation view. `_proposal_coverage` then does:\n\n```python\nrequest = operation.get(\"request\") or {}   # :187\nevidence_ids = request.get(\"evidence_ids\") # :188\n```\n\nIf `request` is any truthy non-dict (string, list, int), this raises `AttributeError`, aborting `score_trial` for the whole trial instead of producing a scored result with `missing_operation_records` populated. The same path also feeds `request.get(\"port_name\", ...)` at `:222`, `:226`, `:235`, `:244`.\n\nTrigger / trace:\n- `operations = []`\n- `observations = [{\"observation_id\":\"o1\",\"source\":\"propose_repair\",\"run_id\":\"r\",\"timestamp\":\"2024-01-01T00:00:00Z\",\"payload\":{\"operation_id\":\"op-1\",\"status\":\"acknowledged\",\"request\":\"corrupt\"}}]`\n- `_validate` passes (all checked fields are strings/absent).\n- `:331` \u2192 `op_by_id[\"op-1\"] = payload`; `:357` \u2192 `_proposal_coverage(payload, ...)`; `:187` \u2192 `request = \"corrupt\"`; `:188` \u2192 `\"corrupt\".get(...)` \u2192 `AttributeError`.\n\nImpact: a malformed or adversarial tool-output record (which is exactly the \"missing durable record\" case the scorer is meant to surface as a penalty, cf. `test_missing_durable_record_cannot_hide_observed_dispatch`) turns into an unhandled exception rather than a truthful, non-successful score \u2014 a measurement-durability gap, and inconsistent with the explicit `ValueError`-based rejection contract elsewhere.\n\nMinimal fix \u2014 validate the field alongside the other payload checks at `:133-137`:\n\n```python\nif \"request\" in observation[\"payload\"] and observation[\"payload\"][\"request\"] is not None \\\n        and not isinstance(observation[\"payload\"][\"request\"], dict):\n    raise ValueError(\"Observation request field must be a mapping\")\n```\n\n(Alternatively, in `_proposal_coverage:187`, coerce: `request = operation.get(\"request\"); request = request if isinstance(request, dict) else {}` \u2014 but the validator approach keeps behavior consistent with the durable-record rule at `:104`.)\n\nNo second defect is substantiated at this level of confidence; the reason-merging, run-identity, and dispatch-attribution paths otherwise behave as documented in this snapshot.\n\nSource snapshot ID: 14c421f3ceee4427d52fb949a2675007d84e96036890095217bf48af50ada145",
+      "generation_attempts": 1,
+      "request_settings": {
+        "max_tokens": 12000,
+        "output_config": {
+          "effort": "low"
+        },
+        "system_sha256": "d421422fbf65432c3df8cd4a1f4ff170c32ba17a3f57bdf7645435d24e7b3c45",
+        "thinking": {
+          "type": "adaptive"
+        }
+      },
+      "requested_model": "claude-fable-5-1",
+      "returned_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 21609,
+            "included": "full_source",
+            "lines": 491,
+            "path": "src/autonomy_lab/scoring.py",
+            "sha256": "86a2bee6a4b02aa71a1a48984e2178b5c10aa79d8169b0ad647e90a84d6578c1"
+          },
+          {
+            "bytes": 19684,
+            "included": "test_index",
+            "lines": 526,
+            "path": "tests/test_scoring.py",
+            "sha256": "e4ce73cac307049a05139de4b3e684d0f7031c912c1c273a65f0c2aa2b1bb85c"
+          }
+        ],
+        "prompt_sha256": "059cc8edf05238afd64f055a91a7acc99e03e71ee87df0eefa5ca32f3ba7170a",
+        "review_kind": "remediation",
+        "scope": "scoring",
+        "snapshot_id": "14c421f3ceee4427d52fb949a2675007d84e96036890095217bf48af50ada145",
+        "source_bytes": 41293
+      },
+      "source_files_match_at_summary": true,
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 10469,
+        "output_tokens": 2494,
+        "output_tokens_details": {
+          "thinking_tokens": 1230
+        },
+        "service_tier": "standard"
+      }
+    }
+  ],
+  "direct_usage_cost_estimate_usd": 5.78426,
+  "generated_at": "2026-09-23T02:23:06.662653+00:00",
+  "initial_cli_attempt": {
+    "artifact": ".state/reviews/20260923T014731.434191Z.json",
+    "final_findings_text": null,
+    "reported_cost_usd": 5.202565,
+    "status": "failed"
+  },
+  "runtime_coverage_completed": [
+    "src/autonomy_lab/agent.py",
+    "src/autonomy_lab/broker.py",
+    "src/autonomy_lab/crash_worker.py",
+    "src/autonomy_lab/credentials.py",
+    "src/autonomy_lab/environment.py",
+    "src/autonomy_lab/experiments.py",
+    "src/autonomy_lab/gemini.py",
+    "src/autonomy_lab/harness.py",
+    "src/autonomy_lab/inventory.py",
+    "src/autonomy_lab/kubernetes.py",
+    "src/autonomy_lab/quote.py",
+    "src/autonomy_lab/runbook.py",
+    "src/autonomy_lab/scoring.py",
+    "src/autonomy_lab/toolbox.py",
+    "src/autonomy_lab/verifier.py"
+  ]
+}

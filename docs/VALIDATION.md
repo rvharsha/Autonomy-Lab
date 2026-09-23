@@ -12,6 +12,8 @@ These results use real HTTP traffic, PostgreSQL reads/writes by the scenario con
 
 After the initial Fable fixes to broker reservations, acknowledgement handling, and crash-worker monitoring, `demo-61f9c892` again passed all 8 application/verifier checks and 9 broker checks with 30-second recovery windows. Its cluster was removed. The [result summary](validation/acceptance-61f9c892.json) retains the actual SIGKILL outcomes and original-result hash. Further changes require their own validation; this result is not silently reassigned to a later release.
 
+At implementation commit `9004ed5`, `demo-43a4b5e6` passed the same 17 checks, including the observable routing-failure barrier and actual SIGKILL recovery. Recovery windows were 30 seconds, and cleanup removed the cluster. Its [portable summary](validation/acceptance-43a4b5e6.json) binds the result to that commit and the original artifact hash. The deterministic suite at that commit passed 543 tests; Ruff and whitespace checks passed.
+
 ## Development failures retained
 
 - `demo-61c6b4e9`: kind could not import Docker Desktop's multi-platform PostgreSQL archive. Kubernetes now pulls the pinned PostgreSQL digest directly.
@@ -38,6 +40,22 @@ The structured agent repaired the environment but could not afford its next requ
 
 The [annotated portable summary](validation/stopped-pilot-0db726fd.json) preserves the original accounting alongside its correction: the old interruption handler saved trial-008 as `running` and incorrectly included it among unrun trials. Original files remain unchanged. Future runs explicitly persist interrupted attempts and retain per-status accounting. This partial run is development evidence, not a completed pilot comparison.
 
+## Completed development pilot
+
+`experiment-06ca7c8b` executed all 28 declared trials at commit `9004ed5`, with no unrun trials and successful cluster cleanup. It used seven scenarios, four variants, one repetition, and 30-second verification windows. The [report](PILOT_RESULTS.md) and [portable evidence](validation/pilot-06ca7c8b.json) retain the complete accounting and original source/artifact hashes.
+
+Observed task successes were runbook 6/7, basic 5/7, and structured 2/7. Seven model trials exhausted their budget before a terminal claim; the runbook escalated in the concurrent-change case without meeting its verification criterion. All 78 provider responses fit their input and total-request reservations, and every model trial stayed below 32,000 tokens. Estimated standard paid-tier Gemini token cost was approximately $0.343; this excludes reviews and infrastructure and is not an observed bill.
+
+This complete matrix is development evidence from one repetition. It does not replace repeatability, held-out cases, runtime isolation, or independent execution auditing. Later code fixes retain separate validation rather than inheriting this pilot's execution evidence.
+
+## Post-pilot review fixes
+
+The final agent fixes preserve compatible terminal checkpoints before any resume counter/save and require absent or strict-zero tool-use prompt metadata before deriving missing thinking usage. Existing model/variant compatibility checks remain enforced, but rejection writes a separate error record instead of changing the checkpoint. Load/prepare failures from malformed required resume fields also preserve the original, including when persisting the error sidecar fails. The full deterministic suite passed **576 tests**, and Ruff passed.
+
+Copies of completed basic and structured checkpoints from this pilot were tested with an invalid interruption-tool name, model mismatch, variant mismatch, and a missing resume counter. All eight checks left original and copied bytes/mtime unchanged and made zero token-count, generation, tool-declaration, or tool-dispatch calls. Valid completed states returned unchanged; configuration and shape errors were blocked with separate error records. The [selected regression evidence](validation/terminal-checkpoint-regression.json) records checkpoint and final code hashes without provider content. All 78 original pilot responses omitted `toolUsePromptTokenCount`, so none exercised the newly rejected metadata case. These focused checks do not constitute another live pilot.
+
+The GitHub workflow's public upstream pins were verified. The setup-uv pin was corrected from the v6 annotated tag object to its underlying commit. GitHub CI has not run because this local branch has no destination remote yet.
+
 ## Evidence still required
 
-The complete scenario matrix, repeatability across matched trials, fresh held-out cases, and the AX suspend/resume runtime need their own executed reports. A passing infrastructure suite does not establish agent reliability or production safety.
+Repeatability across matched trials, fresh held-out cases, independent execution auditing, and the AX suspend/resume runtime need their own executed reports. A passing infrastructure suite does not establish agent reliability or production safety.

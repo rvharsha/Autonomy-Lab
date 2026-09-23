@@ -2,7 +2,7 @@
 
 Recorded 2026-09-22 (America/Los_Angeles), with preparation performed on
 2026-09-23 from 01:56 UTC. **Source checkout, tool verification, ARM compilation,
-and local manifest rendering passed. No AX/Substrate deployment or suspend/resume
+local manifest rendering, and public ARM image-manifest checks passed. No AX/Substrate deployment or suspend/resume
 test has run.** This extends the source assessment in [AX_FEASIBILITY.md](AX_FEASIBILITY.md).
 
 The preparation uses only `.state/ax-spike/`. The existing application cluster
@@ -75,7 +75,8 @@ SandboxConfig pins an ARM archive and checksum. AX's upstream task-runner build
 and Dockerfile still hardcode `amd64`. The successful direct ARM compilation
 removes a source-build uncertainty; an ARM container recipe preserving the
 documented runner contract remains necessary. No image architecture claim has
-been validated against registry manifests in this preparation.
+been established by compilation alone; the follow-up registry checks below
+validate the selected public image manifests, without executing them.
 
 The upstream counter example requests three workers, each with 1 GiB memory,
 in addition to the control plane. Account for that capacity before a concurrent
@@ -106,3 +107,196 @@ resolved ARM images, followed by the real counter suspend/resume test. After
 that, deploy AX and test its `/workspace` reconstruction and external broker
 operation lookup as specified in the feasibility plan. Existing lab process
 restart results are not evidence for either runtime gate.
+
+## Prepared second-phase launch (not executed)
+
+Prepared at approximately 02:37 UTC on 2026-09-23. Only the spike directory and
+this status file changed. No image pull/build, container/cluster creation,
+installer invocation, lifecycle probe, or provider generation was performed.
+
+The entry point is `.state/ax-spike/launch/run.sh`, with separate `create`,
+`install`, `counter`, and `check` phases. These are prepared commands for the
+coordinated next run, not evidence that their runtime behavior has passed:
+
+```sh
+bash .state/ax-spike/launch/run.sh create
+bash .state/ax-spike/launch/run.sh install
+bash .state/ax-spike/launch/run.sh counter
+bash .state/ax-spike/launch/run.sh check
+```
+
+The launcher fixes the cluster to `autonomy-ax-spike`, context to
+`kind-autonomy-ax-spike`, registry to `autonomy-ax-spike-registry` on loopback
+port `5007`, and kubeconfig to `.state/ax-spike/runtime/kubeconfig`. It starts
+the selected phase with `env -i`, explicit project-local Go caches, an empty
+project-local Docker config, and the observed local Docker socket. It supplies
+no provider, GCP, AWS, or external database credentials. It neither assigns nor
+changes the user's `HOME`. Each phase records a timestamped launch log.
+
+The pinned Substrate checkout now has three recorded local adaptations:
+
+- Cluster creation refuses an existing named cluster, registry, or kubeconfig;
+  it never deletes/replaces them. It uses an immutable ARM registry image,
+  an explicit node image, IPv4, and an explicit kubeconfig. The shared-network
+  deletion and IPv6 kubeconfig-rewrite paths are removed. The first gate uses
+  gVisor only, so the KVM probe container is omitted. The remaining node
+  proxy-ARP/NDP changes apply only to nodes belonging to the named spike cluster.
+- The original counter WorkerPool uses one worker instead of three. Its image,
+  1 GiB worker memory, counter code, durable volume, and full-snapshot policy
+  remain unchanged. The API permits one replica, and the template reconciler
+  suspends its golden actor after snapshot creation, allowing the single worker
+  to serve the subsequent sequential counter actor. Actual scheduling remains
+  a runtime gate.
+- The kind atelet overlay rewrites actor-image references from localhost to
+  `autonomy-ax-spike-registry:5000`. Upstream hardcodes `kind-registry:5000` here;
+  changing only the cluster creation script would leave actor-image pulls
+  pointing at the wrong registry even if Kubernetes pod-image pulls succeeded.
+
+The exact changes and hashes are in `launch/upstream-adaptations.patch` and
+`launch/adaptation-record.json`. `launch/prepare_adaptations.py` reproduces only
+these local changes and refuses unexpected source changes. AX source is
+unchanged. All launch shell files passed `bash -n`; the Python preparation/probe
+files passed compilation and Ruff. No execution test of these launch phases
+has been performed.
+
+Read-only Docker checks found **11 CPUs, 7.65 GiB configured memory, Linux
+aarch64, and Docker 27.5.1**. This is capacity, not a measurement of free RAM.
+Other user containers were observed and left unchanged. Port 5007 had no
+observed listening socket during preparation. Neither fact guarantees capacity
+or port availability at the later launch; do not run this alongside the main
+application trials. Full captured commands and measurements are in
+`logs/docker-capacity.json`.
+
+The prepared node image is kind v0.33.0's supported **Kubernetes 1.36.4** image,
+pinned by digest. This keeps the existing kubectl 1.35.8 within one minor
+version and matches the pinned Substrate release's documented feature-gate
+generation. All **11 selected public prerequisite images**, including the
+registry, kind node, pause image, PostgreSQL, ko base, and local control-plane
+dependencies, have verified Linux ARM64 manifest entries. Ko application images
+still need their real build/push phase. Two `docker manifest inspect` commands
+failed digest verification; independent raw registry downloads matched the
+exact pinned SHA-256 values and contained ARM64 entries. Original failures and
+successful verification evidence are both preserved in
+`logs/image-platform-checks.json`, `logs/image-platform-verified.json`, and the
+raw manifest files. No digest was replaced to bypass a failed check. The
+launcher blocks if a recorded public-image prerequisite remains unverified.
+
+The smallest prepared lifecycle probe (`launch/counter_check.py`) creates one
+fresh named actor from the upstream counter template, sends one POST, records
+the running actor, suspends it, requires `ACTOR_STATE_SUSPENDED` and a nonempty
+external snapshot URI, then sends exactly one more POST. Both the memory and
+file counts must increase by exactly one and the actor must return to RUNNING.
+There are no automatic POST retries. A random loopback port is used for the
+owned router port-forward, and that process alone is stopped on exit. Raw
+responses, actor states, command timestamps, and the outcome are retained in a
+new actor-specific log directory. The actor remains available for inspection;
+cluster/resource cleanup must be coordinated separately and scoped to this
+spike. This single-worker check does not claim cross-worker migration, AX
+reconstruction, or broker recovery.
+
+No concrete ARM snapshot incompatibility was found during these source and
+manifest checks. Whether the host actually supports Substrate's complete
+gVisor snapshot/restore path remains untested. The next gate is to run the
+prepared phases after the main trials release the host, then assess the actual
+lifecycle evidence before adding AX.
+
+## Launch audit and resource boundary
+
+The follow-up audit inspected the prepared phases against the pinned source.
+The registry correction above is included in the recorded patch with SHA-256
+`c24b67f958f67fcc8419755608284a7c19a842096505dfee50953a76a30fc96c`.
+The adapted atelet overlay has SHA-256
+`a743015ed7092f734bb16b049cba6deef15286a94a3babb80d639b2dd78934a2`.
+Re-running the adaptation generator leaves the recorded hashes unchanged.
+The complete kind overlay renders 49 resources with the intended registry
+argument and no `kind-registry` reference. The separate PostgreSQL overlay also
+renders. Rendering uses upstream's `--load-restrictor=LoadRestrictionsNone`
+because its Kustomizations reference parent directories. Shell syntax, Python
+compilation, and Ruff passed again. Commands, render hashes, and results are in
+`logs/launch-audit-validation.json`; no resources were applied.
+
+No other hardcoded old registry name reaches the selected gVisor phases.
+`install-ate-kind.sh` defaults to `localhost:5001`, but the launcher supplies
+`KO_DOCKER_REPO=localhost:5007`. Remaining matches belong to unused micro-VM,
+e2e, setup, and deletion paths or CLI help text. In particular, do not use
+upstream `hack/delete-kind-cluster.sh`: its registry cleanup still targets
+`kind-registry`.
+
+The installation is materially larger than the one counter worker. The core
+overlay includes two API replicas; controller, router, RustFS, Jaeger,
+OpenTelemetry collector, Prometheus, and certificate-controller deployments;
+the atelet DaemonSet; and a bucket-initialization Job. The installer additionally
+deploys PostgreSQL and egress routing and creates cluster-scoped CRDs, RBAC,
+SandboxConfig, certificates, and locally generated authentication secrets.
+All are intended for the dedicated spike cluster. Most core containers have no
+explicit memory limits, so there is no aggregate memory cap.
+
+The known steady-state requests alone total **2,208 MiB and 610m CPU**:
+
+| Workload | Memory request | Memory limit | CPU request |
+|---|---:|---:|---:|
+| PostgreSQL | 1 GiB | 2 GiB | 250m |
+| PostgreSQL TLS reloader | 32 MiB | unset | 10m |
+| Prometheus | 128 MiB | 512 MiB | 100m |
+| One counter worker | 1 GiB | 1 GiB | 250m |
+
+This excludes unrequested services, the Kubernetes control plane, image builds,
+Docker overhead, and existing user containers. RustFS and PostgreSQL each
+request a 1 GiB PVC; these requests are not proof of available disk or enforced
+disk quotas. Preparation occupies approximately 593 MiB of tools, 1.6 GiB of
+Go caches, and 172 MiB of source checkouts before any container-image builds.
+Recheck available capacity after the pilot exits; do not stop unrelated
+containers or prune shared Docker resources to make room.
+
+One sequential, real counter suspend/resume cycle is a practical first gate
+once the host is released. The CLI JSON field names, actor states, routing
+header, counter response, full-snapshot policy, and synchronous suspend call
+match pinned upstream code. The test requires independent memory and file
+continuity, plus a completed external snapshot. It does not prove AX task
+reconstruction, cross-worker restoration, or broker recovery. Those remain
+later gates.
+
+The prepared commands have individual CLI/HTTP/readiness timeouts, but neither
+image building nor the whole installation has an overall deadline. HTTP
+timeouts also apply per operation rather than to total elapsed response time.
+Run the first attempt with an outer supervised time budget, stop at the first
+real blocker, and preserve its logs. Do not describe the prepared launcher as
+an already validated bounded runtime. No source or public-image evidence
+currently rules out ARM gVisor snapshot/restore; only the real lifecycle can
+establish that capability.
+
+## Scoped cleanup, only after evidence collection
+
+These commands are recorded for the later coordinated teardown and have not
+been executed. Run from this project root. They target the spike's named kind
+cluster and kubeconfig, then remove its named registry only if its ownership
+label matches. They leave image caches, evidence, the shared `kind` network,
+and unrelated containers/configuration alone; do not substitute upstream's
+deletion script or a Docker prune command.
+
+```sh
+AX_SPIKE_DIR="$(pwd)/.state/ax-spike"
+env -i PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin" \
+  AX_SPIKE_DIR="${AX_SPIKE_DIR}" \
+  DOCKER_HOST="unix:///Users/harsha/.docker/run/docker.sock" \
+  DOCKER_CONFIG="${AX_SPIKE_DIR}/runtime/docker-config" \
+  /bin/bash <<'SH'
+set -euo pipefail
+"${AX_SPIKE_DIR}/../../.tools/kind" delete cluster \
+  --name autonomy-ax-spike --kubeconfig "${AX_SPIKE_DIR}/runtime/kubeconfig"
+if docker container inspect autonomy-ax-spike-registry >/dev/null 2>&1; then
+  owner=$(docker inspect --format '{{index .Config.Labels "created-by"}}' autonomy-ax-spike-registry)
+  [[ "${owner}" == autonomy-lab-ax-spike ]] || {
+    echo "Registry ownership mismatch; refusing removal" >&2
+    exit 1
+  }
+  docker rm -f -v autonomy-ax-spike-registry
+fi
+rm -f -- "${AX_SPIKE_DIR}/runtime/kubeconfig"
+SH
+```
+
+Removing the empty spike kubeconfig after successful teardown permits a later
+fresh create; the prepared create phase intentionally refuses an existing
+file. Registry removal also removes only that container's anonymous volume.
+Retain the source adaptations and lifecycle logs when cleaning up.

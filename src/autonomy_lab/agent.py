@@ -98,6 +98,43 @@ def _save(path: Path, state: dict) -> None:
             os.unlink(temporary)
 
 
+def _checkpoint_failure(path: Path, reason: str, error: BaseException | None = None) -> dict:
+    """Reject an existing checkpoint without replacing its original evidence."""
+    failure = {"status": "blocked", "reason": reason}
+    if error is not None:
+        failure.update(_error_details(error))
+    try:
+        _save(path.with_suffix(path.suffix + ".error.json"), failure)
+    except (Exception, KeyboardInterrupt):
+        failure["persistence_error"] = True
+    return failure
+
+
+def _validate_resume_shape(state: dict, limits: dict) -> None:
+    """Check only the containers and counters needed to prepare a resume."""
+    for key, expected in (
+        ("variant", str), ("status", str), ("limits", dict), ("usage", dict),
+        ("contents", list), ("model_requests", list), ("model_responses", list),
+        ("tool_records", list), ("incident", dict),
+    ):
+        if not isinstance(state[key], expected):
+            raise ValueError("invalid resume field shape")
+    if state["model"] is not None and not isinstance(state["model"], str):
+        raise ValueError("invalid checkpoint model")
+    for key in ("pending_model", "pending_turn", "terminal"):
+        if state[key] is not None and not isinstance(state[key], dict):
+            raise ValueError("invalid pending or terminal state")
+    if state["pending_turn"] is not None and not isinstance(state["pending_turn"]["calls"], list):
+        raise ValueError("invalid pending tool queue")
+    if not state["contents"] or not isinstance(state.get("token_preflights", []), list):
+        raise ValueError("invalid resume history container")
+    counters = [state["resume_count"], *(state["usage"][key] for key in ("model_calls", "tool_calls", "total_tokens"))]
+    if any(type(value) is not int or value < 0 for value in counters) or type(state["usage"]["unknown"]) is not bool:
+        raise ValueError("invalid resume counters")
+    if any(type(state["limits"][key]) is not int or state["limits"][key] <= 0 for key in limits):
+        raise ValueError("invalid saved limits")
+
+
 def _validate_schema(value, schema: dict) -> None:
     """Check function arguments locally before invoking even a read-only tool."""
     expected = schema.get("type", "").upper()
@@ -302,6 +339,9 @@ class _Runner:
                 prompt, candidates = metadata.get("promptTokenCount"), metadata.get("candidatesTokenCount")
                 if any(type(value) is not int or value < 0 for value in (prompt, candidates)):
                     raise ValueError("prior provider thought usage cannot be derived")
+                tool_prompt = metadata.get("toolUsePromptTokenCount", 0)
+                if type(tool_prompt) is not int or tool_prompt != 0:
+                    raise ValueError("prior provider thought usage has ambiguous tool prompt tokens")
                 # UsageMetadata defines total = prompt + thoughts + candidates.
                 # Missing thinking is not assumed to be zero without that evidence.
                 prior_thoughts = total - prompt - candidates
@@ -322,12 +362,12 @@ class _Runner:
         preflights = state.setdefault("token_preflights", [])
         if preflights and preflights[-1]["phase"] == "pending":
             return self.stop("blocked", "pending_token_preflight_no_automatic_retry")
-        if isinstance(self.interrupt_after_tool, str) and self.interrupt_after_tool not in self.schemas:
-            return self.stop("blocked", "invalid_interrupt_tool")
         if state["status"] in {"completed", "blocked", "budget_exhausted", "indeterminate"}:
             return state
         if state["status"] == "error" and state["pending_turn"] is None:
             return state
+        if isinstance(self.interrupt_after_tool, str) and self.interrupt_after_tool not in self.schemas:
+            return self.stop("blocked", "invalid_interrupt_tool")
         if state["pending_turn"] is None and state["model_responses"] and (
             state["contents"][-1].get("role") == "model"
             or sum(item.get("role") == "model" for item in state["contents"]) != len(state["model_responses"])
@@ -503,25 +543,31 @@ def run_agent(
         model = getattr(client, "model", None)
         model = model if isinstance(model, str) else None
         state = _new_state(variant, model, limits)
-        try:
-            if path.exists():
-                try:
-                    saved = json.loads(path.read_text(encoding="utf-8"))
-                except (OSError, ValueError):
-                    failure = {"status": "blocked", "reason": "unreadable_existing_checkpoint"}
-                    _save(path.with_suffix(path.suffix + ".error.json"), failure)
-                    return failure
-                if not isinstance(saved, dict) or saved.get("schema_version") != 1:
-                    failure = {"status": "blocked", "reason": "invalid_existing_checkpoint"}
-                    _save(path.with_suffix(path.suffix + ".error.json"), failure)
-                    return failure
+        if path.exists():
+            try:
+                saved = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                return _checkpoint_failure(path, "unreadable_existing_checkpoint")
+            if not isinstance(saved, dict) or saved.get("schema_version") != 1:
+                return _checkpoint_failure(path, "invalid_existing_checkpoint")
+            # Loading and preparing existing evidence is separate from execution:
+            # validation failures may write only the error sidecar, never the input.
+            try:
                 state = saved
+                _validate_resume_shape(state, limits)
                 if state["variant"] != variant or state.get("model") != model:
-                    state.update(status="blocked", reason="checkpoint_configuration_changed")
-                    _save(path, state)
+                    return _checkpoint_failure(path, "checkpoint_configuration_changed")
+                # Opening a terminal checkpoint is not another execution attempt.
+                # Preserve its bytes before changing counters, limits, or hooks.
+                if state["status"] in {"completed", "blocked", "budget_exhausted", "indeterminate"} or (
+                    state["status"] == "error" and state["pending_turn"] is None
+                ):
                     return state
-                state["limits"] = {key: min(value, limits[key]) for key, value in state["limits"].items()}
+                state["limits"] = {key: min(state["limits"][key], value) for key, value in limits.items()}
                 state["resume_count"] += 1
+            except (Exception, KeyboardInterrupt) as error:
+                return _checkpoint_failure(path, "invalid_existing_checkpoint", error)
+        try:
             _save(path, state)
             return _Runner(client, toolbox, path, state, interrupt_after_tool).run()
         except (Exception, KeyboardInterrupt) as error:

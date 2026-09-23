@@ -371,15 +371,98 @@ def test_corrupt_checkpoint_is_preserved_and_never_starts_fresh_budget(tmp_path)
     assert json.loads((tmp_path / "agent.json.error.json").read_text())["reason"] == "unreadable_existing_checkpoint"
 
 
-def test_completed_agent_is_not_rerun(tmp_path):
+@pytest.mark.parametrize("variant", ["basic", "structured"])
+@pytest.mark.parametrize("interrupt_hook", [None, "observe_servce"])
+def test_completed_agent_is_not_rewritten_or_rerun(tmp_path, variant, interrupt_hook):
     path = tmp_path / "agent.json"
-    result = run_agent(StubClient(response(finish())), StubToolbox(), path)
+    result = run_agent(StubClient(response(finish())), StubToolbox(), path, variant=variant)
     assert result["status"] == "completed"
-    second = StubClient(response(finish()))
-    replay = run_agent(second, StubToolbox(), path)
-    assert replay["status"] == "completed"
-    assert replay["terminal"] == result["terminal"]
-    assert second.requests == []
+    before, modified_at = path.read_bytes(), path.stat().st_mtime_ns
+    second, toolbox = StubClient(response(finish())), StubToolbox()
+    replay = run_agent(second, toolbox, path, variant=variant, interrupt_after_tool=interrupt_hook)
+    assert replay == result
+    assert path.read_bytes() == before
+    assert path.stat().st_mtime_ns == modified_at
+    assert second.count_requests == second.requests == toolbox.calls == []
+
+
+@pytest.mark.parametrize("variant, model", [("structured", "unit-model"), ("basic", "changed-model")])
+@pytest.mark.parametrize("completed", [False, True])
+def test_configuration_mismatch_blocks_without_rewriting_checkpoint(tmp_path, variant, model, completed):
+    path = tmp_path / "agent.json"
+    first_call = finish() if completed else call("observe_service")
+    run_agent(StubClient(response(first_call)), StubToolbox(), path,
+              interrupt_after_tool=None if completed else "observe_service")
+    before, modified_at = path.read_bytes(), path.stat().st_mtime_ns
+    client, toolbox = StubClient(response(finish())), StubToolbox()
+    client.model = model
+    result = run_agent(client, toolbox, path, variant=variant, interrupt_after_tool="observe_servce")
+    assert result["status"] == "blocked"
+    assert result["reason"] == "checkpoint_configuration_changed"
+    assert client.count_requests == client.requests == toolbox.calls == []
+    assert path.read_bytes() == before
+    assert path.stat().st_mtime_ns == modified_at
+    assert json.loads(path.with_suffix(".json.error.json").read_text()) == result
+
+
+@pytest.mark.parametrize("missing, replacements", [
+    ("variant", {}), ("status", {}), ("pending_turn", {"status": "error"}),
+    ("pending_model", {}), ("limits", {}), ("resume_count", {}),
+    ("usage", {}), ("contents", {}), ("model_requests", {}),
+    (None, {"limits": None}),
+    (None, {"limits": {"max_turns": "unit-private-key"}}),
+    (None, {"resume_count": None}),
+    (None, {"usage": None}),
+])
+def test_malformed_resume_checkpoint_is_preserved_before_execution(tmp_path, missing, replacements):
+    path = tmp_path / "agent.json"
+    run_agent(StubClient(response(call("observe_service"))), StubToolbox(), path, interrupt_after_tool=1)
+    saved = json.loads(path.read_text())
+    if missing is not None:
+        del saved[missing]
+    saved.update(replacements)
+    path.write_text(json.dumps(saved))
+    before, modified_at = path.read_bytes(), path.stat().st_mtime_ns
+    client, toolbox = StubClient(response(finish())), StubToolbox()
+    result = run_agent(client, toolbox, path)
+    assert result["status"] == "blocked"
+    assert result["reason"] == "invalid_existing_checkpoint"
+    assert path.read_bytes() == before
+    assert path.stat().st_mtime_ns == modified_at
+    assert client.count_requests == client.requests == toolbox.calls == []
+    sidecar = path.with_suffix(".json.error.json")
+    assert json.loads(sidecar.read_text()) == result
+    assert "unit-private-key" not in sidecar.read_text()
+
+
+@pytest.mark.parametrize("failure", ["unreadable", "invalid", "configuration"])
+def test_failure_to_write_checkpoint_error_sidecar_preserves_primary(tmp_path, monkeypatch, failure):
+    path = tmp_path / "agent.json"
+    run_agent(StubClient(response(finish())), StubToolbox(), path)
+    if failure == "unreadable":
+        path.write_text("{truncated")
+    elif failure == "invalid":
+        path.write_text('{"schema_version": 1, "variant": "basic", "model": "unit-model", "status": "error"}')
+    before, modified_at = path.read_bytes(), path.stat().st_mtime_ns
+    original_save = agent._save
+    attempted_paths = []
+
+    def fail_sidecar(target, state):
+        attempted_paths.append(target)
+        if target == path.with_suffix(".json.error.json"):
+            raise OSError("unit-private-key")
+        return original_save(target, state)
+
+    monkeypatch.setattr(agent, "_save", fail_sidecar)
+    client, toolbox = StubClient(response(finish())), StubToolbox()
+    result = run_agent(client, toolbox, path, variant="structured" if failure == "configuration" else "basic")
+    assert result["status"] == "blocked"
+    assert result["persistence_error"] is True
+    assert "unit-private-key" not in json.dumps(result)
+    assert attempted_paths == [path.with_suffix(".json.error.json")]
+    assert path.read_bytes() == before
+    assert path.stat().st_mtime_ns == modified_at
+    assert client.count_requests == client.requests == toolbox.calls == []
 
 
 def test_process_abort_leaves_pending_model_request_and_resume_does_not_retry(tmp_path):
@@ -588,6 +671,8 @@ def test_preserved_thoughts_can_exhaust_or_leave_one_output_token(tmp_path, rema
     {"totalTokenCount": 70, "promptTokenCount": 50, "candidatesTokenCount": "20"},
     {"totalTokenCount": 70, "promptTokenCount": -1, "candidatesTokenCount": 20},
     {"totalTokenCount": 70, "promptTokenCount": 50, "candidatesTokenCount": 20, "thoughtsTokenCount": None},
+    *({"totalTokenCount": 70, "promptTokenCount": 50, "candidatesTokenCount": 20, "toolUsePromptTokenCount": value}
+      for value in (None, -1, True, False, "0", 0.0, 1, 1.5)),
 ])
 def test_unknown_or_invalid_prior_usage_prevents_counting_and_generation(tmp_path, metadata):
     path = tmp_path / "agent.json"
@@ -606,11 +691,13 @@ def test_unknown_or_invalid_prior_usage_prevents_counting_and_generation(tmp_pat
 
 
 @pytest.mark.parametrize("thoughts", [0, 20])
-def test_missing_thought_count_is_derived_only_from_complete_usage(tmp_path, thoughts):
+@pytest.mark.parametrize("tool_usage", [{}, {"toolUsePromptTokenCount": 0}])
+def test_missing_thought_count_is_derived_only_from_complete_usage(tmp_path, thoughts, tool_usage):
     path = tmp_path / "agent.json"
     toolbox = StubToolbox()
     first_response = response(call("observe_service"), tokens=70)
     first_response["usageMetadata"] = {"totalTokenCount": 70, "promptTokenCount": 60 - thoughts, "candidatesTokenCount": 10}
+    first_response["usageMetadata"].update(tool_usage)
     run_agent(StubClient(first_response), toolbox, path, max_total_tokens=200, interrupt_after_tool=1)
     client = StubClient(response(finish(), tokens=50), count_results=[23])
     result = run_agent(client, toolbox, path, max_total_tokens=200)
