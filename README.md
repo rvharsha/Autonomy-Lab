@@ -6,7 +6,7 @@ The application is real: Quote API → Inventory Service → Inventory API → P
 
 [Executed validation](docs/VALIDATION.md) records the real-system checks. The [28-trial development pilot](docs/PILOT_RESULTS.md) retains successes and non-completions, including the model agents' budget stops. These results do not establish production reliability.
 
-The [adversarial self-review](docs/ADVERSARIAL_REVIEW.md) records open correctness findings and the remaining runtime, isolation, evaluation, and cloud-deployment gates.
+The [adversarial self-review](docs/ADVERSARIAL_REVIEW.md) records the original findings and remaining architecture gates. The [correctness follow-up](docs/CORRECTNESS_FIXES.md) tracks their implementation, validation, and review status.
 
 ## Run the acceptance demo
 
@@ -19,6 +19,8 @@ make demo
 ```
 
 The demo creates a fresh cluster, checks healthy behavior, injects a routing fault, checks ineffective and effective repairs, challenges the verifier, exercises broker conflicts and response loss, kills broker processes at deterministic boundaries, writes evidence, and removes its cluster. Successful recovery requires a complete 30-second sampled workload window. Negative checks use shorter declared windows because conclusive failure is sufficient.
+
+After scripted restoration, the acceptance harness allows up to 30 seconds to observe client-path readiness before starting that full window. Only routing-related HTTP 503s may settle; wrong responses, protected-state violations and measurement outages fail immediately. All readiness attempts remain in the evidence. Kubernetes acknowledgement alone does not establish that the application path has recovered.
 
 Each upstream HTTP request opens a fresh connection so a pre-fault keep-alive connection cannot bypass the changed Service route. Faulted trials must demonstrate a client-visible failure before an actor starts.
 
@@ -46,6 +48,10 @@ PYTHONPATH=src .venv/bin/python -m autonomy_lab.cli experiment \
 
 This invokes the live model API and may incur charges. The manifest declares the model, token/turn limits, scenario matrix, repetition count, and verification window. The command saves the manifest and source hashes before running, resets the namespace and database between trials, and records every attempted result and any unrun trials. Local model/agent failures are retained as outcomes. A missing credential stops before provisioning.
 
+Each trial runs in a separate POSIX worker with a controller-enforced `trial_timeout_seconds` deadline (900 seconds by default), including trial setup and final verification. On timeout, the controller kills that worker's process group, preserves partial evidence, records a non-completion, and continues normal reset/cleanup. Model requests and mutations are never automatically retried after uncertain completion. This supervisor does not survive controller death.
+
+Checkpoint schema 2 binds state to its run, release, system instructions and tool declarations. Schema 1 checkpoints remain historical evidence and are rejected without modification; there is no automatic migration or replay. Bounded HTTP runs on the worker's main thread and rejects compressed responses before decoding. The verifier caps each response at 64 KiB; model and Kubernetes responses have separate bounded limits.
+
 The pilot is development evidence, not a statistical reliability claim. Injected adversarial observations count as exposure only if they appear in the actor's recorded observations. Model token usage includes repeated input context and thinking tokens. Preflight conservatively reserves previous thinking carried by the conversation in addition to `countTokens`; [the live accounting failure](docs/TOKEN_BUDGET_FINDING.md) explains why. Infrastructure runtime and any unpriced cost remain separate from token usage.
 
 ## Boundaries and current limitations
@@ -59,6 +65,6 @@ The pilot is development evidence, not a statistical reliability claim. Injected
 
 ## Reviews and checks
 
-PR checks run deterministic tests and lint. The GitHub Actions workflow also provides an explicitly triggered real Kubernetes acceptance job; it does not invoke model APIs or require model credentials. That job retains only its Markdown report and JSON result summary for 14 days, including failed runs. Kubeconfigs and raw artifact directories are excluded.
+PR checks run deterministic tests, lint, and real Kubernetes acceptance; the acceptance job can also be triggered manually. It does not invoke model APIs or require model credentials. That job retains only its Markdown report and JSON result summary for 14 days, including failed runs. Kubeconfigs and raw artifact directories are excluded.
 
 Implementation changes receive an additional **Claude Fable 5.1** review. The review uses an allowlisted, hashed source snapshot with tools disabled. Reviewer findings are suggestions that must be checked against the code and tests; a model review is not automatically an approval or permission to merge. [Review commands](docs/REVIEWS.md) describe the local workflow and cost controls; [review results](docs/REVIEW_RESULTS.md) record findings and dispositions.

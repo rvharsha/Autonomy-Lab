@@ -90,6 +90,34 @@ def establish_fault(kube: Kubernetes, verifier_kube: Kubernetes, run_dir: Path):
     raise RuntimeError("Fault did not produce an observed client-path failure")
 
 
+def establish_recovery(kube, verifier_kube, run_dir, name, report, *, timeout_seconds=30, clock=time.monotonic):
+    """Await routing convergence, retaining failures before the strict full window.
+
+    Only client-path HTTP 503s may settle. Invariant violations, wrong successful
+    responses and measurement outages fail immediately rather than being erased.
+    """
+    started = clock()
+    report.update(status="failed", timeout_seconds=timeout_seconds, checks=[])
+    try:
+        while clock() - started < timeout_seconds:
+            result = check(kube, verifier_kube, window_seconds=min(1, timeout_seconds))
+            save(run_dir / f"{name}-readiness-{len(report['checks']) + 1}.json", result)
+            report["checks"].append({"verdict": result["verdict"], **verification_summary(result)})
+            if clock() - started > timeout_seconds:
+                break
+            if result["verdict"] == "verified_success":
+                report["status"] = "ready"
+                return
+            if result["verdict"] != "verified_failure" or not result["reasons"] or not all(
+                reason.startswith("quote ") and ": HTTP 503 (expected " in reason
+                for reason in result["reasons"]
+            ):
+                raise AssertionError(f"{name}: non-routing readiness failure: {result['reasons']}")
+        raise TimeoutError(f"{name}: recovery readiness exceeded {timeout_seconds} seconds")
+    finally:
+        report["elapsed_seconds"] = clock() - started
+
+
 def save_observation(run_dir: Path, *, source: str, **data) -> str:
     """Create a new evidence record; existing observation IDs are never overwritten."""
     observation_id = uuid.uuid4().hex
@@ -525,6 +553,7 @@ def run_demo(*, window_seconds: float = 30, keep: bool = False) -> Path:
         "status": "running",
         "kind": "real-cluster-acceptance",
         "window_seconds": window_seconds,
+        "recovery_readiness_seconds": 30,
         "phases": [],
         "broker_checks": [],
         "cleanup": {"status": "pending"},
@@ -547,8 +576,16 @@ def run_demo(*, window_seconds: float = 30, keep: bool = False) -> Path:
         else:
             raise AssertionError("Verifier unexpectedly has access to secrets")
 
-        def phase(name, expected, *, short=False, outage=False):
+        def phase(name, expected, *, short=False, outage=False, recovery=False):
             print(f"Checking {name}: expect {expected}", flush=True)
+            if recovery:
+                readiness = {}
+                summary.setdefault("recovery_readiness", {})[name] = readiness
+                try:
+                    establish_recovery(kube, verifier_kube, run_dir, name, readiness,
+                                       timeout_seconds=summary["recovery_readiness_seconds"])
+                finally:
+                    save(run_dir / "result.json", summary)
             result = check(
                 kube,
                 verifier_kube,
@@ -578,7 +615,7 @@ def run_demo(*, window_seconds: float = 30, keep: bool = False) -> Path:
         kube.set_target_port(8081)
         phase("noop-repair", "verified_failure", short=True)
         kube.set_target_port(8080)
-        phase("scripted-recovery", "verified_success")
+        phase("scripted-recovery", "verified_success", recovery=True)
         kube.call("set", "env", "deployment/quote", "QUOTE_TOTAL_OFFSET=1")
         kube.call("rollout", "status", "deployment/quote", "--timeout=90s")
         phase("wrong-http200-total", "verified_failure", short=True)
@@ -594,7 +631,7 @@ def run_demo(*, window_seconds: float = 30, keep: bool = False) -> Path:
         phase("verifier-outage", "indeterminate", short=True, outage=True)
         print("Checking broker against actual Kubernetes mutations", flush=True)
         broker_acceptance(kube, run_dir, run_id, results=summary["broker_checks"])
-        phase("final-recovery", "verified_success")
+        phase("final-recovery", "verified_success", recovery=True)
         summary["status"] = "passed"
     except Exception as exc:
         summary["status"] = "failed"

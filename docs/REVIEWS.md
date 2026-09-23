@@ -20,4 +20,4 @@ Review records stay in `.state/reviews/`. Publish only an explicitly selected su
 
 For each finding, reproduce the trigger or explain why the surrounding code prevents it. Fix verified defects with appropriate regression checks. Keep rejected findings and their rationale in the summary so reviewers can assess that decision. After execution-boundary changes, rerun the real Kubernetes acceptance suite.
 
-GitHub runs tests and lint automatically. Fable review currently runs locally; no GitHub model credential or automatic paid review workflow has been configured.
+GitHub runs tests, lint, and real Kubernetes acceptance on PRs. Fable review currently runs locally; no GitHub model credential or automatic paid review workflow has been configured. The `bounded_transport` scope includes the shared HTTP limits and its model, Kubernetes, and observation callers; `experiments` includes the worker and supervisor.

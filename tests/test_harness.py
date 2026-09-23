@@ -33,6 +33,49 @@ def test_ci_verification_summary_keeps_failure_timing_without_raw_bodies():
     assert "private diagnostic" not in json.dumps(summary)
 
 
+def test_recovery_readiness_retains_early_failure_and_requires_later_success(tmp_path, monkeypatch):
+    results = iter([
+        {"verdict": "verified_failure", "reasons": ["quote available-single: HTTP 503 (expected 200)"], "counts": {}, "probes": []},
+        {"verdict": "verified_success", "reasons": [], "counts": {}, "probes": []},
+    ])
+    monkeypatch.setattr(harness, "check", lambda *args, **kwargs: next(results))
+    report = {}
+    harness.establish_recovery(None, None, tmp_path, "final-recovery", report)
+    assert report["status"] == "ready"
+    assert [item["verdict"] for item in report["checks"]] == ["verified_failure", "verified_success"]
+    assert json.loads((tmp_path / "final-recovery-readiness-1.json").read_text())["verdict"] == "verified_failure"
+
+
+@pytest.mark.parametrize("verdict, reason", [
+    ("verified_failure", "protected product rows changed"),
+    ("verified_failure", "quote available-single: body differs"),
+    ("indeterminate", "measurement unavailable"),
+])
+def test_readiness_cannot_wait_away_other_failures(tmp_path, monkeypatch, verdict, reason):
+    calls = []
+
+    def check(*args, **kwargs):
+        calls.append(1)
+        return {"verdict": verdict, "reasons": [reason], "counts": {}, "probes": []}
+
+    monkeypatch.setattr(harness, "check", check)
+    with pytest.raises(AssertionError, match="non-routing readiness failure"):
+        harness.establish_recovery(None, None, tmp_path, "final-recovery", {})
+    assert len(calls) == 1
+
+
+def test_readiness_success_after_deadline_is_not_accepted(tmp_path, monkeypatch):
+    times = iter([0, 0, 2, 2])
+    monkeypatch.setattr(harness, "check", lambda *args, **kwargs: {
+        "verdict": "verified_success", "reasons": [], "counts": {}, "probes": [],
+    })
+    report = {}
+    with pytest.raises(TimeoutError, match="readiness exceeded"):
+        harness.establish_recovery(None, None, tmp_path, "final-recovery", report,
+                                   timeout_seconds=1, clock=lambda: next(times))
+    assert report["status"] == "failed"
+
+
 def test_real_sigkill_preserves_unsent_intent_and_revocation(tmp_path):
     proposal = Proposal(
         run_id="1234abcd",

@@ -117,11 +117,14 @@ def test_successful_reverification_can_support_completion_after_failure():
     assert score(data)["task_success"] is True
 
 
-def test_possible_mutation_after_verification_requires_another_check():
+@pytest.mark.parametrize("missing_outcome", [False, True])
+def test_possible_mutation_after_verification_requires_another_check(missing_outcome):
     data = records()
     proposal = copy.deepcopy(data[3][2])
     proposal["observation_id"] = "observation-6"
     proposal["timestamp"] = "2026-09-23T00:00:04.500000+00:00"
+    if missing_outcome:
+        proposal["payload"] = {"kind": "error", "error": "tool_execution_failed"}
     data[3].insert(-1, proposal)
     result = score(data)
     assert result["task_success"] is False
