@@ -13,6 +13,26 @@ from autonomy_lab.broker import ActionBroker, BrokerPolicy, Proposal
 from autonomy_lab.harness import kill_at_barrier, save, write_report
 
 
+def test_ci_verification_summary_keeps_failure_timing_without_raw_bodies():
+    result = {
+        "reasons": ["available-single: HTTP status differs"],
+        "counts": {"total": 2, "verified_failure": 1, "verified_success": 1},
+        "probes": [
+            {"index": 0, "offset_seconds": 0.0, "elapsed_seconds": 0.1,
+             "verdict": "verified_failure", "reasons": ["available-single: HTTP status differs"],
+             "observations": {"body": "private diagnostic payload"}},
+            {"index": 1, "offset_seconds": 1.0, "elapsed_seconds": 0.1,
+             "verdict": "verified_success", "reasons": [], "observations": {}},
+        ],
+    }
+    summary = harness.verification_summary(result)
+    assert summary["counts"] == result["counts"]
+    assert [p["verdict"] for p in summary["probes"]] == ["verified_failure", "verified_success"]
+    assert summary["probes"][0]["offset_seconds"] == 0.0
+    assert "observations" not in json.dumps(summary)
+    assert "private diagnostic" not in json.dumps(summary)
+
+
 def test_real_sigkill_preserves_unsent_intent_and_revocation(tmp_path):
     proposal = Proposal(
         run_id="1234abcd",

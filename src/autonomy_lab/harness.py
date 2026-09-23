@@ -32,6 +32,15 @@ def save(path: Path, value):
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
 
 
+def verification_summary(result: dict) -> dict:
+    """Retain diagnostic verdicts in CI without publishing raw observation bodies."""
+    return {
+        "reasons": result["reasons"], "counts": result["counts"],
+        "probes": [{key: probe[key] for key in ("index", "offset_seconds", "elapsed_seconds", "verdict", "reasons")}
+                   for probe in result["probes"]],
+    }
+
+
 def check(kube: Kubernetes, verifier_kube: Kubernetes, *, window_seconds=30, outage=False) -> dict:
     with ExitStack() as stack:
         quote_port = stack.enter_context(kube.forward("deployment/quote", 8080))
@@ -552,6 +561,7 @@ def run_demo(*, window_seconds: float = 30, keep: bool = False) -> Path:
                 "expected": expected,
                 "actual": result["verdict"],
                 "passed": result["verdict"] == expected,
+                **verification_summary(result),
             }
             if name in {"routing-fault", "noop-repair"}:
                 entry["client_path_failed"] = client_path_failed(result)
