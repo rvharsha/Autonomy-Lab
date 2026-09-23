@@ -140,10 +140,13 @@ def run_trial(
     config: dict,
     *,
     env_file: Path | None = None,
+    workspace_prepared: bool = False,
 ) -> dict:
     if scenario not in SCENARIOS or variant not in VARIANTS:
         raise ValueError("unknown scenario or variant")
-    run_dir.mkdir(parents=True, mode=0o700)
+    run_dir.mkdir(parents=True, mode=0o700, exist_ok=workspace_prepared)
+    if any(path.name not in {"worker-request.json", "worker.log"} for path in run_dir.iterdir()):
+        raise ValueError("Refusing to overwrite an existing trial workspace")
     run_id = uuid.uuid4().hex
     result = {
         "trial_id": run_id,

@@ -17,7 +17,8 @@ def main(path: Path) -> int:
             raise ValueError("Worker source does not match the declared release")
         kube = Kubernetes(Path(request["kubeconfig"]), request["cluster_name"], request["namespace"])
         run_trial(kube, path.parent, request["scenario"], request["variant"], config,
-                  env_file=Path(request["env_file"]) if request["env_file"] else None)
+                  env_file=Path(request["env_file"]) if request["env_file"] else None,
+                  workspace_prepared=True)
         return 0
     except Exception as error:
         # Exception messages and tracebacks may contain credentials.

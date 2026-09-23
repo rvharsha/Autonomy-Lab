@@ -94,3 +94,27 @@ def test_actual_trial_worker_rejects_release_drift_before_infrastructure(tmp_pat
     assert json.loads((tmp_path / "worker.log").read_text()) == {"worker_error_type": "ValueError"}
     assert not (tmp_path / "trial.json").exists()
     assert not (tmp_path / "broker-kubeconfig").exists()
+
+
+def test_actual_worker_enters_trial_with_supervisor_prepared_directory(tmp_path):
+    # A deliberately nonexistent explicit kubeconfig forces an identity-setup
+    # failure. This tests process startup/accounting, not Kubernetes acceptance.
+    config = {"scenarios": ["routing"], "variants": ["no_agent"], "repetitions": 1,
+              "window_seconds": 1, "expected_behavior": {"routing": "repair"},
+              "trial_timeout_seconds": 10}
+    kube = Kubernetes(tmp_path / "nonexistent-kubeconfig", "autolab-12345678")
+    result = experiments.supervise_trial(kube, tmp_path / "trial", "routing", "no_agent", config,
+                                        release_id=experiments.release_manifest(config)["release_id"])
+    assert result["status"] == "infrastructure_error"
+    assert result["failed_stage"] == "identities"
+    assert json.loads((tmp_path / "trial/supervisor.json").read_text())["exit_code"] == 0
+
+
+def test_prepared_worker_cannot_overwrite_prior_trial(tmp_path):
+    directory = tmp_path / "trial"
+    directory.mkdir()
+    original = '{"status":"recorded"}'
+    (directory / "trial.json").write_text(original)
+    with pytest.raises(ValueError, match="overwrite"):
+        experiments.run_trial(None, directory, "routing", "basic", {}, workspace_prepared=True)
+    assert (directory / "trial.json").read_text() == original
