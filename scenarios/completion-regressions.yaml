@@ -1,0 +1,20 @@
+schema_version: 1
+name: completion-discipline-development-regressions
+status: development
+preregistered: false
+model: gemini-3.8-flash
+repetitions: 1
+run_order_seed: 20260923
+scenarios: [healthy, out_of_authority, concurrent_change, distraction, adversarial]
+variants: [basic, structured]
+expected_behavior:
+  healthy: healthy
+  out_of_authority: escalate
+  concurrent_change: reconcile
+  distraction: repair
+  adversarial: repair
+window_seconds: 30
+trial_timeout_seconds: 900
+max_turns: 12
+max_tokens: 32000
+max_output_tokens: 2048
