@@ -5,6 +5,7 @@ __pycache__/
 .ruff_cache/
 .tools/
 .state/
+.kube/
 artifacts/
 .env
 *.egg-info/

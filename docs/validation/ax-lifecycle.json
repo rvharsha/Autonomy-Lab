@@ -1,0 +1,655 @@
+{
+  "kind": "selected evidence from three real local AX lifecycle attempts",
+  "plan": {
+    "ax_revision": "d8ed0fe38bceb7842d3c47817d53d16ccdfcb601",
+    "substrate_revision": "672533541dbfcd29084e4de2475267088bda3651",
+    "cycles": 3,
+    "model_calls_allowed": 0,
+    "initial_state": "at least one actual startup; golden template boot may precede actor startup",
+    "requirements": [
+      "same declared run identity",
+      "exactly one new startup per resume",
+      "prior startup records unchanged",
+      "new random boot identifier per resumed command",
+      "command process remains alive",
+      "AX Running and Ready after resume",
+      "Substrate Suspended with external snapshot before resume"
+    ],
+    "phase_deadlines_seconds": {
+      "create": 600,
+      "install": 1200,
+      "counter": 600,
+      "ax_install": 600,
+      "ax_check": 600
+    },
+    "cleanup": "dedicated cluster and owned registry only"
+  },
+  "attempts": [
+    {
+      "execution_id": "execution-20260923T081117877684Z",
+      "variant": "unmodified-AX-source",
+      "execution": {
+        "started_at": "20260923T081117877684Z",
+        "status": "failed",
+        "phases": [
+          {
+            "phase": "create",
+            "timeout_seconds": 600,
+            "timed_out": false,
+            "exit_code": 0,
+            "elapsed_seconds": 12.82116370787844
+          },
+          {
+            "phase": "install",
+            "timeout_seconds": 1200,
+            "timed_out": false,
+            "exit_code": 0,
+            "elapsed_seconds": 80.98140766704455
+          },
+          {
+            "phase": "counter",
+            "timeout_seconds": 600,
+            "timed_out": false,
+            "exit_code": 0,
+            "elapsed_seconds": 45.00738295796327
+          },
+          {
+            "phase": "ax_install",
+            "timeout_seconds": 600,
+            "timed_out": false,
+            "exit_code": 0,
+            "elapsed_seconds": 14.185344709083438
+          },
+          {
+            "phase": "ax_check",
+            "timeout_seconds": 600,
+            "timed_out": false,
+            "exit_code": 1,
+            "elapsed_seconds": 121.0095636670012
+          }
+        ],
+        "cleanup": [
+          {
+            "resource": "autonomy-ax-spike",
+            "status": "deleted"
+          },
+          {
+            "resource": "autonomy-ax-spike-registry",
+            "status": "deleted_or_absent"
+          }
+        ],
+        "limits": {
+          "node_memory_bytes": 5368709120,
+          "node_cpus": 5,
+          "registry_memory_bytes": 268435456
+        },
+        "source_hashes": {
+          "launch/adaptation-record.json": "c4ec03aab4354f65b27fd83befdedeafb804e825142f5359c56f997aabf61b0b",
+          "launch/ax_check.py": "9006ce47fa6490e72f5dea36c723ea9e143ac1a312d5ad31e954dc54994df2bd",
+          "launch/ax_install.py": "1aaf2b38a17237a1ffeea6141092189e36754efe649ba2f2a66cc89ca5ed7465",
+          "launch/ax_probe_task.py": "4b3bb5092ea8e7de01c916ff4b667789a831dff72bfeca2e1acabc5b85b60dac",
+          "launch/counter_check.py": "023adef15a18b46c40d266256cd3c7db9a728abb0218e428817c67ee9725850a",
+          "launch/execute_ax.py": "d8cc06c35637fbea2e25dc9e91231b42deb8134291f60aa02c540504d188e966",
+          "launch/execute_bounded.py": "55ea40521718493a7578ee62a5cab2f961f453bbed28791743353f24c8057f39",
+          "launch/phase.sh": "14a415942f2eaa716a690e68db133e2967436d37a9fb532c8cc3e7bf7ebb11df",
+          "launch/phase_ax.sh": "a6060c88bb8cddd7b7ed5956285b82990619e582f937065a1ec6f8aa3486f0c8",
+          "launch/prepare_adaptations.py": "32ac909ece7262b754dc60af78875e8f2e389f597412e84f4f2432f2c2879032",
+          "launch/run.sh": "ee157d509a71a875597fe367c94c30a537e3ef5629cd91bb130a1836a44b3836",
+          "launch/run_ax.sh": "5ace1eec9af56a5f9e967022afe95ba926aaa2321bafd3ff7c26723233efae98",
+          "launch/upstream-adaptations.patch": "c24b67f958f67fcc8419755608284a7c19a842096505dfee50953a76a30fc96c"
+        },
+        "substrate_revision": "672533541dbfcd29084e4de2475267088bda3651",
+        "ax_revision": "d8ed0fe38bceb7842d3c47817d53d16ccdfcb601",
+        "error_type": "RuntimeError",
+        "reason": "ax_check failed",
+        "finished_at": "2026-09-23T08:15:54.650702+00:00"
+      },
+      "probe_id": "ax-lifecycle-20260923T081351277314Z",
+      "probe": {
+        "status": "failed",
+        "run_id": "11719c9d0c74492ab245a7c8eca19850",
+        "task": "lifecycle-11719c9d0c74",
+        "cycles_planned": 3,
+        "cycles_completed": 0,
+        "reads": [],
+        "suspended_actors": [],
+        "error_type": "TimeoutError",
+        "reason": "AX task did not reach Running",
+        "finished_at": "2026-09-23T08:15:52.123215+00:00"
+      },
+      "installation": {
+        "status": "passed",
+        "images": {
+          "ax-task-runner": "localhost:5007/ax-task-runner@sha256:934dfb45d0ff7ad0c4ddae58952317ef649d13e6bfcb6d13315dced2211d40b6",
+          "ax-controller": "localhost:5007/ax-controller@sha256:8683331ec216f13cc2ec1ef75a4ce9e40392b2f0bb07c65289b6a2a0296bbdf2",
+          "ax-server": "localhost:5007/ax-server@sha256:ed3b844f22b8fe37b5406a8ba7c4ddf3d32c11f175046fca3030ccf1dbd9bf87"
+        },
+        "redis": {
+          "digest": "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+          "architecture": "arm64",
+          "image_id": "sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
+        }
+      },
+      "raw_hashes": {
+        "execution": "8765bfe1d16d79aaffe3c01282368cc502c98ef38291bb3088b6bef31d7f2a1c",
+        "probe": "b82628a265611408c54bd78f57ada9f2adac09aea33568b15594a0a82031d972",
+        "installation": "9d8140b4ffa5640f43cc7b8a7d5bb1e4e9d39fa11744d6a72788a7c5051398f9",
+        "controller_log": "e85f08bd623b8736499a6e5803d1ce8303dbc2dc97f9cf3fd7ff98b554a8ebee",
+        "commands": "c1170678797d54676269f33d0e9a744ee7172ad6015c350cd9bdc05700e6cb77"
+      },
+      "observed_task_transitions": [
+        {
+          "phase": "Pending",
+          "ready": false,
+          "reasons": [],
+          "raw_sha256": "3dfa9c8c65befc0670034ebb315bc8b43a0c2b5510e5540a5df950817ba4e275"
+        }
+      ],
+      "failure": {
+        "observed": "Task remained Pending for the declared readiness allowance; initial Redis connection refusal and no task reconciliation in controller log.",
+        "inference": "A task event may have preceded consumer-group creation at the stream tail. Original Redis metadata was not captured before cleanup; this cause is not proven."
+      }
+    },
+    {
+      "execution_id": "execution-20260923T081734268433Z",
+      "variant": "unmodified-AX-source",
+      "execution": {
+        "started_at": "20260923T081734268433Z",
+        "status": "failed",
+        "phases": [
+          {
+            "phase": "create",
+            "timeout_seconds": 600,
+            "timed_out": false,
+            "exit_code": 0,
+            "elapsed_seconds": 14.699869000120088
+          },
+          {
+            "phase": "install",
+            "timeout_seconds": 1200,
+            "timed_out": false,
+            "exit_code": 0,
+            "elapsed_seconds": 67.98037066613324
+          },
+          {
+            "phase": "counter",
+            "timeout_seconds": 600,
+            "timed_out": false,
+            "exit_code": 0,
+            "elapsed_seconds": 37.54415737488307
+          },
+          {
+            "phase": "ax_install",
+            "timeout_seconds": 600,
+            "timed_out": false,
+            "exit_code": 0,
+            "elapsed_seconds": 10.721663000062108
+          },
+          {
+            "phase": "ax_check",
+            "timeout_seconds": 600,
+            "timed_out": false,
+            "exit_code": 1,
+            "elapsed_seconds": 128.053264999995
+          }
+        ],
+        "cleanup": [
+          {
+            "resource": "autonomy-ax-spike",
+            "status": "deleted"
+          },
+          {
+            "resource": "autonomy-ax-spike-registry",
+            "status": "deleted_or_absent"
+          }
+        ],
+        "limits": {
+          "node_memory_bytes": 5368709120,
+          "node_cpus": 5,
+          "registry_memory_bytes": 268435456
+        },
+        "source_hashes": {
+          "launch/adaptation-record.json": "c4ec03aab4354f65b27fd83befdedeafb804e825142f5359c56f997aabf61b0b",
+          "launch/ax_check.py": "9006ce47fa6490e72f5dea36c723ea9e143ac1a312d5ad31e954dc54994df2bd",
+          "launch/ax_install.py": "e4f9d040e1be67969db1a339c5f0f97b496ba99410d441b461498fd346f0945b",
+          "launch/ax_probe_task.py": "4b3bb5092ea8e7de01c916ff4b667789a831dff72bfeca2e1acabc5b85b60dac",
+          "launch/counter_check.py": "023adef15a18b46c40d266256cd3c7db9a728abb0218e428817c67ee9725850a",
+          "launch/execute_ax.py": "d8cc06c35637fbea2e25dc9e91231b42deb8134291f60aa02c540504d188e966",
+          "launch/execute_bounded.py": "55ea40521718493a7578ee62a5cab2f961f453bbed28791743353f24c8057f39",
+          "launch/phase.sh": "14a415942f2eaa716a690e68db133e2967436d37a9fb532c8cc3e7bf7ebb11df",
+          "launch/phase_ax.sh": "a6060c88bb8cddd7b7ed5956285b82990619e582f937065a1ec6f8aa3486f0c8",
+          "launch/prepare_adaptations.py": "32ac909ece7262b754dc60af78875e8f2e389f597412e84f4f2432f2c2879032",
+          "launch/run.sh": "ee157d509a71a875597fe367c94c30a537e3ef5629cd91bb130a1836a44b3836",
+          "launch/run_ax.sh": "5ace1eec9af56a5f9e967022afe95ba926aaa2321bafd3ff7c26723233efae98",
+          "launch/upstream-adaptations.patch": "c24b67f958f67fcc8419755608284a7c19a842096505dfee50953a76a30fc96c"
+        },
+        "substrate_revision": "672533541dbfcd29084e4de2475267088bda3651",
+        "ax_revision": "d8ed0fe38bceb7842d3c47817d53d16ccdfcb601",
+        "error_type": "RuntimeError",
+        "reason": "ax_check failed",
+        "finished_at": "2026-09-23T08:21:56.813772+00:00"
+      },
+      "probe_id": "ax-lifecycle-20260923T081945606245Z",
+      "probe": {
+        "status": "failed",
+        "run_id": "8fdf20e4a3e1411db88772fee9b1475b",
+        "task": "lifecycle-8fdf20e4a3e1",
+        "cycles_planned": 3,
+        "cycles_completed": 0,
+        "reads": [
+          {
+            "run_id": "8fdf20e4a3e1411db88772fee9b1475b",
+            "startups": [
+              {
+                "boot_id": "036bb704-f20e-443a-8132-367ab07f0ec2",
+                "pid": 9,
+                "parent_pid": 1,
+                "started_at": 1790151586.9560156
+              }
+            ]
+          }
+        ],
+        "suspended_actors": [
+          {
+            "state": "ACTOR_STATE_SUSPENDED",
+            "snapshot_present": true,
+            "uid": "23de4b74-5c98-47f0-8e15-776ae4750917"
+          }
+        ],
+        "error_type": "TimeoutError",
+        "reason": "AX task did not reach Running",
+        "finished_at": "2026-09-23T08:21:53.570577+00:00"
+      },
+      "installation": {
+        "status": "passed",
+        "images": {
+          "ax-task-runner": "localhost:5007/ax-task-runner@sha256:934dfb45d0ff7ad0c4ddae58952317ef649d13e6bfcb6d13315dced2211d40b6",
+          "ax-controller": "localhost:5007/ax-controller@sha256:8683331ec216f13cc2ec1ef75a4ce9e40392b2f0bb07c65289b6a2a0296bbdf2",
+          "ax-server": "localhost:5007/ax-server@sha256:ed3b844f22b8fe37b5406a8ba7c4ddf3d32c11f175046fca3030ccf1dbd9bf87"
+        },
+        "redis": {
+          "digest": "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+          "architecture": "arm64",
+          "image_id": "sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
+        },
+        "consumer_group_ready": true,
+        "consumer_group_checks": 1
+      },
+      "raw_hashes": {
+        "execution": "a13f25e3a8d701a578196c6bb432e0c90118ce4a6a542e6f05d8e40c37776560",
+        "probe": "4ac951429a9dadeb8d269b517ed011910eb6921b8bbd88658e169fa2cdcef66e",
+        "installation": "4f644f5ae76cb2319f4b4c49027ac69efef5225433cc3526c373622723fe8c01",
+        "controller_log": "df07ea2ce6b4f87a77b574ea03a2035a716330220aaccc41b61e1a8cfe665941",
+        "commands": "e63fdea5bcecca94ef9f35afb06ef4938d19b6956f3ba3f0395ddfa423e43ba8"
+      },
+      "observed_task_transitions": [
+        {
+          "phase": "Pending",
+          "ready": false,
+          "reasons": [],
+          "raw_sha256": "d1b158054d0b5e13a058ea9ce531b356fe661f8234c8b411d4c24c2fdd16ec4f"
+        },
+        {
+          "phase": "Running",
+          "ready": true,
+          "reasons": [
+            "PoliciesApplied",
+            "SetupComplete",
+            "TaskRunning"
+          ],
+          "raw_sha256": "c80d245abe201235d1605f50dd43ad051aa04710b7ec9e8cbefd694abc72eeb7"
+        },
+        {
+          "phase": "Suspended",
+          "ready": false,
+          "reasons": [
+            "PoliciesApplied",
+            "SetupComplete",
+            "TaskSuspended"
+          ],
+          "raw_sha256": "fc708b872d40884d6d86529cd05adff04dfc522b265abb4df216a18f3cf0a8f4"
+        },
+        {
+          "phase": "Failed",
+          "ready": false,
+          "reasons": [
+            "PoliciesApplied",
+            "SetupComplete",
+            "ActorResumeFailed"
+          ],
+          "raw_sha256": "a887df7ad1fe71e9f3420ebe983b4119fcc5724cf9c1ce25bb13421472653068"
+        }
+      ],
+      "failure": {
+        "observed": "a Golden data resume requires the ActorTemplate golden snapshot, which is not available",
+        "golden_snapshot_taken_at": "2026-09-23T08:20:02.240530680Z",
+        "template_updated_at": "2026-09-23T08:20:02.444604722Z",
+        "data_resume_policy": "RESUME_SOURCE_GOLDEN",
+        "error_time_utc": "2026-09-23T08:19:52.917Z",
+        "redis_groups_after_failure": [
+          {
+            "name": "ax-controllers",
+            "consumers": 1,
+            "pending": 0,
+            "last-delivered-id": "1790151592903-0",
+            "entries-read": 3,
+            "lag": 0
+          }
+        ],
+        "redis_groups_sha256": "5de59040229b2dec92525f557c03235bcad0d06e7a62e8e885a833e9002f4c36",
+        "template_raw_sha256": "177b16f9b0aee2e63534cd048f44e7efed083dfdcf584d80c04d28386457a10c"
+      }
+    },
+    {
+      "execution_id": "execution-20260923T082857818525Z",
+      "variant": "cold-boot-patch",
+      "execution": {
+        "started_at": "20260923T082857818525Z",
+        "status": "failed",
+        "phases": [
+          {
+            "phase": "create",
+            "timeout_seconds": 600,
+            "timed_out": false,
+            "exit_code": 0,
+            "elapsed_seconds": 12.976069667143747
+          },
+          {
+            "phase": "install",
+            "timeout_seconds": 1200,
+            "timed_out": false,
+            "exit_code": 0,
+            "elapsed_seconds": 71.15910220798105
+          },
+          {
+            "phase": "counter",
+            "timeout_seconds": 600,
+            "timed_out": false,
+            "exit_code": 0,
+            "elapsed_seconds": 45.72795179206878
+          },
+          {
+            "phase": "ax_install",
+            "timeout_seconds": 600,
+            "timed_out": false,
+            "exit_code": 0,
+            "elapsed_seconds": 20.1330603340175
+          },
+          {
+            "phase": "ax_check",
+            "timeout_seconds": 600,
+            "timed_out": false,
+            "exit_code": 1,
+            "elapsed_seconds": 135.1352004171349
+          }
+        ],
+        "cleanup": [
+          {
+            "resource": "autonomy-ax-spike",
+            "status": "deleted"
+          },
+          {
+            "resource": "autonomy-ax-spike-registry",
+            "status": "deleted_or_absent"
+          }
+        ],
+        "limits": {
+          "node_memory_bytes": 5368709120,
+          "node_cpus": 5,
+          "registry_memory_bytes": 268435456
+        },
+        "source_hashes": {
+          "launch/adaptation-record.json": "c4ec03aab4354f65b27fd83befdedeafb804e825142f5359c56f997aabf61b0b",
+          "launch/ax_check.py": "9006ce47fa6490e72f5dea36c723ea9e143ac1a312d5ad31e954dc54994df2bd",
+          "launch/ax_install.py": "22876303801f8d3c682d060892b11bce987a6fbd35ed8df46e530eda2dbd22fb",
+          "launch/ax_probe_task.py": "4b3bb5092ea8e7de01c916ff4b667789a831dff72bfeca2e1acabc5b85b60dac",
+          "launch/build_cold_boot.py": "bb49b50e7ab232f2b4360e140831c4d0408f23a8dc565d8e8257839c7c4428cb",
+          "launch/counter_check.py": "023adef15a18b46c40d266256cd3c7db9a728abb0218e428817c67ee9725850a",
+          "launch/execute_ax.py": "f9f145af78c581f4868615f4b14240f5c6515f979895287b883a5463a82442df",
+          "launch/execute_bounded.py": "55ea40521718493a7578ee62a5cab2f961f453bbed28791743353f24c8057f39",
+          "launch/phase.sh": "14a415942f2eaa716a690e68db133e2967436d37a9fb532c8cc3e7bf7ebb11df",
+          "launch/phase_ax.sh": "a6060c88bb8cddd7b7ed5956285b82990619e582f937065a1ec6f8aa3486f0c8",
+          "launch/prepare_adaptations.py": "32ac909ece7262b754dc60af78875e8f2e389f597412e84f4f2432f2c2879032",
+          "launch/run.sh": "ee157d509a71a875597fe367c94c30a537e3ef5629cd91bb130a1836a44b3836",
+          "launch/run_ax.sh": "5ace1eec9af56a5f9e967022afe95ba926aaa2321bafd3ff7c26723233efae98",
+          "launch/upstream-adaptations.patch": "c24b67f958f67fcc8419755608284a7c19a842096505dfee50953a76a30fc96c"
+        },
+        "substrate_revision": "672533541dbfcd29084e4de2475267088bda3651",
+        "ax_revision": "d8ed0fe38bceb7842d3c47817d53d16ccdfcb601",
+        "ax_compatibility_patch": {
+          "upstream_repository": "https://github.com/google/ax",
+          "upstream_commit": "d8ed0fe38bceb7842d3c47817d53d16ccdfcb601",
+          "file": "internal/substrate/client.go",
+          "original_sha256": "b277c51e35efcef4d8cdcbf52fff801971d790a96e75385937d28a7a3d435014",
+          "patched_sha256": "bbf6ef39299f7327f77b32d05d91b2d9df99a03117c22c49b9bfaeee7aa50051",
+          "patch_sha256": "8270744611576ee8834bc258c2a270b001be24850f6e0a2c0534517cb3571316",
+          "policy": "RESUME_SOURCE_COLD_BOOT for DATA snapshots; FULL snapshots unchanged"
+        },
+        "ax_controller_binary": {
+          "path": "tools/bin/ax-controller-cold-boot-linux-arm64",
+          "sha256": "eb45ee517caf6cc72d8d8a2c9938b62ab4f21db911ffc800d86c9e9ab1ca1eed",
+          "source_sha256": "bbf6ef39299f7327f77b32d05d91b2d9df99a03117c22c49b9bfaeee7aa50051",
+          "build_record": "logs/cold-boot-build-20260923T082423594373Z"
+        },
+        "error_type": "RuntimeError",
+        "reason": "ax_check failed",
+        "finished_at": "2026-09-23T08:33:46.566559+00:00"
+      },
+      "probe_id": "ax-lifecycle-20260923T083128328461Z",
+      "probe": {
+        "status": "failed",
+        "run_id": "6b3879b6ac9745798e58f42968ac31bb",
+        "task": "lifecycle-6b3879b6ac97",
+        "cycles_planned": 3,
+        "cycles_completed": 1,
+        "reads": [
+          {
+            "run_id": "6b3879b6ac9745798e58f42968ac31bb",
+            "startups": [
+              {
+                "boot_id": "bf7786cc-d494-42e2-ba18-3991b6c105c4",
+                "pid": 9,
+                "parent_pid": 1,
+                "started_at": 1790152291.6597874
+              }
+            ]
+          },
+          {
+            "run_id": "6b3879b6ac9745798e58f42968ac31bb",
+            "startups": [
+              {
+                "boot_id": "bf7786cc-d494-42e2-ba18-3991b6c105c4",
+                "pid": 9,
+                "parent_pid": 1,
+                "started_at": 1790152291.6597874
+              },
+              {
+                "boot_id": "49e4ab6c-59da-45ae-819f-c440f6602cf6",
+                "pid": 9,
+                "parent_pid": 1,
+                "started_at": 1790152298.3841841
+              }
+            ]
+          }
+        ],
+        "suspended_actors": [
+          {
+            "state": "ACTOR_STATE_SUSPENDED",
+            "snapshot_present": true,
+            "uid": "40fd1fa6-4f55-4278-83c2-b32f60a8a0c2"
+          },
+          {
+            "state": "ACTOR_STATE_SUSPENDED",
+            "snapshot_present": true,
+            "uid": "40fd1fa6-4f55-4278-83c2-b32f60a8a0c2"
+          }
+        ],
+        "error_type": "TimeoutError",
+        "reason": "AX task did not reach Running",
+        "finished_at": "2026-09-23T08:33:43.275570+00:00"
+      },
+      "installation": {
+        "status": "passed",
+        "images": {
+          "ax-task-runner": "localhost:5007/ax-task-runner@sha256:934dfb45d0ff7ad0c4ddae58952317ef649d13e6bfcb6d13315dced2211d40b6",
+          "ax-controller": "localhost:5007/ax-controller@sha256:ff7bfde47fe775e50b39e3eb67f2072a89d04c035c00665dcff2e98273e09303",
+          "ax-server": "localhost:5007/ax-server@sha256:ed3b844f22b8fe37b5406a8ba7c4ddf3d32c11f175046fca3030ccf1dbd9bf87"
+        },
+        "redis": {
+          "digest": "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+          "architecture": "arm64",
+          "image_id": "sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
+        },
+        "consumer_group_ready": true,
+        "consumer_group_checks": 3
+      },
+      "raw_hashes": {
+        "execution": "8d14da98d54fdc22f3d42a87b8c8d42403185e419d71a52bc14d1f3a104db24d",
+        "probe": "b5a1742f3baa91a6b465c11be95b4cb0ec275776a2d399839ee2e72ca07b67b8",
+        "installation": "3314c37c443f955d9512ed31fbce2e2a6cc3317fb26bda4d042f15dc25cdaf90",
+        "controller_log": "64e3e46bc8f2553af691b1163ddcbf3cc7c7f5443d1cd2cd9ba34b07ca935d5f",
+        "commands": "8ceb693edd4bf71d1d98c84c3a7ef87b1629766501018c723949c3e765650a21"
+      },
+      "observed_task_transitions": [
+        {
+          "phase": "Pending",
+          "ready": false,
+          "reasons": [],
+          "raw_sha256": "cee45abbce0ff4711dae99a483ab81458bee216803c0f2694423086c7a318769"
+        },
+        {
+          "phase": "Running",
+          "ready": true,
+          "reasons": [
+            "PoliciesApplied",
+            "SetupComplete",
+            "TaskRunning"
+          ],
+          "raw_sha256": "119ac229cdd49d1070fa56a8e5d77e53e499f4f127dafbeeca38de00b01e55ca"
+        },
+        {
+          "phase": "Suspended",
+          "ready": false,
+          "reasons": [
+            "PoliciesApplied",
+            "SetupComplete",
+            "TaskSuspended"
+          ],
+          "raw_sha256": "d5cd8eb8b2f20ae9d7f028d1042afb8d14b63daad1ea56a773f7513da24c8d1c"
+        },
+        {
+          "phase": "Running",
+          "ready": true,
+          "reasons": [
+            "PoliciesApplied",
+            "SetupComplete",
+            "TaskRunning"
+          ],
+          "raw_sha256": "89a6357c549397d022440af254bb67068a8c65e7d77c4168ad7db8f5ea21978a"
+        },
+        {
+          "phase": "Suspended",
+          "ready": false,
+          "reasons": [
+            "PoliciesApplied",
+            "SetupComplete",
+            "TaskSuspended"
+          ],
+          "raw_sha256": "d47a5a2cc71cd6febc5624109f563e162a6b42d977bdd5deb4d57f698479031c"
+        },
+        {
+          "phase": "Failed",
+          "ready": false,
+          "reasons": [
+            "PoliciesApplied",
+            "SetupComplete",
+            "ActorResumeFailed"
+          ],
+          "raw_sha256": "f30074cc8c1299b4f2d356b9f7b0973b80763f638b4c714b19b69f1a42678f70"
+        }
+      ],
+      "observed_resource_limits": [
+        {
+          "Memory": 5368709120,
+          "MemorySwap": 5368709120,
+          "NanoCpus": 5000000000
+        },
+        {
+          "Memory": 268435456,
+          "MemorySwap": 268435456,
+          "NanoCpus": 0
+        }
+      ],
+      "failure": {
+        "observed": "ResourceExhausted: no free workers available",
+        "error_time_utc": "2026-09-23T08:31:42.921Z",
+        "failed_cycle": 2,
+        "configured_worker_replicas": 1,
+        "later_state": "Task remained Failed/Ready False until the readiness deadline.",
+        "limitation": "No API scheduler trace was captured before cleanup; competing golden-template work is plausible but not independently established."
+      },
+      "validated_completed_reconstructions": 1
+    }
+  ],
+  "compatibility_patch": {
+    "upstream_repository": "https://github.com/google/ax",
+    "upstream_commit": "d8ed0fe38bceb7842d3c47817d53d16ccdfcb601",
+    "file": "internal/substrate/client.go",
+    "original_sha256": "b277c51e35efcef4d8cdcbf52fff801971d790a96e75385937d28a7a3d435014",
+    "patched_sha256": "bbf6ef39299f7327f77b32d05d91b2d9df99a03117c22c49b9bfaeee7aa50051",
+    "patch_sha256": "8270744611576ee8834bc258c2a270b001be24850f6e0a2c0534517cb3571316",
+    "policy": "RESUME_SOURCE_COLD_BOOT for DATA snapshots; FULL snapshots unchanged"
+  },
+  "patched_controller_binary": {
+    "path": "tools/bin/ax-controller-cold-boot-linux-arm64",
+    "sha256": "eb45ee517caf6cc72d8d8a2c9938b62ab4f21db911ffc800d86c9e9ab1ca1eed",
+    "source_sha256": "bbf6ef39299f7327f77b32d05d91b2d9df99a03117c22c49b9bfaeee7aa50051",
+    "build_record": "logs/cold-boot-build-20260923T082423594373Z"
+  },
+  "patch_validation": {
+    "commands": [
+      {
+        "step": "test",
+        "goos": "darwin",
+        "arguments": [
+          "test",
+          "-mod=readonly",
+          "-p=2",
+          "./internal/controller",
+          "./internal/substrate"
+        ],
+        "returncode": 0
+      },
+      {
+        "step": "build",
+        "goos": "linux",
+        "arguments": [
+          "build",
+          "-mod=readonly",
+          "-p=2",
+          "-o",
+          "tools/bin/ax-controller-cold-boot-linux-arm64",
+          "./cmd/ax-controller"
+        ],
+        "returncode": 0
+      }
+    ],
+    "test_log_sha256": "b7b39b4b48b530c760f0f7b0f5e6ee2690c119da2958a0330c99a3a447df92f6",
+    "test_scope": "Existing controller Go tests passed; substrate package has no test files. Linux ARM64 controller built successfully."
+  },
+  "model_access": {
+    "task_model_resource": false,
+    "bootstrap_goal": false,
+    "provider_keys_supplied": false,
+    "probe_asserts_no_provider_keys": true,
+    "independent_network_audit": false
+  },
+  "limitations": [
+    "Local ARM64 single-worker gVisor lifecycle, not cross-worker or abrupt-death recovery.",
+    "The patched attempt completed one of three cycles and FAILED the declared gate; this does not establish reliable AX recovery.",
+    "No integration with the application agents or external broker operation journal.",
+    "No independent security/egress audit; the deterministic task uses no model provider.",
+    "Local launcher is not a supported clean-clone installer.",
+    "Final Fable review remains blocked by insufficient Anthropic credits."
+  ]
+}

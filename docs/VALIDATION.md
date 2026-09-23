@@ -56,6 +56,12 @@ Copies of completed basic and structured checkpoints from this pilot were tested
 
 The GitHub workflow's public upstream pins were verified. The setup-uv pin was corrected from the v6 annotated tag object to its underlying commit. The repository is now connected and [PR #1](https://github.com/rvharsha/Autonomy-Lab-/pull/1) runs tests, lint, and real Kubernetes acceptance. The [correctness follow-up](CORRECTNESS_FIXES.md) records the newer code, regressions, CI evidence and review status separately from the original pilot.
 
+## Completion experiment
+
+The [completion-discipline experiment](COMPLETION_EXPERIMENT.md) adds a declared eight-trial baseline, matching eight-trial prompt intervention and ten development regressions at source `ff9bc5f`. Supported completion rose from 3/8 to 6/8; both structured lost-ack trials still stopped on budget. All ten regressions passed. All 26 trials were retained, all three clusters were deleted, and 120 actual provider responses used 584,630 tokens within their reservations. Its [portable evidence](validation/completion-discipline.json) records the source/usage/score bindings. The 626-test suite and lint passed; final Fable review remains blocked by Anthropic credit.
+
 ## Evidence still required
 
-Repeatability across matched trials, fresh held-out cases, independent execution auditing, and the AX suspend/resume runtime need their own executed reports. A passing infrastructure suite does not establish agent reliability or production safety.
+The separate [runtime spike](AX_RUNTIME_STATUS.md) passed one real Substrate counter suspend/resume cycle. AX's three recorded attempts failed the declared three-cycle reconstruction gate; the experimental cold-boot variant completed one cycle before a worker-availability failure. These results do not validate the application's agents under AX.
+
+Broader repeatability, fresh held-out cases, independent execution auditing, reliable AX lifecycle recovery and external broker integration still need their own passing reports. A passing infrastructure suite does not establish agent reliability or production safety.

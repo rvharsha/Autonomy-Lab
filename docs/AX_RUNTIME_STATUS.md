@@ -1,6 +1,107 @@
 # AX local runtime spike status
 
-Recorded 2026-09-22 (America/Los_Angeles), with preparation performed on
+## Executed Substrate gate, 2026-09-23
+
+The first bounded local execution **passed** against the pinned Substrate
+revision. The dedicated cluster, ARM64 control plane, one counter worker,
+and authenticated API all ran. One real gVisor suspend/resume cycle preserved
+both counters: memory and durable file state advanced from `[1, 1]` to
+`[2, 2]`. The actor identity remained the same. Its state changed from RUNNING
+to SUSPENDED with no worker assignment and a nonempty external snapshot URI,
+then returned to RUNNING with an assigned worker.
+
+Execution `20260923T075602331711Z` completed its create/install/counter/check
+phases in approximately 33/197/46/3 seconds, within declared deadlines of
+600/1200/600/300 seconds. Before installation, the node was capped at 5 GiB
+and five CPUs, and the registry at 256 MiB; Docker inspection confirmed the
+limits. The dedicated cluster and registry were deleted afterward. Unrelated
+containers were left running. Kubernetes discovery caches created in the
+working directory were moved into private run evidence, and `.kube/` is now
+excluded from Git.
+
+[Selected lifecycle evidence](validation/substrate-lifecycle.json) records
+the actual state transitions, counter values, hashes, phase timings, caps and
+cleanup. Full private logs remain under `.state/ax-spike/logs/`. This validates
+one sequential Substrate/gVisor lifecycle on this host. It does not establish
+AX task reconstruction, cross-worker migration, abrupt-death recovery, or
+agent/broker integration. The preparation scripts remain local and do not
+constitute a portable installer for a fresh clone.
+
+## AX task reconstruction attempts
+
+The first AX attempt (`execution-20260923T081117877684Z`) deployed pinned
+ARM64 controller/server binaries, Redis and a model-free task-runner image.
+Its task remained Pending for the entire declared 120-second readiness
+allowance. It completed **zero of three planned suspend/resume cycles**.
+The failed probe and all logs were retained; its cluster and registry were
+deleted.
+
+The controller logged an initial Redis connection refusal and no task
+reconciliation. Source inspection found that a new consumer group starts at
+the current Redis stream tail (`XGroupCreateMkStream(..., "$")`). A task
+published before subscription can therefore be skipped. This is a plausible
+startup-order explanation, not a proven diagnosis of the original timeout:
+cleanup completed before Redis stream/group metadata could be captured.
+
+The second attempt (`execution-20260923T081734268433Z`) added a real
+consumer-readiness gate before publishing any task. It required the
+`ax-controllers` group to appear in
+Redis's actual `XINFO GROUPS` response. It does not create a group or fabricate
+an event. Initial AX Running/Ready, a live command process, a persisted startup
+record, and suspension with an external snapshot all passed. The first resume
+failed with `FailedPrecondition`: the GOLDEN data-resume policy required an
+ActorTemplate golden snapshot that was not yet available. The golden snapshot
+appeared about ten seconds later, but the controller had acknowledged the
+failed event; Redis showed no pending events, and the task did not recover
+within the 120-second readiness deadline. This attempt also completed **zero
+of three planned cycles**, and its cluster and registry were deleted.
+
+The [recorded compatibility patch](../infra/ax/README.md) changes one AX policy
+from GOLDEN to COLD_BOOT for DATA snapshots. Pinned Substrate defines cold boot
+as starting containers afresh from their OCI images with durable directories
+populated from the snapshot. This matches the lab's intended reconstruction
+contract. The original controller binary is retained, and the patched binary
+has a separate hash and image. The controller's existing Go tests and its
+Linux ARM64 build passed; the substrate adapter package has no Go test files.
+This is a lab variant, not an upstream fix or an unmodified AX success.
+
+The patched third attempt (`execution-20260923T082857818525Z`) completed
+**one of three cycles, then failed the declared gate**. After its first resume,
+the original run ID and startup record remained intact, exactly one new
+startup with a different random boot ID appeared, the command was alive, and
+AX reported Running/Ready. On the second resume, Substrate returned
+`ResourceExhausted: no free workers available`. The task remained Failed with
+Ready false until the 120-second deadline. Both observed suspensions retained
+the same actor UID and had an external snapshot. The single worker was still
+Running without restarts in the final Kubernetes observation; that does not
+mean it was available for another actor. Competing golden-template work is a
+plausible explanation, but no scheduler trace was captured before cleanup,
+so worker ownership at the failed request is not established.
+
+All three attempts retain their failures and cleanup records in the
+[selected AX evidence](validation/ax-lifecycle.json). The last cluster and
+registry were deleted. No readiness assertion, cycle count, or deadline was
+relaxed, and no failed resume command was retried. The cold-boot patch remains
+experimental; it is not integrated into the application runtime. The next
+runtime work must account for worker capacity and recover safely from
+transient scheduling failures, then repeat the full lifecycle gate before
+testing external broker-journal reconciliation.
+
+The three reconstruction cycles and their assertions remain
+unchanged: preserve run identity and prior durable records, add exactly one
+startup with a new random boot ID per resume, retain a live command process,
+and observe AX Running/Ready after a Substrate SUSPENDED state with an
+external snapshot. No model resource, bootstrap goal, or model credential is
+provided. This local launcher gate does not fix general AX event recovery
+when controllers start late or fail.
+
+## Historical preparation record
+
+**Everything below records earlier preparation, before the executions above.**
+Its statements about unexecuted phases and unchanged source apply to those
+historical checkpoints, not to the current runtime status.
+
+The following records preparation on 2026-09-22 (America/Los_Angeles), performed on
 2026-09-23 from 01:56 UTC. **Source checkout, tool verification, ARM compilation,
 local manifest rendering, and public ARM image-manifest checks passed. No AX/Substrate deployment or suspend/resume
 test has run.** This extends the source assessment in [AX_FEASIBILITY.md](AX_FEASIBILITY.md).

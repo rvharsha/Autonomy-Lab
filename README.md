@@ -8,6 +8,8 @@ The application is real: Quote API → Inventory Service → Inventory API → P
 
 The [adversarial self-review](docs/ADVERSARIAL_REVIEW.md) records the original findings and remaining architecture gates. The [correctness follow-up](docs/CORRECTNESS_FIXES.md) tracks their implementation, validation, and review status.
 
+A [focused completion experiment](docs/COMPLETION_EXPERIMENT.md) tests one shared prompt change under unchanged budgets: supported completion rose from 3/8 to 6/8 in matched development conditions. Structured lost-acknowledgement trials still exhausted their budgets. This is development evidence; held-out validation remains outstanding.
+
 ## Run the acceptance demo
 
 Requirements: Docker running, Python 3.12, `uv`, and internet access for pinned tools/images/dependencies. The initial setup downloads a Kubernetes node image and application dependencies. All cluster configuration remains in this project; commands select a dedicated `autolab-*` context.
@@ -59,7 +61,7 @@ The pilot is development evidence, not a statistical reliability claim. Injected
 - Agent-visible tools contain no shell, arbitrary URL, database write, or unrestricted Kubernetes command. Broker and verifier use separate Kubernetes identities; application and verifier database users have SELECT-only access.
 - The trusted local controller holds cluster-admin credentials for setup and scenario injection. The Python orchestration code is trusted. This is not an isolation environment for arbitrary untrusted Python programs.
 - API mutation logs are client instrumentation, not independent Kubernetes audit logs. The scorer leaves comprehensive unsafe-execution attribution unassessed.
-- Checkpoint resumption currently reconstructs local files. AX runtime suspend/resume has not been executed. [AX feasibility](docs/AX_FEASIBILITY.md) records pinned source findings and the required next spike.
+- Application checkpoint resumption currently reconstructs local files. A separate [AX runtime spike](docs/AX_RUNTIME_STATUS.md) passed the Substrate counter lifecycle, but AX failed its three-cycle gate: an experimental cold-boot patch completed one cycle before a worker-availability failure. Agent/broker integration remains outstanding.
 - The basic/structured comparison changes an internal state tool and prompt as well as representation. Full interaction history remains available to both; this does not establish a memory-compression benefit.
 - The initial corpus uses declared, versioned test inputs. All reported system outcomes must come from actual executions.
 
