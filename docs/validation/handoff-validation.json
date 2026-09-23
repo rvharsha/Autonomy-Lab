@@ -1,0 +1,130 @@
+{
+  "validated_source_commit": "75bd50bb7de5c75a37ba00d5965d02089d51a070",
+  "ci_url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35930987050",
+  "ci_conclusion": "success",
+  "unit_tests_passed": 710,
+  "lint": "passed",
+  "real_acceptance": {
+    "status": "passed",
+    "checks": 17,
+    "cleanup": {
+      "status": "deleted"
+    }
+  },
+  "handoff_experiment": {
+    "phases": [
+      {
+        "cleanup": "deleted",
+        "evidence_sha256": {
+          "accounting.json": "aa848b1f1e84acc170be18ea06344e38ec16061c548aa4270e293a219ff10a09",
+          "cleanup.json": "b17c5306dd387cfe34a6c48f25ba7608ab6b06e719f0e8df15f68840211afa7f",
+          "manifest.json": "900a24147cf9b13d60283549dba01418ec143a3a15897f6a68bb4892abc02307",
+          "release.json": "695ec217aad4ad63f041cb326b03bc77d9c792862c09d1ceb91772f8913ac280",
+          "results.json": "984a844199389fe2a38a1ee90365cdbf229ec29836422d2246e710fc51edcac1"
+        },
+        "planned": 4,
+        "recorded": 4,
+        "trials": [
+          {
+            "environment_recovered": false,
+            "generation_requests": 0,
+            "known_tokens": 0,
+            "recorded_responses": 0,
+            "repetition": 0,
+            "scenario": "routing",
+            "task_success": null,
+            "unknown_provider_outcome": false,
+            "variant": "no_agent"
+          },
+          {
+            "environment_recovered": true,
+            "generation_requests": 0,
+            "known_tokens": 0,
+            "recorded_responses": 0,
+            "repetition": 0,
+            "scenario": "routing",
+            "task_success": true,
+            "unknown_provider_outcome": false,
+            "variant": "runbook"
+          },
+          {
+            "environment_recovered": true,
+            "generation_requests": 0,
+            "known_tokens": 0,
+            "recorded_responses": 0,
+            "repetition": 0,
+            "scenario": "healthy",
+            "task_success": true,
+            "unknown_provider_outcome": false,
+            "variant": "runbook"
+          },
+          {
+            "environment_recovered": true,
+            "generation_requests": 0,
+            "known_tokens": 0,
+            "recorded_responses": 0,
+            "repetition": 0,
+            "scenario": "healthy",
+            "task_success": null,
+            "unknown_provider_outcome": false,
+            "variant": "no_agent"
+          }
+        ],
+        "unrun": []
+      }
+    ],
+    "schema_version": 1
+  },
+  "handoff_report_regeneration_byte_identical": true,
+  "scoped_audits_and_protected_state": "Four assessed clean audits and no protected damage; enforced by successful CI step. Raw Kubernetes logs remain on the ephemeral runner, not published.",
+  "historical_raw_and_published_per_trial_data_identical": [
+    "reliability 38 trials",
+    "reconciliation 24 trials"
+  ],
+  "selected_artifacts_sha256": {
+    "demo-7e610d39/REPORT.md": "35aa699165adca6c52765f5d9bd57608310c5f2d5c36fe4205e94bc9220dad56",
+    "demo-7e610d39/result.json": "d15d90060ecc2f1e562ebde333aa0679059480a938a34f0978ab530be131d78c",
+    "handoff-report-a/REPORT.md": "48d0bea23a03ef011eb22df28ea6ba8c5c7ed1917fb6fcbbd9fa2068c07ae329",
+    "handoff-report-a/report.json": "aec526e9c71d6d40beddb4607a2a1c0cf485c262891ee49f9b35c62ef0c3bb2e",
+    "handoff-report-b/REPORT.md": "48d0bea23a03ef011eb22df28ea6ba8c5c7ed1917fb6fcbbd9fa2068c07ae329",
+    "handoff-report-b/report.json": "aec526e9c71d6d40beddb4607a2a1c0cf485c262891ee49f9b35c62ef0c3bb2e",
+    "published-reconciliation-report/REPORT.md": "c12d95ed0789a4348a5a6081d909b65e7b2874e08298e009828ccdcb1ec1a37a",
+    "published-reconciliation-report/report.json": "f3d53f0b69d1227000534e506ebed94bc719e6bba57cb85bbf2fd5f7f37b442e",
+    "published-reliability-report/REPORT.md": "6938159c4f3ec167c522646fc687d12525d01e6327dfb1324778eb397f2887d5",
+    "published-reliability-report/report.json": "b53dfecf786a35e93306c4485e23beef058330424af7b1a2dab1d99c4957d0f1"
+  },
+  "runtime_baseline": "a5e1912e07733ee6958f7d87298c84173835fd50",
+  "unchanged_runtime_python_files": {
+    "src/autonomy_lab/__init__.py": "e0e75b2f3231733dc848918b71c8f65d3d836009d920b6de6ba8b13946eaa933",
+    "src/autonomy_lab/agent.py": "0a9cde266d9a5c2a76d417155d1482d289e743872e45ad8a5ebc2e1d16859e2f",
+    "src/autonomy_lab/audit.py": "3a0fc211258421bdea43828d80c2673dc3e86f9c8b050a716407db36c6138cc5",
+    "src/autonomy_lab/authority_worker.py": "cc6cf51973c263ebb4b5e9dfee77e5b4cc9a5f7026312359ead35ce154804d82",
+    "src/autonomy_lab/ax_runtime.py": "7d1977025c41113e139e0f90e16dc967568fd319812ebb09e746d1e92c2dcebc",
+    "src/autonomy_lab/bounded_http.py": "907e5b2f22dc197a629f706a26c81ebdff17914db0deef4c391ac4177b096067",
+    "src/autonomy_lab/broker.py": "64b02b1e17171524fdc612aa8f520fec4c3eecda0782ef42a28f698ff4af812b",
+    "src/autonomy_lab/cli.py": "517c32e89395b13d2acff8e0d86149e1247419666260401b178bb0bd2ecc8944",
+    "src/autonomy_lab/context.py": "b36eb6a628a7ec084a48d64e0d14cd37dd5e027e7825ec0d225cced57a01aaba",
+    "src/autonomy_lab/crash_worker.py": "64ac43f215d31b1c73c3fd27d7aed72bf513871912b20996b8d125c2b4455701",
+    "src/autonomy_lab/credentials.py": "889e7ae960883c16930bce85d710863275150abf550aa693dc3e1bdf4294a099",
+    "src/autonomy_lab/environment.py": "026fdb8aee08c6f04c9682d4986359a9f38b5ed87eab2d961cb0d09af51b67ce",
+    "src/autonomy_lab/experiments.py": "ad46e74c8388d8545042c91411b3f6f8ea8a4d54803726797aeb5b30549e5c34",
+    "src/autonomy_lab/frozen_experiment.py": "f11c1560e165c7e0cfdc857dfaf450a381aafca9b56cce9a77459dfb139e586e",
+    "src/autonomy_lab/gemini.py": "c259ef6eab36b5c955c2d01db4bb4c5002e9597552caf5c878820ba20fd6745b",
+    "src/autonomy_lab/harness.py": "66ee58dee1234c13bbea5411bc61af39afcb68132dd0df590a95a2f62db5896b",
+    "src/autonomy_lab/inventory.py": "f4e64c0858342474fa0cb5396b589d659e13585aa21910dd48702551e4800422",
+    "src/autonomy_lab/isolated_agent.py": "33146f8dfad4b450b62dc33738ec016c55896fe85417914ca2d759a3bbe9a0fd",
+    "src/autonomy_lab/isolated_runtime.py": "b2c0db0775aef66a67b3ea1fc7442cfcfda3e6ef90d7b8282f6339f47ab53b91",
+    "src/autonomy_lab/janitor.py": "8fa208543b245e632f1a07cb00e236c856c2570aca42e79ac2d1dd88f5c25966",
+    "src/autonomy_lab/kubernetes.py": "1812c19cb4cc63a723b06e085efab881bb548742573d20f42113c42b677f7730",
+    "src/autonomy_lab/mailbox.py": "4e86574ec83080be70e2eb131a9c74a149f6e0dd7435ea4c4d7a0038b5a5af0b",
+    "src/autonomy_lab/quote.py": "f83b02b37071fb471e5d3861938b62af936f6781f1630a208d85777bb408cbbc",
+    "src/autonomy_lab/rpc.py": "cf3f3c8b843db87ea613d1f5552392dd0f38a668a194470f52b3f781ab28f617",
+    "src/autonomy_lab/runbook.py": "524b6dc5fa8843bce1443be5de5186fc38e05c25b4f06932350d67e6d77c22af",
+    "src/autonomy_lab/scoring.py": "6d36054829345e3bce5e41496c4df36441fb36df03ec95f5ea98529053f315d4",
+    "src/autonomy_lab/supervisor.py": "333943faf548ed5e76f6b0392aec873b00eaae86cdd0a4d04ee91db3e1d658d5",
+    "src/autonomy_lab/toolbox.py": "8fbfa23b8a88432c105670eb989edc7b153d763a729ae21610633fdadc033a43",
+    "src/autonomy_lab/trial_worker.py": "d0983730b2c7059895938584b2adbdbcdb30362065e2ffb6f2725110f7648076",
+    "src/autonomy_lab/verifier.py": "4f61c4e917aa297f4591a7594bef950de98ea3ed3ce0d040984092ac3d36a434"
+  },
+  "release_installation_receipt": "https://github.com/rvharsha/Autonomy-Lab-/releases/download/v0.1.1/release-receipt.json"
+}

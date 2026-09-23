@@ -52,6 +52,8 @@ PYTHONPATH=src .venv/bin/python scripts/run_evaluation.py \
 
 This plans 38 trials. Add `--execute --env-file ~/Dev/.env` only when deliberately starting a new paid experiment. Gemini uses `gemini-3.8-flash`. Reconciliation conditions are similarly specified by its development and validation manifests (24 trials). **Running an old manifest on the current release tests the current code under those conditions.** It does not reproduce the old candidate's source or turn known cases into unseen data. Historical source commits and limitations are in each experiment report; checkout that exact commit for historical source reproduction. Provider outputs and availability are not deterministic.
 
+The credential loader reads only its accepted key assignments and never evaluates shell expressions. It treats unquoted `#` as a comment: quote the entire value if it contains `#`. It is a restricted data parser, not a complete shell or dotenv interpreter. The default `~/Dev/.env` path is expanded by the existing credential/runtime helpers.
+
 ## Ten-minute discussion walkthrough
 
 Use a completed demo's report if provisioning would consume the discussion time. Spend two minutes on the reasoning/authority/verification boundary, four minutes on the [three trajectories](TRAJECTORIES.md), two minutes on the [findings and null results](FINDINGS.md), and two minutes on what evidence would justify a new scope of authority. The source, manifest, report and original failure should be available together. This is a research demonstration, not an assertion that every agent incident completes.

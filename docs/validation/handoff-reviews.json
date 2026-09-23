@@ -1,0 +1,310 @@
+{
+  "provider": "Anthropic direct",
+  "reviews": [
+    {
+      "started_at": "2026-09-23T22:49:36.152124+00:00",
+      "finished_at": "2026-09-23T22:50:18.467256+00:00",
+      "model": "claude-fable-5-1",
+      "status": "completed",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 314,
+            "included": "full_source",
+            "lines": 18,
+            "path": "scenarios/handoff-acceptance.yaml",
+            "sha256": "b67186a2bb41ab85db43e3ed650393689db9aa12485257a11afe9077573d18b7"
+          },
+          {
+            "bytes": 7313,
+            "included": "full_source",
+            "lines": 152,
+            "path": "scripts/export_report.py",
+            "sha256": "8a4b27d7f52a32c65d14e8facb7f64a818b7507d2309faaf8eff1dadeb8bdba1"
+          },
+          {
+            "bytes": 2776,
+            "included": "full_source",
+            "lines": 70,
+            "path": "scripts/run_evaluation.py",
+            "sha256": "e9860ffdc5392b91338abd63a76f029e516c17559280aee2f0068d331386c374"
+          },
+          {
+            "bytes": 4457,
+            "included": "test_index",
+            "lines": 109,
+            "path": "tests/test_handoff.py",
+            "sha256": "e335ccbde9a8582e11eedb008a7cfcb38165066e1b6b0bf2a6bde422c04b8530"
+          }
+        ],
+        "prompt_sha256": "d2cf808b0b9e9a4c78666a5ff7901c5e5e411b723eeeec4a4fdf8e6c03e7adab",
+        "review_kind": "initial",
+        "scope": "handoff",
+        "snapshot_id": "1dd9a567baff5c4a68e2a78be82f909d4dcf074e439631a6b10401ce8b4ad820",
+        "source_bytes": 14860
+      },
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 5332,
+        "output_tokens": 3024,
+        "output_tokens_details": {
+          "thinking_tokens": 1679
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.20452,
+      "findings": [
+        {
+          "finding": "Control-arm usage could be overwritten with zero",
+          "decision": "fixed",
+          "evidence": "Reject recorded nonzero control generation usage; both raw and published paths have regression checks."
+        },
+        {
+          "finding": "Freeze baseline may depend on phase configuration",
+          "decision": "rejected",
+          "evidence": "Inspected experiments.release_manifest: its files mapping is a fixed set independent of configuration. Configuration affects release_id, not files. A shared suite source baseline is intentional."
+        }
+      ]
+    },
+    {
+      "started_at": "2026-09-23T22:51:11.911968+00:00",
+      "finished_at": "2026-09-23T22:51:55.933831+00:00",
+      "model": "claude-fable-5-1",
+      "status": "completed",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 314,
+            "included": "full_source",
+            "lines": 18,
+            "path": "scenarios/handoff-acceptance.yaml",
+            "sha256": "b67186a2bb41ab85db43e3ed650393689db9aa12485257a11afe9077573d18b7"
+          },
+          {
+            "bytes": 7589,
+            "included": "full_source",
+            "lines": 155,
+            "path": "scripts/export_report.py",
+            "sha256": "a4cd77743dbc60b61e31b403814f0d3f8c2c7b3ae8f6aca9172c9bf042e8b5f0"
+          },
+          {
+            "bytes": 2776,
+            "included": "full_source",
+            "lines": 70,
+            "path": "scripts/run_evaluation.py",
+            "sha256": "e9860ffdc5392b91338abd63a76f029e516c17559280aee2f0068d331386c374"
+          },
+          {
+            "bytes": 5048,
+            "included": "test_index",
+            "lines": 121,
+            "path": "tests/test_handoff.py",
+            "sha256": "c4b6649d49543def828f2a5959c525d5eaf6b385023f463f4060834c0cf39f80"
+          }
+        ],
+        "prompt_sha256": "56a070143e632272c5dbc7dc424cd63fcdaa277dc1f78fabec6c3db40e268c53",
+        "review_kind": "initial",
+        "scope": "handoff",
+        "snapshot_id": "b93562a2ea43eb836204e03815e370c5a807706024f6756835e2b542e1ae3c82",
+        "source_bytes": 15727
+      },
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 5451,
+        "output_tokens": 3029,
+        "output_tokens_details": {
+          "thinking_tokens": 1838
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.20596,
+      "findings": [
+        {
+          "finding": "Unavailable-accounting flag could hide positive usage",
+          "decision": "fixed",
+          "evidence": "Reject positive counters when accounting is marked unavailable. Historical zero placeholders become unknown; no missing model usage is asserted to be zero."
+        },
+        {
+          "finding": "Failed phase remains running",
+          "decision": "fixed with explicit limit",
+          "evidence": "Exception marks current phase interrupted and later phases unrun. If run_experiment has not returned, the path remains explicitly unknown; existing raw artifacts are preserved and no retry is performed."
+        },
+        {
+          "finding": "Published trials lack score.environment_recovered",
+          "decision": "rejected",
+          "evidence": "Both retained selected report schemas carry score.environment_recovered. Offline raw-to-published comparisons match every selected per-trial field."
+        }
+      ]
+    },
+    {
+      "started_at": "2026-09-23T22:53:55.170766+00:00",
+      "finished_at": "2026-09-23T22:54:46.460708+00:00",
+      "model": "claude-fable-5-1",
+      "status": "completed",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 314,
+            "included": "full_source",
+            "lines": 18,
+            "path": "scenarios/handoff-acceptance.yaml",
+            "sha256": "b67186a2bb41ab85db43e3ed650393689db9aa12485257a11afe9077573d18b7"
+          },
+          {
+            "bytes": 7852,
+            "included": "full_source",
+            "lines": 158,
+            "path": "scripts/export_report.py",
+            "sha256": "404a2951233ad03412b6b100e42624ef489edb58f1c09c490892814a2a5edd31"
+          },
+          {
+            "bytes": 3001,
+            "included": "full_source",
+            "lines": 74,
+            "path": "scripts/run_evaluation.py",
+            "sha256": "152d0b68efd745715c286a0198082cac3b42400bea880eb55aa52a1f6b891fa3"
+          },
+          {
+            "bytes": 5496,
+            "included": "test_index",
+            "lines": 131,
+            "path": "tests/test_handoff.py",
+            "sha256": "cec573a2c877ff919269dc25c715db7f4341516d07680de1261d644970fa73d0"
+          }
+        ],
+        "prompt_sha256": "0ee08aca1dcb3251b46cf8fb0ebf9b1c624b96610e50450a509dbfd13d09e3a0",
+        "review_kind": "initial",
+        "scope": "handoff",
+        "snapshot_id": "a6195f241f574dcbb509eed8abcc43b772a896296a8f6bf892047bd2566e91cb",
+        "source_bytes": 16663
+      },
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 5649,
+        "output_tokens": 3536,
+        "output_tokens_details": {
+          "thinking_tokens": 2357
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.23329,
+      "findings": [
+        {
+          "finding": "Returned directory could be lost if accounting parsing fails",
+          "decision": "fixed",
+          "evidence": "Journal returned run_dir before opening accounting; regression test confirms retained path and interrupted status."
+        },
+        {
+          "finding": "Default credential path is not tilde-expanded",
+          "decision": "rejected",
+          "evidence": "credentials.gemini_key expands the path; frozen_experiment.freeze also expands it. The follow-up snapshot includes these unchanged helpers."
+        }
+      ]
+    },
+    {
+      "started_at": "2026-09-23T22:55:37.975255+00:00",
+      "finished_at": "2026-09-23T22:56:36.662080+00:00",
+      "model": "claude-fable-5-1",
+      "status": "completed",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 314,
+            "included": "full_source",
+            "lines": 18,
+            "path": "scenarios/handoff-acceptance.yaml",
+            "sha256": "b67186a2bb41ab85db43e3ed650393689db9aa12485257a11afe9077573d18b7"
+          },
+          {
+            "bytes": 7852,
+            "included": "full_source",
+            "lines": 158,
+            "path": "scripts/export_report.py",
+            "sha256": "404a2951233ad03412b6b100e42624ef489edb58f1c09c490892814a2a5edd31"
+          },
+          {
+            "bytes": 3094,
+            "included": "full_source",
+            "lines": 76,
+            "path": "scripts/run_evaluation.py",
+            "sha256": "29535f398b7fe3e1c65e3ec7f6cf08c779a65801566eb16838c23f477f5770ab"
+          },
+          {
+            "bytes": 1116,
+            "included": "full_source",
+            "lines": 28,
+            "path": "src/autonomy_lab/credentials.py",
+            "sha256": "889e7ae960883c16930bce85d710863275150abf550aa693dc3e1bdf4294a099"
+          },
+          {
+            "bytes": 2689,
+            "included": "full_source",
+            "lines": 61,
+            "path": "src/autonomy_lab/frozen_experiment.py",
+            "sha256": "f11c1560e165c7e0cfdc857dfaf450a381aafca9b56cce9a77459dfb139e586e"
+          },
+          {
+            "bytes": 6157,
+            "included": "test_index",
+            "lines": 144,
+            "path": "tests/test_handoff.py",
+            "sha256": "213d983fe92d20070a86c2cb6f6abeab2b1b0426fc4bae59b06a5c917782c536"
+          }
+        ],
+        "prompt_sha256": "b85f800df24e10b67e03e058e358b360bf432bcbc0db683a852ded33c1f86c82",
+        "review_kind": "initial",
+        "scope": "handoff",
+        "snapshot_id": "6b3786a02ec9b1d3903379035dd1c6fc0fd83a10c69fc05136e8ee0dca50183a",
+        "source_bytes": 21222
+      },
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 7594,
+        "output_tokens": 4363,
+        "output_tokens_details": {
+          "thinking_tokens": 3262
+        },
+        "service_tier": "standard"
+      },
+      "usage_cost_estimate_usd": 0.29409,
+      "findings": [
+        {
+          "finding": "Freeze baseline may depend on phase configuration",
+          "decision": "rejected",
+          "evidence": "Same conditional finding as review 1; actual release_manifest files mapping remains independent of configuration."
+        },
+        {
+          "finding": "Unquoted hash characters are treated as comments in credential values",
+          "decision": "documented parser limitation",
+          "evidence": "Pre-existing restricted shlex parser, unchanged in this release. Reproduction guide requires quoting literal hash characters. No full shell/dotenv compatibility is claimed; quoted form preserves the value."
+        }
+      ]
+    }
+  ],
+  "final_reviewed_files_match": true,
+  "limitations": "Model source reviews are additional evidence, not approval or executed tests. Test bodies were indexed, not reviewed. Raw responses and model thinking remain private. Unchanged helper modules were included for call-site context."
+}
