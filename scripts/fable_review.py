@@ -33,7 +33,7 @@ MAX_INPUT_TOKENS = 50_000
 MAX_OUTPUT_TOKENS = 6_000
 MAX_BUDGET_USD = 1.0
 COMPONENT_SCOPES = {
-    "handoff": (set(), {"handoff"}),
+    "handoff": ({"credentials", "frozen_experiment"}, {"handoff"}),
     "isolation": ({"isolated_runtime", "isolated_agent", "rpc", "authority_worker"}, {"isolated_runtime"}),
     "context": ({"agent", "context"}, set()),
     "context_logic": ({"context"}, {"context"}),

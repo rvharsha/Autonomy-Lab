@@ -129,3 +129,16 @@ def test_suite_preserves_exception_and_unrun_phases(tmp_path, monkeypatch):
     assert saved["status"] == "stopped" and saved["phases"][1]["status"] == "unrun"
     assert saved["phases"][0]["status"] == "interrupted"
     assert saved["phases"][0]["run_directory_unknown"] is True
+
+
+def test_suite_keeps_returned_directory_when_accounting_is_unreadable(tmp_path, monkeypatch):
+    record = runner.plan([ROOT / "scenarios/handoff-acceptance.yaml"])
+    run_dir = tmp_path / "retained-run"
+    run_dir.mkdir()
+    monkeypatch.setattr(runner, "run_experiment", lambda *args, **kwargs: run_dir)
+    with pytest.raises(FileNotFoundError):
+        runner.execute(record, tmp_path / "suite", None)
+    saved = json.loads((tmp_path / "suite/evaluation.json").read_text())
+    assert saved["phases"][0]["status"] == "interrupted"
+    assert saved["phases"][0]["run_dir"] == str(run_dir)
+    assert saved["phases"][0]["run_directory_unknown"] is False

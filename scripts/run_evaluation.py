@@ -37,7 +37,9 @@ def execute(record, output, env_file):
             phase["status"] = "running"
             save(output / "evaluation.json", record)
             run_dir = run_experiment(phase["config"], env_file=env_file)
-            phase.update(status="finished", run_dir=str(run_dir),
+            phase["run_dir"] = str(run_dir)
+            save(output / "evaluation.json", record)
+            phase.update(status="finished",
                          accounting=json.loads((run_dir / "accounting.json").read_text()))
             save(output / "evaluation.json", record)
             if release_manifest(phase["config"])["files"] != record["source_files"]:
@@ -47,7 +49,7 @@ def execute(record, output, env_file):
         for phase in record["phases"]:
             if phase["status"] == "running":
                 phase.update(status="interrupted", error_type=type(error).__name__,
-                             run_directory_unknown=True)
+                             run_directory_unknown="run_dir" not in phase)
         record.update(status="stopped", error_type=type(error).__name__)
         raise
     finally:
