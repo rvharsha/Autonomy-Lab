@@ -1,6 +1,7 @@
 """Private broker/verifier processes. Never loaded in the agent image."""
 
 import sys
+import uuid
 from pathlib import Path
 
 from autonomy_lab.broker import ActionBroker, BrokerPolicy
@@ -8,6 +9,10 @@ from autonomy_lab.harness import save
 from autonomy_lab.kubernetes import Kubernetes
 from autonomy_lab.rpc import error_record, read_frame, write_frame
 from autonomy_lab.verifier import verify
+
+
+class OperationNotFound(KeyError):
+    pass
 
 
 def main():
@@ -26,7 +31,6 @@ def main():
                 return response
 
         broker = ActionBroker(Path(config["journal"]), BrokerPolicy(**config["policy"]), Adapter())
-    index = 0
     while True:
         try:
             request = read_frame(sys.stdin.buffer)
@@ -38,12 +42,17 @@ def main():
                     raise ValueError("Unknown broker method")
                 if request["method"] == "propose":
                     kube.audit_operation_id = request["argument"]["operation_id"]
-                result = getattr(broker, request["method"])(request["argument"])
+                if request["method"] == "lookup":
+                    try:
+                        result = broker.lookup(request["argument"])
+                    except KeyError:
+                        raise OperationNotFound from None
+                else:
+                    result = getattr(broker, request["method"])(request["argument"])
             elif config["role"] == "verifier" and request["method"] == "verify":
-                index += 1
                 config["verification"]["expectations_path"] = Path(config["verification"]["expectations_path"])
                 result = verify(**config["verification"], service_reader=lambda: kube.get_service(kube.namespace, "inventory"))
-                save(Path(config["run_dir"]) / f"verification-{index}.json", result)
+                save(Path(config["run_dir"]) / f"verification-{uuid.uuid4().hex}.json", result)
             else:
                 raise ValueError("Unknown authority method")
             response = {"result": result}

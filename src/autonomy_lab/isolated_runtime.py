@@ -50,7 +50,7 @@ class AuthorityProcess:
             raise
         if "error" in response:
             kind = response["error"]["error_type"]
-            if kind == "KeyError":
+            if kind == "OperationNotFound":
                 raise KeyError(argument)
             if kind == "OperationConflict":
                 raise OperationConflict("operation_id_conflict")

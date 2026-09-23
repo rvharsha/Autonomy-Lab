@@ -53,7 +53,7 @@ for binary in ["ax-task-runner", "ax-controller", "ax-server"]:
         package.mkdir(exist_ok=True)
         for name in ["__init__.py", "agent.py", "context.py", "rpc.py", "isolated_agent.py", "mailbox.py"]:
             shutil.copyfile(project / "src/autonomy_lab" / name, package / name)
-        extra = "COPY requirements.lock /app/requirements.lock\nRUN pip install --no-cache-dir --require-hashes -r /app/requirements.lock\nCOPY --chmod=0555 autonomy_lab /app/autonomy_lab\nENV PYTHONPATH=/app PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1\n"
+        extra = "COPY requirements.lock /app/requirements.lock\nRUN pip install --no-cache-dir --require-hashes -r /app/requirements.lock\nCOPY autonomy_lab /app/autonomy_lab\nRUN chmod -R 0555 /app/autonomy_lab\nENV PYTHONPATH=/app PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1\n"
     dockerfile.write_text(
         f'FROM {base}\nCOPY {binary} /usr/local/bin/{binary}\nCOPY ax_probe_task.py /usr/local/bin/ax_probe_task.py\n{extra}ENTRYPOINT ["/usr/local/bin/{binary}"]\n'
     )

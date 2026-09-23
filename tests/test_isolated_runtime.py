@@ -132,3 +132,19 @@ def test_rpc_budget_survives_new_process_and_cannot_increase(tmp_path):
     charge_rpc(path, 100)
     with pytest.raises(ValueError, match='budget'):
         charge_rpc(path, 100)
+
+
+def test_real_authority_process_distinguishes_journal_miss_from_malformed_request(tmp_path):
+    from autonomy_lab.isolated_runtime import AuthorityProcess
+    from autonomy_lab.rpc import RemoteError
+    config = {'role': 'broker', 'kubeconfig': str(tmp_path / 'unused'), 'cluster_name': 'autolab-12345678',
+              'namespace': 'autonomy-lab', 'journal': str(tmp_path / 'journal.sqlite'),
+              'policy': {'run_id': 'unit', 'namespace': 'autonomy-lab', 'service_name': 'inventory',
+                         'service_uid': 'unit', 'max_dispatches': 1}, 'withhold_ack': False}
+    with AuthorityProcess(config, tmp_path / 'worker.log') as authority:
+        with pytest.raises(KeyError):
+            authority.lookup('missing')
+        with pytest.raises(RemoteError, match='KeyError'):
+            authority.propose({})
+        with pytest.raises(KeyError):
+            authority.lookup('still-missing')

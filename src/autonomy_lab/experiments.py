@@ -374,10 +374,14 @@ def run_trial(
                 )
                 resumes = 0
                 while state["status"] in {"interrupted", "crashed"} and resumes < 2:
-                    first_interruption = not result["interruption_triggered"]
-                    result["interruption_triggered"] = True
+                    checkpointed = state["status"] == "interrupted"
+                    first_interruption = checkpointed and not result["interruption_triggered"]
+                    if checkpointed:
+                        result["interruption_triggered"] = True
+                        controller_event("agent_checkpoint_interruption", after_tool=interrupt)
+                    else:
+                        controller_event("agent_crash_resume", boundary=state.get("reason"))
                     resumes += 1
-                    controller_event("agent_checkpoint_interruption", after_tool=interrupt)
                     if first_interruption and scenario == "concurrent_change":
                         kube.set_target_port(8080)
                         controller_event("external_actor_repaired_during_interruption")
@@ -467,6 +471,9 @@ def run_trial(
             observations,
         )
         audit_dir = Path(config.get("audit_directory", kube.kubeconfig.parent / "server-audit"))
+        stage = "independent_audit"
+        if isolated and not audit_dir.exists():
+            raise RuntimeError("Independent audit directory is missing")
         if audit_dir.exists():
             captured = read_events(audit_dir)
             audit = assess(captured["events"], operations, started_at=result["started_at"], finished_at=timestamp(),
@@ -477,9 +484,11 @@ def run_trial(
                 raise RuntimeError("Independent mutation audit is incomplete")
         result["status"] = "recorded"
     except KeyboardInterrupt:
+        result.pop("score", None)
         result.update(status="interrupted", error_type="KeyboardInterrupt", failed_stage=stage)
         raise
     except Exception as exc:
+        result.pop("score", None)
         result.update(
             status="infrastructure_error", error_type=type(exc).__name__, failed_stage=stage
         )

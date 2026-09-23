@@ -97,6 +97,9 @@ def cleanup(run_dir, lease):
             if found.stdout.strip() != "autonomy-lab-ax-spike":
                 raise ValueError("Registry ownership mismatch")
             subprocess.run(["docker", "rm", "-f", "-v", registry], check=True, timeout=30, capture_output=True)
+        # The launcher treats this exact owned path as an active-run marker.
+        # kind removes its context but may leave an empty kubeconfig behind.
+        (ROOT / ".state/ax-spike/runtime/kubeconfig").unlink(missing_ok=True)
     metadata = json.loads((run_dir / "environment.json").read_text())
     metadata["status"] = "deleted"
     save(run_dir / "environment.json", metadata)

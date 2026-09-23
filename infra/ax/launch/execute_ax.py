@@ -44,6 +44,9 @@ status = {
     "ax_revision": "d8ed0fe38bceb7842d3c47817d53d16ccdfcb601",
     "ax_compatibility_patch": json.loads((project / "infra/ax/patch-manifest.json").read_text()),
     "recovery_patch_sha256": hashlib.sha256((project / "infra/ax/recovery.patch").read_bytes()).hexdigest(),
+    "privilege_drop_patch_sha256": hashlib.sha256((project / "infra/ax/privilege-drop.patch").read_bytes()).hexdigest(),
+    "durable_cleanup_patch_sha256": hashlib.sha256((project / "infra/ax/durable-cleanup.patch").read_bytes()).hexdigest(),
+    "source_manifest": json.loads((project / "infra/ax/source-manifest.json").read_text()),
     "ax_controller_binary": json.loads((root / "logs/cold-boot-binary.json").read_text()),
 }
 
@@ -160,7 +163,7 @@ finally:
                     "ate-demo-counter",
                     "logs",
                     "-l",
-                    "workload=counter",
+                    "ate.dev/worker-pool=counter",
                     "--all-containers",
                     "--tail=200",
                 ],

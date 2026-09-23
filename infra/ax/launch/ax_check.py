@@ -215,7 +215,21 @@ try:
     call("capacity-suspend", ax + ["suspend", "task", task_name])
     wait_phase("Suspended")
     call("capacity-zero", kube + ["-n", "ate-demo-counter", "patch", "workerpool", "counter", "--type=merge", "-p", '{"spec":{"replicas":0}}'])
-    call("capacity-workers-gone", kube + ["-n", "ate-demo-counter", "wait", "--for=delete", "pod", "-l", "workload=counter", "--timeout=60s"], timeout=70)
+    call("capacity-workers-gone", kube + ["-n", "ate-demo-counter", "wait", "--for=delete", "pod", "-l", "ate.dev/worker-pool=counter", "--timeout=60s"], timeout=70)
+    # Pod deletion and the scheduler's registry converge separately. This gate
+    # tests pre-assignment capacity rejection, not loss during an assigned restore.
+    deadline = time.monotonic() + 60
+    while True:
+        workers = json.loads(call("capacity-worker-registry", ate + ["get", "workers"]).stdout)
+        active = [worker for worker in workers.get("workers", [])
+                  if worker.get("status", {}).get("state") == "WORKER_STATE_ACTIVE"]
+        if not active:
+            status["capacity_empty_registry"] = workers
+            save()
+            break
+        if time.monotonic() >= deadline:
+            raise TimeoutError("worker registry did not drain")
+        time.sleep(1)
     call("capacity-resume", ax + ["resume", "task", task_name])
     deadline = time.monotonic() + 20
     while True:

@@ -38,6 +38,7 @@ COMPONENT_SCOPES = {
     "context_logic": ({"context"}, {"context"}),
     "cleanup_audit": ({"environment", "audit", "janitor", "supervisor", "frozen_experiment"}, {"environment", "supervisor"}),
     "ax_runtime": ({"ax_runtime", "mailbox", "isolated_agent", "rpc"}, set()),
+    "ax_boundary": ({"ax_runtime", "mailbox"}, set()),
     "broker": ({"broker"}, {"broker"}),
     "agent_runtime": ({"agent", "gemini", "credentials"}, set()),
     "agent": ({"agent"}, set()),
@@ -177,6 +178,8 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
     if scope in COMPONENT_SCOPES:
         modules, tests = COMPONENT_SCOPES[scope]
     paths = {f"src/autonomy_lab/{name}.py" for name in modules}
+    if scope == "ax_boundary":
+        paths |= {"infra/ax/privilege-drop.patch", "infra/ax/privilege_drop_test.go", "infra/ax/durable-cleanup.patch", "infra/ax/README.md"}
     if scope not in COMPONENT_SCOPES:
         paths |= PUBLIC_CONFIG
     paths |= {f"tests/test_{name}.py" for name in tests}

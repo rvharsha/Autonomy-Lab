@@ -78,9 +78,12 @@ def main():
     # Source preparation is itself pinned in the committed patch, not inferred
     # from an arbitrary local script or a previously generated success file.
     patch(ROOT / "sources/substrate", "substrate-local.patch")
+    patch(ROOT / "sources/substrate", "durable-cleanup.patch")
     patch(ROOT / "sources/ax", "cold-boot.patch")
     patch(ROOT / "sources/ax", "recovery.patch")
+    patch(ROOT / "sources/ax", "privilege-drop.patch")
     shutil.copyfile(PACKAGE / "runtime_config_test.go", ROOT / "sources/ax/internal/controller/runtime_config_test.go")
+    shutil.copyfile(PACKAGE / "privilege_drop_test.go", ROOT / "sources/ax/internal/substrate/privilege_drop_test.go")
     manifest = json.loads((PACKAGE / "source-manifest.json").read_text())
     for name, record in manifest.items():
         source = ROOT / "sources" / name

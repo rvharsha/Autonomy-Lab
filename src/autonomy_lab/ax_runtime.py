@@ -15,6 +15,13 @@ from autonomy_lab.isolated_runtime import ModelRelay, charge_rpc
 from autonomy_lab.rpc import MAX_FRAME_BYTES, error_record
 
 
+class ResourceLoader(yaml.SafeLoader):
+    # Keep the API's nanosecond timestamp strings exact and JSON serializable.
+    yaml_implicit_resolvers = {key: [(tag, regex) for tag, regex in values
+                                     if tag != 'tag:yaml.org,2002:timestamp']
+                               for key, values in yaml.SafeLoader.yaml_implicit_resolvers.items()}
+
+
 class AX:
     def __init__(self, config):
         self.config = config
@@ -34,7 +41,11 @@ class AX:
         return result.stdout
 
     def python(self, task, code):
-        return self.call('ssh', task, '--', 'python3', '-c', code)
+        # The debug transport is controller-owned, but public mailbox access
+        # needs no root filesystem privileges. Isolated Python startup also
+        # prevents workspace files from becoming root startup imports.
+        drop = "import os;os.setgroups([]);os.setgid(10001);os.setuid(10001);"
+        return self.call('ssh', task, '--', 'python3', '-I', '-c', drop + code)
 
     def write(self, task, name, value):
         if not re.fullmatch(r'[a-z0-9.-]+', name):
@@ -55,16 +66,40 @@ class AX:
     def wait(self, task, phase):
         deadline = time.monotonic() + 120
         while time.monotonic() < deadline:
-            resource = yaml.safe_load(self.call('get', 'task', task))
-            state = resource.get('status', {})
+            resource = yaml.load(self.call('get', 'task', task), Loader=ResourceLoader)
+            state = resource.get('status') or {}
             if state.get('phase') == phase and (phase != 'Running' or any(
-                c.get('type') == 'Ready' and c.get('status') == 'True' for c in state.get('conditions', []))):
+                c.get('type') == 'Ready' and c.get('status') == 'True' for c in (state.get('conditions') or []))):
                 return resource
             time.sleep(1)
         raise TimeoutError('AX readiness deadline')
 
 
 def run_ax_agent(client, toolbox, state_path, *, ax_config, timeout=900, **options):
+    try:
+        return _run_ax_agent(client, toolbox, state_path, ax_config=ax_config, timeout=timeout, **options)
+    except BaseException:
+        # Export surviving guest evidence before the outer controller cleans the
+        # cluster. The host provider/broker journals already live outside AX.
+        path = Path(state_path)
+        session = path.parent / 'ax-session.json'
+        if session.exists():
+            ax = AX({**ax_config, 'log_path': str(path.parent / 'ax-cli.jsonl')})
+            task = json.loads(session.read_text())['task']
+            failures = []
+            for name in ['agent-state.json', 'agent-boots.json', 'boundary-checks.json', 'agent-error.json']:
+                try:
+                    value = json.loads(ax.python(task, "import json;from pathlib import Path;p=Path('/workspace/" + name + "');assert not p.exists() or p.stat().st_size<=8388608;print(p.read_text() if p.exists() else 'null')"))
+                    if value is not None:
+                        save(path.parent / name, value)
+                except Exception as error:
+                    failures.append({'file': name, 'error_type': type(error).__name__})
+            if failures:
+                save(path.parent / 'ax-export-errors.json', failures)
+        raise
+
+
+def _run_ax_agent(client, toolbox, state_path, *, ax_config, timeout=900, **options):
     state_path = Path(state_path)
     ax = AX({**ax_config, 'log_path': str(state_path.parent / 'ax-cli.jsonl')})
     session = state_path.parent / 'ax-session.json'
@@ -77,7 +112,8 @@ def run_ax_agent(client, toolbox, state_path, *, ax_config, timeout=900, **optio
             {'apiVersion': 'ax.io/v1alpha1', 'kind': 'Gateway', 'metadata': {'name': 'closed', 'atespace': 'autonomy-agents'},
              'spec': {'egress': {'allowlist': {'hosts': []}}}},
             {'apiVersion': 'ax.io/v1alpha1', 'kind': 'Task', 'metadata': {'name': task, 'atespace': 'autonomy-agents'},
-             'spec': {'image': ax_config['image'], 'command': ['python3', '-m', 'autonomy_lab.mailbox'],
+             'spec': {'image': ax_config['image'], 'command': ['python3', '-I', '-c',
+                 "import sys;sys.dont_write_bytecode=True;sys.path.insert(0,'/app');from autonomy_lab.mailbox import main;main()"],
                       'workspaces': [{'name': task, 'path': '/workspace'}], 'gateway': {'name': 'closed'}, 'debug': True}},
         ]
         path = state_path.parent / 'ax-task.yaml'
@@ -86,7 +122,13 @@ def run_ax_agent(client, toolbox, state_path, *, ax_config, timeout=900, **optio
         resource = ax.wait(task, 'Running')
         save(session, {'task': task, 'initial': resource, 'resumes': []})
         deadline = time.monotonic() + 30
-        while ax.python(task, "from pathlib import Path;print(Path('/workspace/rpc').is_dir())").strip() != 'True':
+        while True:
+            status = json.loads(ax.python(task, "import json;from pathlib import Path;p=Path('/workspace/agent-error.json');print(json.dumps({'ready':Path('/workspace/rpc').is_dir(),'error':json.loads(p.read_text()) if p.exists() else None}))"))
+            if status['error']:
+                save(state_path.parent / 'ax-agent-error.json', status['error'])
+                raise RuntimeError('AX agent reported an error')
+            if status['ready']:
+                break
             if time.monotonic() >= deadline:
                 raise TimeoutError('AX mailbox directory deadline')
             time.sleep(.2)
@@ -109,24 +151,37 @@ def run_ax_agent(client, toolbox, state_path, *, ax_config, timeout=900, **optio
         save(session, record)
     relay = ModelRelay(client, state_path.parent / 'model-relay.json', options)
     deadline = time.monotonic() + timeout
-    read = """import json
+    expected_boots = len(json.loads(session.read_text())['resumes']) + 1
+    read = f"expected_boots={expected_boots}\n" + """import json
 from pathlib import Path
 p=Path('/workspace/rpc');r=p/'result.json'
-if r.exists():
+error=Path('/workspace/agent-error.json')
+if error.exists():
+ print(json.dumps({'agent_error':json.loads(error.read_text())}))
+elif r.exists():
  print(r.read_text())
 else:
- boot=json.loads(Path('/workspace/agent-boots.json').read_text())[-1]['boot_id']
- pending=[f for f in sorted(p.glob('*.request')) if not f.with_suffix('.response').exists()
-          and f.stat().st_size <= 8388608 and json.loads(f.read_text()).get('boot_id')==boot]
- if pending:
-  f=pending[0];assert f.stat().st_size <= 8388608; print(json.dumps({'file':f.stem,'request':json.loads(f.read_text())}))
- else: print('{}')
+ b=Path('/workspace/agent-boots.json')
+ boots=json.loads(b.read_text()) if b.exists() else []
+ if len(boots) < expected_boots:
+  print('{}')
+ else:
+  assert len(boots)==expected_boots
+  boot=boots[-1]['boot_id']
+  pending=[f for f in sorted(p.glob('*.request')) if not f.with_suffix('.response').exists()
+           and f.stat().st_size <= 8388608 and json.loads(f.read_text()).get('boot_id')==boot]
+  if pending:
+   f=pending[0];assert f.stat().st_size <= 8388608; print(json.dumps({'file':f.stem,'request':json.loads(f.read_text())}))
+  else: print('{}')
 """
     while time.monotonic() < deadline:
         message = json.loads(ax.python(task, read))
+        if 'agent_error' in message:
+            save(state_path.parent / 'ax-agent-error.json', message['agent_error'])
+            raise RuntimeError('AX agent reported an error')
         if 'result' in message:
             checkpoint = ax.python(task, "from pathlib import Path;p=Path('/workspace/agent-state.json');assert p.stat().st_size<=8388608;print(p.read_text())")
-            state_path.write_text(checkpoint)
+            checkpoint = json.loads(checkpoint)
             boots = json.loads(ax.python(task, "from pathlib import Path;print(Path('/workspace/agent-boots.json').read_text())"))
             record = json.loads(session.read_text())
             record['boots'] = boots
@@ -137,6 +192,7 @@ else:
                 raise ValueError('AX did not reconstruct exactly one fresh agent process')
             if any(b['uid'] == 0 for b in boots):
                 raise ValueError('AX agent process retained root identity')
+            save(state_path, checkpoint)
             save(session, record)
             return message['result']
         if 'request' not in message:

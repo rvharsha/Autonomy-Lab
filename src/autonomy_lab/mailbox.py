@@ -12,6 +12,7 @@ from pathlib import Path
 from autonomy_lab.rpc import MAX_FRAME_BYTES, RemoteError
 
 DIRECTORY = Path('/workspace/rpc')
+ERROR_PHASE = 'startup'
 
 
 def deny_network():
@@ -60,7 +61,13 @@ def boundary_checks():
         'GOOGLE_API_KEY', 'GEMINI_API_KEY', 'ANTHROPIC_API_KEY', 'KUBECONFIG'))
     status = Path('/proc/self/status').read_text()
     checks['no_capabilities'] = 'CapEff:\t0000000000000000' in status
+    checks['no_permitted_capabilities'] = 'CapPrm:\t0000000000000000' in status
     checks['no_privilege_escalation'] = 'NoNewPrivs:\t1' in status
+    try:
+        os.setuid(0)
+        checks['root_escalation_denied'] = False
+    except PermissionError:
+        checks['root_escalation_denied'] = True
     return checks
 
 
@@ -105,15 +112,25 @@ class MailboxChannel:
         return value['result']
 
 
-def main():
+def _main():
+    global ERROR_PHASE
     # The AX runner owns its debug transport. The decision process drops to an
     # unprivileged UID before loading config or making any model/tool request.
     from autonomy_lab.agent import run_agent
     from autonomy_lab.isolated_agent import Model, Toolbox
 
     if os.getuid() == 0:
-        Path('/workspace').mkdir(exist_ok=True)
-        os.chown('/workspace', 10001, 10001)
+        # Substrate's private overlay and durable-volume roots start at 0700.
+        # Permit traversal before dropping UID; neither is made world writable.
+        os.chmod('/', 0o755)
+        workspace = Path('/workspace')
+        workspace.mkdir(exist_ok=True)
+        status = workspace.stat()
+        if status.st_uid == 0:
+            workspace.chmod(0o755)
+            os.chown(workspace, 10001, 10001)
+        elif (status.st_uid, status.st_gid, status.st_mode & 0o777) != (10001, 10001, 0o755):
+            raise PermissionError('Unexpected durable workspace ownership or mode')
         os.setgroups([])
         os.setgid(10001)
         os.setuid(10001)
@@ -132,12 +149,26 @@ def main():
     boots.append({'boot_id': uuid.uuid4().hex, 'pid': os.getpid(), 'uid': os.getuid(), 'started_at': time.time()})
     publish(boots_path, boots)
     channel = MailboxChannel(boots[-1]['boot_id'])
+    ERROR_PHASE = 'execution'
     state = run_agent(Model(channel, config['model']), Toolbox(channel, config),
                       Path('/workspace/agent-state.json'), **config['agent_options'])
     publish(DIRECTORY / 'result.json', {'result': {key: state.get(key) for key in (
         'status', 'reason', 'usage', 'terminal', 'resume_count', 'error_type', 'provider_status_code')}})
     while True:
         time.sleep(10)
+
+
+def main():
+    try:
+        _main()
+    except BaseException as error:
+        record = {'phase': ERROR_PHASE, 'error_type': type(error).__name__, 'errno': getattr(error, 'errno', None)}
+        print(json.dumps({'agent_error': record}), flush=True)
+        try:
+            publish(Path('/workspace/agent-error.json'), record)
+        except OSError:
+            pass  # Preserve the original error and stdout evidence if the filesystem failed.
+        raise
 
 
 if __name__ == '__main__':

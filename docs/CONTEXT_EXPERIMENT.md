@@ -6,8 +6,8 @@ complete original history as evidence on disk, but send at most the two most
 recent complete model/tool exchanges plus a deterministic public evidence
 ledger in a new user message. Never split an exchange, alter retained model
 parts or thought signatures, drop an unresolved operation, invent a summary,
-or use a private controller/verifier field. Include all issued observation IDs
-and the exact public tool payloads in the ledger; if that is too large, stop
+or use a private controller/verifier field. Include all observation IDs
+and exact public tool payloads delivered to the model in the ledger and retained exchanges; if that is too large, stop
 under the same budget rather than silently discard evidence. This tests context
 construction in both designs, not the benefit of structured representation.
 

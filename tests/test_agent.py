@@ -863,3 +863,20 @@ def test_finish_interruption_replays_real_toolbox_journal_without_provider_calls
     assert resumed["usage"] == interrupted["usage"]
     assert client.count_requests == client.requests == []
     assert (tmp_path / "evidence.jsonl").read_bytes() == journal
+
+
+def test_unreconciled_mutation_at_tool_limit_is_indeterminate(tmp_path):
+    path = tmp_path / 'agent.json'
+    proposal = {'operation_id': 'unit-operation', 'target_port': 8080}
+    tools = StubToolbox(on_call=lambda name, args: (_ for _ in ()).throw(TimeoutError()) if name == 'propose_repair' else None)
+    state = run_agent(StubClient(response(call('propose_repair', proposal))), tools, path)
+    assert state['pending_turn']['calls'][0]['phase'] == 'dispatched'
+    state['usage']['tool_calls'] = state['limits']['max_tool_calls']
+    path.write_text(json.dumps(state))
+    tools.on_call = None
+    client = StubClient()
+    result = run_agent(client, tools, path)
+    assert result['status'] == 'indeterminate'
+    assert result['reason'] == 'unreconciled_mutation_tool_budget_exhausted'
+    assert client.requests == []
+    assert [name for name, _ in tools.calls] == ['propose_repair']

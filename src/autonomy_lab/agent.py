@@ -218,6 +218,8 @@ class _Runner:
         names = [item["name"] for item in self.declarations]
         if len(names) != len(set(names)) or not set(names).issubset(EXTERNAL_TOOLS):
             raise ValueError("invalid toolbox declarations")
+        if "propose_repair" in names and "get_operation" not in names:
+            raise ValueError("propose_repair requires get_operation for recovery")
         if state["variant"] == "structured":
             self.declarations.append(_copy(INCIDENT_DECLARATION))
         self.schemas = {item["name"]: item.get("parameters", {}) for item in self.declarations}
@@ -281,6 +283,9 @@ class _Runner:
         operation_id = call["args"]["operation_id"]
         recovery = pending.setdefault("recovery", {"phase": "queued"})
         if recovery["phase"] != "completed":
+            if self.state["usage"]["tool_calls"] >= self.state["limits"]["max_tool_calls"]:
+                self.stop("indeterminate", "unreconciled_mutation_tool_budget_exhausted")
+                return False
             result = self.call_tool("get_operation", {"operation_id": operation_id}, recovery)
             if result is None:
                 return False
