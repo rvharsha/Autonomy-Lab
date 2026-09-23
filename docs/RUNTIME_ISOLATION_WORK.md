@@ -2,6 +2,8 @@
 
 Current authorized scope: AX recovery/integration, execution boundaries, reliability validation, PR review/merge/release, and the subsequently authorized [GCP experiment host](../infra/gcp/README.md). The GCP deployment uses the existing kind/Docker runtime; the AX results below remain local.
 
+The [GCP deployment evidence](validation/gcp-deployment.json) adds native Linux audit ownership/rotation validation, four separately declared corrected smoke completions, and actual stop/start persistence. The initial four audit-permission infrastructure errors remain recorded; historical local results below are unchanged.
+
 ## Executed gates
 
 - AX lifecycle: three real DATA snapshot resume cycles and recovery from zero worker capacity passed repeatedly. Five unique boot IDs, preserved durable history, one ActorTemplate. See [AX runtime status](AX_RUNTIME_STATUS.md). The capacity-loss gate now waits for actual pod deletion and no active worker in Substrate's registry; an earlier attempt raced with draining and failed with an ambiguous restore outcome, which was not retried.

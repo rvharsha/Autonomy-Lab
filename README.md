@@ -14,6 +14,8 @@ A [focused completion experiment](docs/COMPLETION_EXPERIMENT.md) tested one shar
 
 The [38-trial reliability candidate](docs/RELIABILITY_RESULTS.md) completed 36/38 cases, including all development and regression cases and 16/18 reserved validation cases. Two basic combined-fault budget failures remain recorded. The [reconciliation follow-up](docs/RECONCILIATION_RESULTS.md) completed 23/24 cases: 6/6 targets and 17/18 regressions. It failed its declared promotion gate, so the released executable source retains `5ab2ebf`; all follow-up outcomes remain recorded separately.
 
+The [GCP deployment record](infra/gcp/README.md#executed-deployment-checks) includes real cloud acceptance, isolation, audit rotation, controller-death cleanup and restart persistence. Its first four cloud trials exposed a Linux audit-permission defect; all four remain recorded. The reviewed correction passed a separately declared four-trial smoke run.
+
 ## Run the acceptance demo
 
 Requirements: Docker running, Python 3.12, `uv`, and internet access for pinned tools/images/dependencies. The initial setup downloads a Kubernetes node image and application dependencies. All cluster configuration remains in this project; commands select a dedicated `autolab-*` context.

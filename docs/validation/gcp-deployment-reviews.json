@@ -248,7 +248,7 @@
   ],
   "disposition": "Accepted retained implicit disk recreate collision: disk is now an explicit tracked resource, both disk and VM prevent destruction, and migration/deletion procedures are documented. Second complete-source review found no blocking defect. Root-owned mode-0640 host-version files are intentionally inspected through the authenticated OS Login administrator using sudo; the nonroot controller only needs to stat the ready marker. No source change is required for this non-blocking observation.",
   "validation": "Terraform provider schema validation, formatting, shell syntax, saved-plan boundaries, and smoke-manifest validation passed. No cloud execution claimed by this source review.",
-  "audit_disposition": "Audit ownership fix had no substantiated defect. Accepted probe findings: record file UID/mode before a read that can fail, and stop the actual API-server writer by deleting the owned cluster before parsing retained bind-mounted logs. Final probe review found no substantiated defect. Actual native Linux rotation remains a required gate.",
+  "audit_disposition": "Audit ownership fix had no substantiated defect. Accepted probe findings: record file UID/mode before a read that can fail, and stop the actual API-server writer by deleting the owned cluster before parsing retained bind-mounted logs. Final probe review found no substantiated defect. Actual native Linux rotation remains a required gate. The actual GCP rotation gate subsequently passed: 349 Service reads, controller-owned 0600 current/rotated files, 526 parsed events, no malformed lines and cluster deletion.",
   "preflight_rejections": [
     {
       "record_sha256": "dc20be429900842af88b5be52ad27c93063e3473502729022dd32d0566a0094f",

@@ -6,9 +6,11 @@ Compute Engine host. It is a CLI research environment; it does not introduce a
 public web service, GKE adapter, or a claim that the local ARM64 AX variant works
 on GCP.
 
-The host is deployed. Its first live smoke run exposed a native-Linux audit-log
-ownership defect; the original outcomes remain retained. The corrective gate
-below is declared separately before execution.
+The host is deployed and validated on source `a5e1912`.
+The [selected deployment evidence](../../docs/validation/gcp-deployment.json)
+retains the initial four infrastructure errors and the separately declared
+corrected run (4/4 supported completions). These known-family
+smoke cases do not establish production reliability.
 
 ## Resources and access
 
@@ -106,7 +108,7 @@ The declared first-cloud gates are sequential:
    IAP access and absence of host metadata service-account tokens. Do not infer
    these from the Terraform plan alone.
 2. Run `make demo`: the existing 17 real Kubernetes acceptance checks, unchanged
-   30-second recovery windows, independent mutation audit, and owned-cluster
+   30-second recovery windows and owned-cluster
    deletion. This is model-free.
 3. Run `PYTHONPATH=src .venv/bin/python scripts/check_agent_isolation.py` and
    `PYTHONPATH=src .venv/bin/python scripts/check_controller_death.py`. Require
@@ -142,7 +144,9 @@ The initial `gcp-smoke` run on `e525612` completed agent work but could not scor
 trials because the root API server created `events.jsonl` as root-owned mode
 0600. The nonroot controller received `PermissionError` during independent
 auditing. These original outcomes remain infrastructure errors; later analysis
-or passing runs must not replace them.
+or passing runs must not replace them. The acceptance demo checks application
+and broker behavior but does not parse the server audit stream; the new probe
+adds the native Linux ownership and rotation coverage.
 
 The correction precreates the private log as the controller before cluster
 startup. The pinned Kubernetes logger preserves the existing owner, including
@@ -162,6 +166,36 @@ smoke manifest, at most another 128,000 requested tokens. Keep every outcome,
 including failures and unrun cases, with no retries, provider fallback, prompt
 tuning or budget changes. Report the initial four and remedial four separately.
 This is a deployment correction check, not a new reliability comparison.
+
+## Executed deployment checks
+
+- Tests and lint: 693 tests on the initial release; 694 on the correction, both
+  on this GCP host. Exact corrected-source CI also passed all 17 real Kubernetes
+  acceptance checks; the original cloud acceptance passed the same 17 checks.
+- Agent isolation: all 15 real probes passed on both releases. Actual SIGKILL of
+  the original cloud controller triggered detached deletion with no remaining
+  cluster nodes.
+- Native Linux rotation: 349 real Service reads triggered rotation; both
+  log files retained controller UID 1001 and mode 0600. All 526 retained
+  events parsed, with no malformed lines, and the probe cluster was deleted.
+- Initial live run: all four cases remain unscored `infrastructure_error`
+  outcomes caused by audit-log permissions (74,029 reported tokens).
+  Corrective live run: 4/4 supported completions, four assessed clean scoped
+  audits, 18 recorded generations, 70,499 reported tokens. Neither
+  run had an unrun trial; both clusters were deleted.
+- Private evidence was copied over IAP and hash-verified. A real VM stop/start
+  changed its boot ID while preserving all 386 hashed evidence files across
+  both releases. No cluster/container or temporary model credential remained,
+  and no experiment restarted automatically.
+- Five completed direct Fable reviews covered infrastructure, the ownership fix
+  and the real rotation probe. [Findings and checked dispositions](../../docs/validation/gcp-deployment-reviews.json)
+  retain the accepted fixes and the source snapshot for each review.
+
+Only `audit.py` differs among the 39 frozen runtime files between the two cloud
+releases. Agent prompts, scorer, broker, verifier and per-trial limits are
+unchanged. The original failed trials were not rescored or replaced. The
+installed checkout remains the tested source commit; subsequent report-only
+commits do not require overwriting it.
 
 ## Operate and clean up
 
