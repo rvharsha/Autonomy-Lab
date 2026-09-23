@@ -12,6 +12,8 @@ The [funded Fable follow-up](docs/FUNDED_REVIEW.md) records completed source rev
 
 A [focused completion experiment](docs/COMPLETION_EXPERIMENT.md) tested one shared prompt change under unchanged budgets: supported completion rose from 3/8 to 6/8 in matched development conditions. The later [44-trial context comparison](docs/CONTEXT_RESULTS.md) recorded a null development result (6/8 → 6/8), 8/10 regressions, and 6/18 held-out completions. A [separate batching follow-up](docs/BATCHED_TURN_RESULTS.md) completed both structured lost-ack retests under the same token target, with 7/8 development and 8/10 regression completions. Escalation and provider failures remain, and the earlier held-out results do not validate the later candidate.
 
+The [38-trial reliability candidate](docs/RELIABILITY_RESULTS.md) completed 36/38 cases, including all development and regression cases and 16/18 reserved validation cases. Two basic combined-fault budget failures remain recorded; a [separate reconciliation follow-up](docs/RECONCILIATION_EXPERIMENT.md) tests a minimal read-batching change.
+
 ## Run the acceptance demo
 
 Requirements: Docker running, Python 3.12, `uv`, and internet access for pinned tools/images/dependencies. The initial setup downloads a Kubernetes node image and application dependencies. All cluster configuration remains in this project; commands select a dedicated `autolab-*` context.
@@ -41,13 +43,13 @@ Replace `RUN_ID` with the actual run printed by the command. Cleanup only target
 
 ## Run the agents
 
-The selected model is **Gemini 3.8 Flash**, API ID `gemini-3.8-flash`. A basic agent retains interaction history. A structured agent also maintains explicit incident state through an internal tool. Both have the same external observations, repair interface, verifier, and execution policy.
+The selected model is **Gemini 3.8 Flash**, API ID `gemini-3.8-flash`. A basic agent retains interaction history. A structured agent also maintains explicit incident state through an internal tool. Both have the same external observations, repair interface, verifier, and execution policy. The selected Gemini 3.8 Flash adapter requests low thinking; requested token limits and host accounting still apply.
 
 The credential loader recognizes `GEMINI_API_KEY`, `GOOGLE_API_KEY`, or `GEMINI_KEY`, first in the environment and then in `~/Dev/.env`. It reads only those assignments, does not execute shell expressions, and does not copy the key into the repository or reports.
 
 ```sh
 PYTHONPATH=src .venv/bin/python -m autonomy_lab.cli experiment \
-  --manifest scenarios/batched-turn-development.yaml --env-file ~/Dev/.env
+  --manifest scenarios/reliability-development.yaml --env-file ~/Dev/.env
 ```
 
 This current manifest selects `runtime: isolated-docker`. Older pilot/completion manifests retain the legacy trusted local-process runtime for historical reproduction.
@@ -67,7 +69,7 @@ The [runtime work record](docs/RUNTIME_ISOLATION_WORK.md) tracks the additional 
 - Agent-visible tools contain no shell, arbitrary URL, database write, or unrestricted Kubernetes command. Broker and verifier use separate Kubernetes identities; application and verifier database users have SELECT-only access.
 - The trusted local controller holds cluster-admin credentials for setup and scenario injection. With `runtime: isolated-docker`, the agent runs as a nonroot user in an immutable, read-only, network-disabled container with only its workspace mounted. Broker and verifier run outside that container. The Docker daemon, host, and orchestration code remain trusted.
 - The local kind API server records independent mutation audit events. The controller correlates successful broker writes to exact conditional patches and rejects missing acknowledged writes or successful unmatched scoped writes. Comprehensive unsafe-execution attribution remains unassessed.
-- The patched, pinned [AX runtime](docs/AX_RUNTIME_STATUS.md) passed three data-snapshot resume cycles and a real worker-capacity-loss recovery check. The supported deployment target remains local; live agent integration has a separate recorded gate.
+- The patched, pinned [AX runtime](docs/AX_RUNTIME_STATUS.md) passed three data-snapshot resume cycles and a real worker-capacity-loss recovery check. Full live lost-ack recovery and AX controller-death cleanup also passed on the authorized local variant; [selected evidence](docs/validation/ax-release.json) retains the preceding failed provider attempt. The supported deployment target remains local.
 - The basic/structured comparison changes an internal state tool and prompt as well as representation. Full history is archived for both. The declared [bounded-context comparison](docs/CONTEXT_EXPERIMENT.md) tests the same context policy for both variants; results must be read as a shared runtime intervention.
 - The initial corpus uses declared, versioned test inputs. All reported system outcomes must come from actual executions.
 

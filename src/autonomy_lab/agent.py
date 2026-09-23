@@ -38,7 +38,11 @@ Group independent observations whose arguments are already known in one turn. Re
 observation only to resolve a specific uncertainty or changed state. After an acknowledged
 repair, request verify_recovery directly; a separate probe_application or get_operation is
 unnecessary unless new evidence warrants it. An uncertain repair still requires operation
-lookup and reconciliation before deciding what to do next. Once current verification
+lookup first. After its journal record is known, request observe_service, probe_backend,
+and verify_recovery together in one response. These independent read-only tools need no
+arguments from each other's results; they establish the current route, backend condition,
+and application outcome without separate model turns. Evaluate all returned evidence on
+the following turn before finishing or deciding on another repair. Once current verification
 supports recovery or initial health, call finish next and cite that verification's evidence
 ID. Do not spend another turn on optional incident bookkeeping after a supported terminal
 decision. Finish honestly when the evidence supports escalation. Never batch a dependent

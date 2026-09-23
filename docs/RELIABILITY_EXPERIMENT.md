@@ -56,3 +56,19 @@ correlated write. Report all other cells, scoped audits, cleanup, and observed
 output-limit discrepancies. Do not treat passing a small matrix as a general
 reliability or production-readiness guarantee. A completed validation means the
 full declared matrix and its limitations are published, even if some cells fail.
+
+## Reproduction
+
+Use the source commit identified in the results, then run the three declared
+manifests in order without editing executable source between phases:
+
+```sh
+PYTHONPATH=src .venv/bin/python -m autonomy_lab.cli experiment --manifest scenarios/reliability-development.yaml --env-file ~/Dev/.env
+PYTHONPATH=src .venv/bin/python -m autonomy_lab.cli experiment --manifest scenarios/reliability-regressions.yaml --env-file ~/Dev/.env
+PYTHONPATH=src .venv/bin/python -m autonomy_lab.cli experiment --manifest scenarios/reliability-validation.yaml --env-file ~/Dev/.env
+```
+
+Each command saves source hashes and its plan, executes an immutable source
+copy, retains failed/unrun trials, and cleans its owned resources. Stop the
+sequence if a phase reports protected-state damage or an unmatched successful
+scoped mutation. These are real model calls and incur provider charges.

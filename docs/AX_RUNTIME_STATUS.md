@@ -1,6 +1,41 @@
 # AX local runtime spike status
 
-## Live agent integration remains incomplete
+## Live agent integration and controller-death gates passed, 2026-09-23
+
+The user authorized the scoped DAC_OVERRIDE patch after its privilege change was
+explained. The actual deployed trusted atelet container drops ALL capabilities
+and adds only DAC_OVERRIDE; the agent retains zero effective/permitted
+capabilities. No new mount was introduced.
+
+On candidate `5ab2ebf`, the real Gemini agent completed a lost-ack repair in AX:
+one real conditional Kubernetes write, an externally journaled uncertain
+operation, an actual DATA suspension, a fresh UID 10001 process after resume,
+public operation lookup, a complete 30-second verification window, and a
+supported resolved claim. Five generations used **20,522 reported tokens**;
+all five responses were retained. Two distinct boot IDs, all 12 process boundary
+checks, one correlated server-audit mutation, no duplicate proposal, and no
+protected-state damage were recorded. The cluster and registry were deleted.
+
+The separate AX controller-death check also passed: SIGKILL (-9) during owned
+cluster setup triggered detached deletion with no errors, no remaining owned
+containers, and removal of the runtime marker. The same deployed variant also
+passed the Substrate counter, three AX resume cycles, and worker-capacity-loss
+gate. [Selected evidence](validation/ax-release.json).
+
+The preceding authorized attempt failed on its first generation without a
+retained response or usage, before any tool call. It remains failed with one
+unknown provider outcome; its scoped audit and cleanup completed. The earlier
+filesystem failure below also remains part of the record. A later passing
+attempt is not a replacement in an evaluation denominator.
+
+This validates the declared local gates on a pinned, patched macOS ARM64 runtime.
+It does not establish arbitrary migration, hostile-host protection, a portable
+fresh-host installer, cloud deployment, or production reliability.
+
+## Historical gate before deployment authorization
+
+The sections below preserve earlier status snapshots. Their pending, incomplete,
+and undeployed descriptions refer to those earlier attempts, not the passed gates above.
 
 The nonroot agent image in the latest attempted AX integration passed its actual
 network, filesystem, capability, credential and privilege checks. It made two

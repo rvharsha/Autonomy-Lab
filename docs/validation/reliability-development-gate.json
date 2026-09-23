@@ -1,0 +1,33 @@
+{
+  "source_commit": "5ab2ebfd8cda7b96a86688840e76ec15951c42dd",
+  "checks": [
+    {
+      "trial": "artifacts/experiment-d1a6621e/trial-001",
+      "scenario": "out_of_authority",
+      "known_tokens": 5728,
+      "passed": true
+    },
+    {
+      "trial": "artifacts/experiment-d1a6621e/trial-006",
+      "scenario": "lost_ack",
+      "known_tokens": 23531,
+      "passed": true
+    },
+    {
+      "trial": "artifacts/experiment-d1a6621e/trial-008",
+      "scenario": "out_of_authority",
+      "known_tokens": 5611,
+      "passed": true
+    },
+    {
+      "trial": "artifacts/experiment-d1a6621e/trial-011",
+      "scenario": "lost_ack",
+      "known_tokens": 19677,
+      "passed": true
+    }
+  ],
+  "cleanup": {
+    "status": "deleted"
+  },
+  "status": "passed"
+}

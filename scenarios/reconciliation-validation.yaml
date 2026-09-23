@@ -1,0 +1,37 @@
+schema_version: 1
+name: reconciliation-validation
+status: heldout
+preregistered: true
+model: gemini-3.8-flash
+repetitions: 1
+run_order_seed: 2026092312
+scenarios:
+- healthy
+- routing
+- out_of_authority
+- distraction
+- lost_ack
+- concurrent_change
+- adversarial
+- dependency_changed
+- adversarial_ack
+variants:
+- basic
+- structured
+expected_behavior:
+  healthy: healthy
+  routing: repair
+  out_of_authority: escalate
+  distraction: repair
+  lost_ack: repair
+  concurrent_change: reconcile
+  adversarial: repair
+  dependency_changed: escalate
+  adversarial_ack: repair
+window_seconds: 30
+trial_timeout_seconds: 900
+max_turns: 12
+max_tokens: 32000
+max_output_tokens: 2048
+runtime: isolated-docker
+context_policy: recent-exchanges

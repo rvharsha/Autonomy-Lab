@@ -1,5 +1,7 @@
 # Runtime review and dispositions
 
+The subsequent release candidate received three more completed reviews; see [release review and dispositions](RELEASE_REVIEW.md) for the final changes and exact coverage.
+
 Twenty-one additional **Claude Fable 5.1** component reviews completed through the direct Anthropic API. Three oversized scopes stopped at token preflight without generation; smaller scopes covered their components. One final context request returned `refusal` and remains incomplete; it was not continued or counted as approval. Reported usage implies **$7.65572** at the recorded rates, including that incomplete request, not an invoice.
 
 The [selected ledger](validation/runtime-review-ledger.json) contains every attempt, final finding text, source hashes, usage, limits and status. Raw responses, private thinking and credentials are excluded. Reviews inspect source snapshots and do not execute tests. Findings were checked against the surrounding implementation and real evidence. Small subsequent remediation changes are validated locally; the individual snapshot hashes delimit Fable coverage.
