@@ -1,6 +1,6 @@
 # Autonomy Lab build and validation plan
 
-This is the implementation companion to [PLAN.md](PLAN.md). It defines proposed work and acceptance criteria; no implementation or experimental results exist yet. Complete each milestone's acceptance gate before using its output as evidence for the next.
+This is the implementation companion to [PLAN.md](PLAN.md). It defines the planned work and acceptance criteria. The implementation and runnable commands are described in [README.md](README.md); measured results belong in run reports. Complete each milestone's acceptance gate before using its output as evidence for the next.
 
 The first deliverable is one reproducible command that creates a real application, proves it healthy, injects a routing fault, proves it broken, repairs it, and proves sustained recovery. Add model-based decisions once that foundation and the execution boundary work.
 
