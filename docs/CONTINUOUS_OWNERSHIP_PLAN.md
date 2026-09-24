@@ -70,6 +70,10 @@ on GCP and in CI, including concurrent-owner refusal and normal cleanup. Gates 2
 still require their full fault/uncertainty/owner-termination campaigns; this first
 pass does not close them.
 
+The [recurring-incident contract](RECURRENCE_EXPERIMENT.md) is the next bounded
+experiment: two repairs across operator restarts followed by exhausted authority
+on a third fault, with one workload and one independent measurement calendar.
+
 ## Subsequent milestones
 
 After persistent ownership passes, introduce proposed procedure versions with

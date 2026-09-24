@@ -61,6 +61,8 @@ def scorecard(directory):
         workers.append({'id': workspace.name, 'attempt': read(workspace / 'attempt.json') if (workspace / 'attempt.json').exists() else None,
                         'ready': read(workspace / 'ready.json') if (workspace / 'ready.json').exists() else None,
                         'failure': read(workspace / 'failed.json') if (workspace / 'failed.json').exists() else None,
+                        'finished': read(workspace / 'finished.json') if (workspace / 'finished.json').exists() else None,
+                        'escalation': read(workspace / 'escalation.json') if (workspace / 'escalation.json').exists() else None,
                         'episodes': attempts})
     before = read(directory / 'identities-before.json')
     after = read(directory / 'identities-after.json') if (directory / 'identities-after.json').exists() else None
@@ -88,7 +90,7 @@ def scorecard(directory):
         'limits': ['No inference for intervals between probes.',
                    'Late/missing measurements are unknown even if a later observation succeeds.',
                    'Operator outcomes are claims; only the independent timeline supplies campaign measurements.',
-                   'Owner host/cgroup termination and repeated-fault recovery are separate pending gates.'],
+                   'This timeline alone does not pass a fault or owner-termination gate.'],
     }
 
 
