@@ -13,8 +13,9 @@ from pathlib import Path
 
 SCENARIOS = {"routing", "distraction", "healthy", "out_of_authority", "lost_ack",
              "concurrent_change", "adversarial", "dependency_changed", "adversarial_ack",
-             "lost_ack_changed", "quote_arithmetic", "quote_upstream", "observer_outage"}
-VARIANTS = {"basic", "structured", "runbook", "no_agent"}
+             "lost_ack_changed", "quote_arithmetic", "quote_upstream", "observer_outage",
+             "observer_routing", "observer_quote", "observer_verifier", "observer_quote_verifier"}
+VARIANTS = {"basic", "structured", "runbook", "runbook_fallback", "no_agent"}
 
 
 def number(value):
@@ -66,7 +67,7 @@ def trial(item, *, published=False):
             accounting = {}
     else:
         accounting = item.get("model_accounting") or {}
-    if output["variant"] in {"runbook", "no_agent"}:
+    if output["variant"] in {"runbook", "runbook_fallback", "no_agent"}:
         if any(number(accounting.get(key)) not in (None, 0) for key in
                ("known_tokens", "generation_requests", "recorded_responses")):
             raise ValueError("Model-free control contains generation usage")

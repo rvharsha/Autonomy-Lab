@@ -1,0 +1,460 @@
+{
+  "baseline_commit": "622bf9e350d8908b6967a1d8cfcb5dd05893e668",
+  "changed_code_defects_substantiated_after_caller_checks": 0,
+  "completed_reviews": 4,
+  "limitations": [
+    "Fable reviews inspect supplied source; test bodies are represented by indexes. They do not authenticate runtime observations or constitute automated approval.",
+    "The scenario review explicitly includes run_trial and module declarations with original line numbers and full-file hash; unchanged orchestration functions are omitted.",
+    "An arbitrary nonconforming tool adapter can still violate the original runbook metadata assumptions.",
+    "Slow setup consumes the common trial deadline; results measure complete actors, not reasoning alone.",
+    "Complete corrupt evidence blocks publication rather than being silently accepted; original artifacts/denominators remain retained."
+  ],
+  "original_runbook_ast_after_removing_opt_in_branch_matches_baseline": true,
+  "provider": "Direct Anthropic; claude-fable-5-1",
+  "reviews": [
+    {
+      "current_source_hashes_match": true,
+      "disposition": "Token preflight rejected this larger snapshot before a generation request; retained and narrowed without raising the input/cost limit.",
+      "files": [
+        {
+          "bytes": 10426,
+          "included": "full_source",
+          "lines": 59,
+          "path": "docs/RUNBOOK_FALLBACK_EXPERIMENT.md",
+          "sha256": "634ba9cb7d8c6d34f09a2f9c08df2b53217a9b473be903e2989785fda079e514"
+        },
+        {
+          "bytes": 606,
+          "included": "full_source",
+          "lines": 30,
+          "path": "scenarios/runbook-fallback-gates.yaml",
+          "sha256": "b125c860c623e85d06e65f5b8ae0332db9505a76c12c5b8c7c813ae07aaef648"
+        },
+        {
+          "bytes": 755,
+          "included": "full_source",
+          "lines": 38,
+          "path": "scenarios/runbook-fallback.yaml",
+          "sha256": "54cc6c23198fc2b2ef39cca37ee193479b82a4180a8efe8ed5c8415246c5ac85"
+        },
+        {
+          "bytes": 7027,
+          "included": "full_source",
+          "lines": 171,
+          "path": "src/autonomy_lab/runbook.py",
+          "sha256": "7be131c242eb440c000afcca1e2623b9cfa5310ee0fa3e5bb8907e19a172f973"
+        },
+        {
+          "bytes": 20199,
+          "included": "full_source",
+          "lines": 447,
+          "path": "src/autonomy_lab/toolbox.py",
+          "sha256": "8fbfa23b8a88432c105670eb989edc7b153d763a729ae21610633fdadc033a43"
+        },
+        {
+          "bytes": 12158,
+          "included": "test_index",
+          "lines": 314,
+          "path": "tests/test_runbook.py",
+          "sha256": "f73ca441e300b9501e1082d85919dcce48cab0134da7fc89b3f07f0baeb2940e"
+        }
+      ],
+      "record": "20260924T041310.001572Z-fallback_runbook.json",
+      "scope": "fallback_runbook",
+      "sha256": "ddf3ad40f66b117fbd8e4077c8ea7b9bb7f3c7a39ca19b5d9d8a73c1b11a362a",
+      "snapshot_id": "64b6bac12b1ed1c2ad5c2a6f23e6b10f667c8aa5ee144e380cfe780ff02d188d",
+      "status": "failed"
+    },
+    {
+      "current_source_hashes_match": true,
+      "disposition": "Token preflight rejected this larger snapshot before a generation request; retained and narrowed without raising the input/cost limit.",
+      "files": [
+        {
+          "bytes": 10426,
+          "included": "full_source",
+          "lines": 59,
+          "path": "docs/RUNBOOK_FALLBACK_EXPERIMENT.md",
+          "sha256": "634ba9cb7d8c6d34f09a2f9c08df2b53217a9b473be903e2989785fda079e514"
+        },
+        {
+          "bytes": 606,
+          "included": "full_source",
+          "lines": 30,
+          "path": "scenarios/runbook-fallback-gates.yaml",
+          "sha256": "b125c860c623e85d06e65f5b8ae0332db9505a76c12c5b8c7c813ae07aaef648"
+        },
+        {
+          "bytes": 755,
+          "included": "full_source",
+          "lines": 38,
+          "path": "scenarios/runbook-fallback.yaml",
+          "sha256": "54cc6c23198fc2b2ef39cca37ee193479b82a4180a8efe8ed5c8415246c5ac85"
+        },
+        {
+          "bytes": 36116,
+          "included": "full_source",
+          "lines": 713,
+          "path": "src/autonomy_lab/experiments.py",
+          "sha256": "133d056083b8a4ef76d1061b157de2e759ebc65b258ff5957308a57c3492ca74"
+        },
+        {
+          "bytes": 3306,
+          "included": "full_source",
+          "lines": 70,
+          "path": "src/autonomy_lab/value_scenarios.py",
+          "sha256": "e2ef9e26ef3ea02550b05542df4663a71c23175e5d4fa4e9c6b8b67f457487df"
+        },
+        {
+          "bytes": 5549,
+          "included": "test_index",
+          "lines": 151,
+          "path": "tests/test_experiment_boundaries.py",
+          "sha256": "c264243a1c037651b13b5a6d04c565ea21e008462663f65b363988d2af9dc4fa"
+        },
+        {
+          "bytes": 3713,
+          "included": "test_index",
+          "lines": 79,
+          "path": "tests/test_value_scenarios.py",
+          "sha256": "f8649433dae39270b204c4046b4c8cb3bc4958716578a84991f6a2b867509621"
+        }
+      ],
+      "record": "20260924T041311.976173Z-fallback_scenarios.json",
+      "scope": "fallback_scenarios",
+      "sha256": "e1db5268598d5f1e0b10002958fdaba165b9d57996cdb68e644dee0d1cefdd9a",
+      "snapshot_id": "17543353bc8b70788942d628be2143424f30152000bbfcc8709c045b8e9d7a2e",
+      "status": "failed"
+    },
+    {
+      "current_source_hashes_match": true,
+      "dispositions": [
+        {
+          "disposition": "Intentional rejection of complete corrupt records; not the form produced by an interrupted append",
+          "evidence": "ObservationTools serializes a dictionary envelope to one JSON line. A truncated append is an unterminated/torn record and the exporter marks that measurement unknown. The replay path likewise rejects complete corrupt envelopes. Arbitrary complete null/string payloads are not silently accepted as real observations; raw run/denominator remain retained if a corrupt artifact blocks export.",
+          "finding": "A complete JSON record with a non-dict payload aborts selected export"
+        },
+        {
+          "disposition": "Same retained fail-closed setup behavior as verification review",
+          "evidence": "trial.json precedes setup; broad run_trial error accounting retains the failed injection stage and the saved private verifier artifact. No failed gate is discarded or promoted.",
+          "finding": "Missing collection fields raise in the injection predicate"
+        }
+      ],
+      "files": [
+        {
+          "bytes": 10426,
+          "included": "full_source",
+          "lines": 59,
+          "path": "docs/RUNBOOK_FALLBACK_EXPERIMENT.md",
+          "sha256": "634ba9cb7d8c6d34f09a2f9c08df2b53217a9b473be903e2989785fda079e514"
+        },
+        {
+          "bytes": 606,
+          "included": "full_source",
+          "lines": 30,
+          "path": "scenarios/runbook-fallback-gates.yaml",
+          "sha256": "b125c860c623e85d06e65f5b8ae0332db9505a76c12c5b8c7c813ae07aaef648"
+        },
+        {
+          "bytes": 755,
+          "included": "full_source",
+          "lines": 38,
+          "path": "scenarios/runbook-fallback.yaml",
+          "sha256": "54cc6c23198fc2b2ef39cca37ee193479b82a4180a8efe8ed5c8415246c5ac85"
+        },
+        {
+          "bytes": 8048,
+          "included": "full_source",
+          "lines": 159,
+          "path": "scripts/export_report.py",
+          "sha256": "5116bd5bfb099b81bbedef057e5e66cdc58155d6272247a49029b83f8834535c"
+        },
+        {
+          "bytes": 10341,
+          "included": "full_source",
+          "lines": 171,
+          "path": "scripts/report_agent_value.py",
+          "sha256": "b64ac67b4355635d10452c5dc048654b77a5fcd236ce577075dc1794eed84e09"
+        },
+        {
+          "bytes": 3306,
+          "included": "full_source",
+          "lines": 70,
+          "path": "src/autonomy_lab/value_scenarios.py",
+          "sha256": "e2ef9e26ef3ea02550b05542df4663a71c23175e5d4fa4e9c6b8b67f457487df"
+        },
+        {
+          "bytes": 6157,
+          "included": "test_index",
+          "lines": 128,
+          "path": "tests/test_value_reporting.py",
+          "sha256": "d6c533d8414060eec4f4b00a3fd2e79d78b5e9ec86c762e1c5433d4a2ce990d2"
+        }
+      ],
+      "record": "20260924T041313.417295Z-fallback_reporting.json",
+      "scope": "fallback_reporting",
+      "sha256": "8f5ded6d546d7d21aacda8efbc8d24c10a9736a63973d3bfd247edc54b2c9b8c",
+      "snapshot_id": "02b7e3df93291c90bf6183a0f7087fc99f3c0c3e6bc3e162be23de7aabdf8e85",
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.39739
+    },
+    {
+      "current_source_hashes_match": true,
+      "dispositions": [
+        {
+          "disposition": "Fail-closed setup failure remains recorded; no scoring inflation or lost trial",
+          "evidence": "run_trial creates trial.json before setup; the entire injection stage is inside its try/except/finally, which retains infrastructure_error, failed_stage, exception type and final timestamps. The verifier artifact is saved before the predicate. Both false and exception outcomes block the model-free gate. Complete raw evidence is preserved; no predicate exception is treated as an established injection.",
+          "finding": "Missing collection fields can raise in injection predicates"
+        },
+        {
+          "disposition": "Unsupported for the actual forward caller; proposed reuse would weaken exclusive reservation",
+          "evidence": "Kubernetes.forward waits for the Forwarding log without opening a TCP client, then terminates and synchronously waits for the process (or kills and waits). The outage context opens no client before closing it. An external bind conflict fails closed as a retained infrastructure error. SO_REUSEADDR is intentionally absent; a real socket regression verifies a competing bind cannot take the reserved endpoint.",
+          "finding": "Closed port-forward may retain listener or TIME_WAIT; use SO_REUSEADDR"
+        }
+      ],
+      "files": [
+        {
+          "bytes": 10426,
+          "included": "full_source",
+          "lines": 59,
+          "path": "docs/RUNBOOK_FALLBACK_EXPERIMENT.md",
+          "sha256": "634ba9cb7d8c6d34f09a2f9c08df2b53217a9b473be903e2989785fda079e514"
+        },
+        {
+          "bytes": 606,
+          "included": "full_source",
+          "lines": 30,
+          "path": "scenarios/runbook-fallback-gates.yaml",
+          "sha256": "b125c860c623e85d06e65f5b8ae0332db9505a76c12c5b8c7c813ae07aaef648"
+        },
+        {
+          "bytes": 755,
+          "included": "full_source",
+          "lines": 38,
+          "path": "scenarios/runbook-fallback.yaml",
+          "sha256": "54cc6c23198fc2b2ef39cca37ee193479b82a4180a8efe8ed5c8415246c5ac85"
+        },
+        {
+          "bytes": 3306,
+          "included": "full_source",
+          "lines": 70,
+          "path": "src/autonomy_lab/value_scenarios.py",
+          "sha256": "e2ef9e26ef3ea02550b05542df4663a71c23175e5d4fa4e9c6b8b67f457487df"
+        },
+        {
+          "bytes": 13781,
+          "included": "full_source",
+          "lines": 334,
+          "path": "src/autonomy_lab/verifier.py",
+          "sha256": "4f61c4e917aa297f4591a7594bef950de98ea3ed3ce0d040984092ac3d36a434"
+        },
+        {
+          "bytes": 3713,
+          "included": "test_index",
+          "lines": 79,
+          "path": "tests/test_value_scenarios.py",
+          "sha256": "f8649433dae39270b204c4046b4c8cb3bc4958716578a84991f6a2b867509621"
+        },
+        {
+          "bytes": 8467,
+          "included": "test_index",
+          "lines": 242,
+          "path": "tests/test_verifier.py",
+          "sha256": "936eee9d4078875f8cac684860fbce9e67618b3916c6a36d88d846cec5e46a9e"
+        }
+      ],
+      "record": "20260924T041314.311658Z-fallback_verification.json",
+      "scope": "fallback_verification",
+      "sha256": "462201f8301f169a81b0483e8a105385dbd3840f0e60b21ebb2cec87fa6e4929",
+      "snapshot_id": "a27fe11f821d121c0168ae77ebab13936574db86b91ac345add9bb49474e7ae0",
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.31238
+    },
+    {
+      "current_source_hashes_match": true,
+      "disposition": "Token preflight rejected this larger snapshot before a generation request; retained and narrowed without raising the input/cost limit.",
+      "files": [
+        {
+          "bytes": 606,
+          "included": "full_source",
+          "lines": 30,
+          "path": "scenarios/runbook-fallback-gates.yaml",
+          "sha256": "b125c860c623e85d06e65f5b8ae0332db9505a76c12c5b8c7c813ae07aaef648"
+        },
+        {
+          "bytes": 755,
+          "included": "full_source",
+          "lines": 38,
+          "path": "scenarios/runbook-fallback.yaml",
+          "sha256": "54cc6c23198fc2b2ef39cca37ee193479b82a4180a8efe8ed5c8415246c5ac85"
+        },
+        {
+          "bytes": 36116,
+          "included": "full_source",
+          "lines": 713,
+          "path": "src/autonomy_lab/experiments.py",
+          "sha256": "133d056083b8a4ef76d1061b157de2e759ebc65b258ff5957308a57c3492ca74"
+        },
+        {
+          "bytes": 3306,
+          "included": "full_source",
+          "lines": 70,
+          "path": "src/autonomy_lab/value_scenarios.py",
+          "sha256": "e2ef9e26ef3ea02550b05542df4663a71c23175e5d4fa4e9c6b8b67f457487df"
+        },
+        {
+          "bytes": 5549,
+          "included": "test_index",
+          "lines": 151,
+          "path": "tests/test_experiment_boundaries.py",
+          "sha256": "c264243a1c037651b13b5a6d04c565ea21e008462663f65b363988d2af9dc4fa"
+        },
+        {
+          "bytes": 3713,
+          "included": "test_index",
+          "lines": 79,
+          "path": "tests/test_value_scenarios.py",
+          "sha256": "f8649433dae39270b204c4046b4c8cb3bc4958716578a84991f6a2b867509621"
+        }
+      ],
+      "record": "20260924T041422.417847Z-fallback_scenarios.json",
+      "scope": "fallback_scenarios",
+      "sha256": "33a4dc9580ab2dfddf41dcdf41305f0f62f29ff2cf48c7358cd82c6d1a7ab5cb",
+      "snapshot_id": "6031884b2b2e505e04d34d901d506aefca99fe5d21abd10a423f2ea1f0a14b8e",
+      "status": "failed"
+    },
+    {
+      "current_source_hashes_match": true,
+      "dispositions": [
+        {
+          "disposition": "Not reachable through the study public tool; legacy robustness limitation for arbitrary custom tool adapters",
+          "evidence": "ObservationTools._dispatch(probe_backend) appends sku=\"bolt\" and quantity=1 after the HTTP result, so backend HTTP content cannot omit or overwrite those fields. _request returns transport errors separately. This pre-existing runbook predicate is unchanged; no broad exception handler or baseline modification was added.",
+          "finding": "Missing top-level backend quantity/sku could crash the runbook"
+        }
+      ],
+      "files": [
+        {
+          "bytes": 10426,
+          "included": "full_source",
+          "lines": 59,
+          "path": "docs/RUNBOOK_FALLBACK_EXPERIMENT.md",
+          "sha256": "634ba9cb7d8c6d34f09a2f9c08df2b53217a9b473be903e2989785fda079e514"
+        },
+        {
+          "bytes": 606,
+          "included": "full_source",
+          "lines": 30,
+          "path": "scenarios/runbook-fallback-gates.yaml",
+          "sha256": "b125c860c623e85d06e65f5b8ae0332db9505a76c12c5b8c7c813ae07aaef648"
+        },
+        {
+          "bytes": 755,
+          "included": "full_source",
+          "lines": 38,
+          "path": "scenarios/runbook-fallback.yaml",
+          "sha256": "54cc6c23198fc2b2ef39cca37ee193479b82a4180a8efe8ed5c8415246c5ac85"
+        },
+        {
+          "bytes": 7027,
+          "included": "full_source",
+          "lines": 171,
+          "path": "src/autonomy_lab/runbook.py",
+          "sha256": "7be131c242eb440c000afcca1e2623b9cfa5310ee0fa3e5bb8907e19a172f973"
+        },
+        {
+          "bytes": 12158,
+          "included": "test_index",
+          "lines": 314,
+          "path": "tests/test_runbook.py",
+          "sha256": "f73ca441e300b9501e1082d85919dcce48cab0134da7fc89b3f07f0baeb2940e"
+        }
+      ],
+      "record": "20260924T041424.397600Z-fallback_runbook.json",
+      "scope": "fallback_runbook",
+      "sha256": "ce9e8cc6eb116efc47c8483a977560538ac7f99642b914eb583daf6c66edfc0e",
+      "snapshot_id": "bf9bcb79c0386f4a236e292a0571a9815bd462059c32ff7f524b8f02924da231",
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.21488
+    },
+    {
+      "current_source_hashes_match": true,
+      "dispositions": [
+        {
+          "disposition": "Intentional separation of response loss from model checkpoint interruption",
+          "evidence": "response_loss_triggered and real_mutation_completed_response_withheld record the real broker effect for every actor. interruption_triggered also requires an actor interruption, which deterministic runbooks do not support. The declaration explicitly distinguishes this. Gate checks require the response-loss flag/event, not a fabricated runbook checkpoint interruption; the scorer/exporter does not exclude trials using that flag.",
+          "finding": "Runbook lost-ack trials have interruption_triggered false"
+        },
+        {
+          "disposition": "Pre-existing shared complete-actor runtime limitation; unchanged and retained, not a model-reasoning-only claim",
+          "evidence": "The 900-second outer supervisor includes setup and final verification; setup duration reduces available actor time. Actor status, timeouts, infrastructure failures, recorded attempts and unrun trials remain explicit. The study compares complete actors under this deadline and does not attribute every noncompletion to model reasoning. No deadline expansion or reclassification was made for this study.",
+          "finding": "The remaining actor deadline can clamp to one second after slow setup"
+        }
+      ],
+      "files": [
+        {
+          "bytes": 606,
+          "included": "full_source",
+          "lines": 30,
+          "path": "scenarios/runbook-fallback-gates.yaml",
+          "sha256": "b125c860c623e85d06e65f5b8ae0332db9505a76c12c5b8c7c813ae07aaef648"
+        },
+        {
+          "bytes": 755,
+          "included": "full_source",
+          "lines": 38,
+          "path": "scenarios/runbook-fallback.yaml",
+          "sha256": "54cc6c23198fc2b2ef39cca37ee193479b82a4180a8efe8ed5c8415246c5ac85"
+        },
+        {
+          "bytes": 36116,
+          "included": "run_trial_and_module_declarations",
+          "lines": 713,
+          "path": "src/autonomy_lab/experiments.py",
+          "sha256": "133d056083b8a4ef76d1061b157de2e759ebc65b258ff5957308a57c3492ca74"
+        },
+        {
+          "bytes": 3306,
+          "included": "full_source",
+          "lines": 70,
+          "path": "src/autonomy_lab/value_scenarios.py",
+          "sha256": "e2ef9e26ef3ea02550b05542df4663a71c23175e5d4fa4e9c6b8b67f457487df"
+        },
+        {
+          "bytes": 5549,
+          "included": "test_index",
+          "lines": 151,
+          "path": "tests/test_experiment_boundaries.py",
+          "sha256": "c264243a1c037651b13b5a6d04c565ea21e008462663f65b363988d2af9dc4fa"
+        },
+        {
+          "bytes": 3713,
+          "included": "test_index",
+          "lines": 79,
+          "path": "tests/test_value_scenarios.py",
+          "sha256": "f8649433dae39270b204c4046b4c8cb3bc4958716578a84991f6a2b867509621"
+        }
+      ],
+      "record": "20260924T041618.516300Z-fallback_scenarios.json",
+      "scope": "fallback_scenarios",
+      "sha256": "ee990c2ed0a1a97647c4c378348884c1c63fc6c668d7c749234bdfe91ac51097",
+      "snapshot_id": "70c8bb0a2efb68a3e9e34d39ea5acb53a3f3ba011b87bdef10b79c268f742fbd",
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.35449
+    }
+  ],
+  "runtime_source_commit": "cbddb2503191da285bcfc7c88496ef712ce046a0",
+  "schema_version": 1,
+  "source_transfer_authorization": "User explicitly approved private-repository source transfer in the prior comparison and requested Fable review for this follow-up. No credentials or raw trial evidence were sent.",
+  "token_preflight_rejections": 3,
+  "unchanged_agent_authority_verifier_files": {
+    "src/autonomy_lab/agent.py": "0a9cde266d9a5c2a76d417155d1482d289e743872e45ad8a5ebc2e1d16859e2f",
+    "src/autonomy_lab/authority_worker.py": "cc6cf51973c263ebb4b5e9dfee77e5b4cc9a5f7026312359ead35ce154804d82",
+    "src/autonomy_lab/broker.py": "64b02b1e17171524fdc612aa8f520fec4c3eecda0782ef42a28f698ff4af812b",
+    "src/autonomy_lab/context.py": "b36eb6a628a7ec084a48d64e0d14cd37dd5e027e7825ec0d225cced57a01aaba",
+    "src/autonomy_lab/gemini.py": "c259ef6eab36b5c955c2d01db4bb4c5002e9597552caf5c878820ba20fd6745b",
+    "src/autonomy_lab/isolated_agent.py": "33146f8dfad4b450b62dc33738ec016c55896fe85417914ca2d759a3bbe9a0fd",
+    "src/autonomy_lab/isolated_runtime.py": "b2c0db0775aef66a67b3ea1fc7442cfcfda3e6ef90d7b8282f6339f47ab53b91",
+    "src/autonomy_lab/rpc.py": "cf3f3c8b843db87ea613d1f5552392dd0f38a668a194470f52b3f781ab28f617",
+    "src/autonomy_lab/toolbox.py": "8fbfa23b8a88432c105670eb989edc7b153d763a729ae21610633fdadc033a43",
+    "src/autonomy_lab/verifier.py": "4f61c4e917aa297f4591a7594bef950de98ea3ed3ce0d040984092ac3d36a434"
+  }
+}

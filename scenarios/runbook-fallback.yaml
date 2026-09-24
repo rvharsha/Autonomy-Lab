@@ -1,0 +1,38 @@
+schema_version: 1
+name: runbook-fallback-comparison
+status: development
+preregistered: true
+model: gemini-3.8-flash
+repetitions: 2
+run_order_seed: 2026092401
+scenarios:
+- routing
+- healthy
+- lost_ack
+- observer_outage
+- observer_routing
+- observer_quote
+- observer_verifier
+- observer_quote_verifier
+variants:
+- runbook
+- runbook_fallback
+- basic
+- structured
+- no_agent
+expected_behavior:
+  routing: repair
+  healthy: healthy
+  lost_ack: repair
+  observer_outage: healthy
+  observer_routing: escalate
+  observer_quote: escalate
+  observer_verifier: escalate
+  observer_quote_verifier: escalate
+window_seconds: 30
+trial_timeout_seconds: 900
+max_turns: 12
+max_tokens: 32000
+max_output_tokens: 2048
+runtime: isolated-docker
+context_policy: recent-exchanges

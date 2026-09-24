@@ -1,0 +1,234 @@
+{
+  "completed_reviews": 4,
+  "final_reviewed_source_commit": "73a10cb90bb88fd66b9deb87ccc10b614139a3dc",
+  "limitations": [
+    "Source review and test indexes only; Fable did not execute tests, authenticate observations, or review the results interpretation.",
+    "Service-stop classification uses operator-supplied journal and cleanup evidence. Hashes provide integrity comparisons, not independent authentication.",
+    "Finalized worker outcome, duration and audit for trial 80 remain unknown. The recovery exporter does not repair the service-termination boundary or authorize a rerun.",
+    "The repository requires Python 3.12; Fable noted older Python timestamp compatibility as a non-blocking limitation."
+  ],
+  "local_validation": {
+    "all_32_model_relays_reconcile": true,
+    "duplicate_recovered_exports": "byte_identical",
+    "historical_tables": "unchanged",
+    "lint": "passed",
+    "original_runtime_files_reconciled_to_frozen_commit": 40,
+    "test_log_sha256": "9a0c677d21ac37407151f54dcbab926e59fd30d3af05d270eff550b5907d330a",
+    "unit_tests_passed": 768
+  },
+  "provider": "Direct Anthropic; claude-fable-5-1",
+  "purpose": "Post-interruption source review of offline recovery/export code, separate from pre-run actor/harness reviews.",
+  "rejected_preflight": {
+    "disposition": "Removed the already-reviewed study-plan text from the scope; retained the same token/cost limit.",
+    "generation_attempts": 0,
+    "input_tokens": 15542,
+    "record": "20260924T065656.412659Z-interrupted_reporting.json",
+    "sha256": "2aaecc37b8a00738cb909d8cf67ab93953b0a39abd262945e293eb768ed1855f"
+  },
+  "reviews": [
+    {
+      "dispositions": [
+        "Reject a conflicting supplied repetition while explicitly deriving an absent repetition from the ordered manifest.",
+        "Handle unrelated non-text journal messages and blank lines; reject non-object records."
+      ],
+      "files": [
+        {
+          "bytes": 8048,
+          "included": "full_source",
+          "lines": 159,
+          "path": "scripts/export_report.py",
+          "sha256": "5116bd5bfb099b81bbedef057e5e66cdc58155d6272247a49029b83f8834535c"
+        },
+        {
+          "bytes": 6684,
+          "included": "full_source",
+          "lines": 133,
+          "path": "scripts/recover_interrupted_report.py",
+          "sha256": "6cde2c052a6a29d5a6e91326e92de3a26d5441897091e99e8c6290a7deae22cb"
+        },
+        {
+          "bytes": 10806,
+          "included": "full_source",
+          "lines": 177,
+          "path": "scripts/report_agent_value.py",
+          "sha256": "6d4e8621a785659ead6359129f84e64de3dc0c544056baf6cd1294e05d641b38"
+        },
+        {
+          "bytes": 4303,
+          "included": "test_index",
+          "lines": 83,
+          "path": "tests/test_interrupted_reporting.py",
+          "sha256": "fc5c74ce74ad3e633afc596ba2c212e84c75f5f0b22ddab16739106f273cf6c4"
+        },
+        {
+          "bytes": 6157,
+          "included": "test_index",
+          "lines": 128,
+          "path": "tests/test_value_reporting.py",
+          "sha256": "d6c533d8414060eec4f4b00a3fd2e79d78b5e9ec86c762e1c5433d4a2ce990d2"
+        }
+      ],
+      "finished_at": "2026-09-24T06:58:46.111715+00:00",
+      "private_record_sha256": "acc5a78743ddab272bc9fa72e2fa611686e11f143948b8c8cf6adf2874dbe6b4",
+      "record": "20260924T065753.661051Z-interrupted_reporting.json",
+      "snapshot_id": "67fff55df109c6a6c988aa63f78f9a9e0fc48f02480e4bf237f4c6ce2d3c0d85",
+      "source_commit": "fd7faa8d945d05aa29efa9f76151304ea853fc75",
+      "source_hashes_match_committed_revision": true,
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.29895
+    },
+    {
+      "dispositions": [
+        "Original two findings confirmed resolved. Normalize remaining unrun plan identities before derived accounting."
+      ],
+      "files": [
+        {
+          "bytes": 8048,
+          "included": "full_source",
+          "lines": 159,
+          "path": "scripts/export_report.py",
+          "sha256": "5116bd5bfb099b81bbedef057e5e66cdc58155d6272247a49029b83f8834535c"
+        },
+        {
+          "bytes": 7395,
+          "included": "full_source",
+          "lines": 141,
+          "path": "scripts/recover_interrupted_report.py",
+          "sha256": "f92f9c6c7edfcc592eec9fe21fd494bcf2a0ff63ff24c9160662af1e24c85af3"
+        },
+        {
+          "bytes": 10806,
+          "included": "full_source",
+          "lines": 177,
+          "path": "scripts/report_agent_value.py",
+          "sha256": "6d4e8621a785659ead6359129f84e64de3dc0c544056baf6cd1294e05d641b38"
+        },
+        {
+          "bytes": 5777,
+          "included": "test_index",
+          "lines": 114,
+          "path": "tests/test_interrupted_reporting.py",
+          "sha256": "ebdf3255b5d28a50a4b3a73e3e48d929bfda01f37ac9909cb53ec41070f8eaa7"
+        },
+        {
+          "bytes": 6157,
+          "included": "test_index",
+          "lines": 128,
+          "path": "tests/test_value_reporting.py",
+          "sha256": "d6c533d8414060eec4f4b00a3fd2e79d78b5e9ec86c762e1c5433d4a2ce990d2"
+        }
+      ],
+      "finished_at": "2026-09-24T07:02:01.021337+00:00",
+      "private_record_sha256": "d48daabdf66156d6b8f9ba0c94aefde31d7b55720f10f0a6caf100f2f8217b48",
+      "record": "20260924T070110.689258Z-interrupted_reporting.json",
+      "snapshot_id": "3aa046d61405c5f69058eb9d80ef8d73b7c08e2e0dc26456532933f63ba165e1",
+      "source_commit": "967ebeb90a9192ac66d4cd6f1eed6a66fd434cc6",
+      "source_hashes_match_committed_revision": true,
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.29879
+    },
+    {
+      "dispositions": [
+        "Prior findings confirmed resolved. Account for a first-trial interruption when no original results.json exists."
+      ],
+      "files": [
+        {
+          "bytes": 8048,
+          "included": "full_source",
+          "lines": 159,
+          "path": "scripts/export_report.py",
+          "sha256": "5116bd5bfb099b81bbedef057e5e66cdc58155d6272247a49029b83f8834535c"
+        },
+        {
+          "bytes": 7453,
+          "included": "full_source",
+          "lines": 142,
+          "path": "scripts/recover_interrupted_report.py",
+          "sha256": "48cc796912dce3d9655f94298e029d8f3d7730e2269b33a03842cdd6d788acf3"
+        },
+        {
+          "bytes": 10806,
+          "included": "full_source",
+          "lines": 177,
+          "path": "scripts/report_agent_value.py",
+          "sha256": "6d4e8621a785659ead6359129f84e64de3dc0c544056baf6cd1294e05d641b38"
+        },
+        {
+          "bytes": 5918,
+          "included": "test_index",
+          "lines": 116,
+          "path": "tests/test_interrupted_reporting.py",
+          "sha256": "b78b8f24431cf3a03b6b790753cd9d4081970123825891a248bff227b2a6af95"
+        },
+        {
+          "bytes": 6157,
+          "included": "test_index",
+          "lines": 128,
+          "path": "tests/test_value_reporting.py",
+          "sha256": "d6c533d8414060eec4f4b00a3fd2e79d78b5e9ec86c762e1c5433d4a2ce990d2"
+        }
+      ],
+      "finished_at": "2026-09-24T07:06:07.140072+00:00",
+      "private_record_sha256": "e10b6763e20b978a518dc22063b86615dbfd3598ff0f38936c0aa119054f2b96",
+      "record": "20260924T070519.595404Z-interrupted_reporting.json",
+      "snapshot_id": "47580b8ecdf2d2edc347be1416f9066152e28affefcba01867cf556cb7126728",
+      "source_commit": "7a202d9ec0328b64619718e5b4a2367117ca00db",
+      "source_hashes_match_committed_revision": true,
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.28471
+    },
+    {
+      "dispositions": [
+        "All four original findings confirmed resolved; no new substantiated defects."
+      ],
+      "files": [
+        {
+          "bytes": 8048,
+          "included": "full_source",
+          "lines": 159,
+          "path": "scripts/export_report.py",
+          "sha256": "5116bd5bfb099b81bbedef057e5e66cdc58155d6272247a49029b83f8834535c"
+        },
+        {
+          "bytes": 7568,
+          "included": "full_source",
+          "lines": 143,
+          "path": "scripts/recover_interrupted_report.py",
+          "sha256": "ba434836afcb953907dd9fb6587e65306a75a22d5a5d03919af30d54814b3ac2"
+        },
+        {
+          "bytes": 10806,
+          "included": "full_source",
+          "lines": 177,
+          "path": "scripts/report_agent_value.py",
+          "sha256": "6d4e8621a785659ead6359129f84e64de3dc0c544056baf6cd1294e05d641b38"
+        },
+        {
+          "bytes": 6805,
+          "included": "test_index",
+          "lines": 136,
+          "path": "tests/test_interrupted_reporting.py",
+          "sha256": "4e74de33887fc4859b501db71308f95889420bb9921599671b45333592f0972b"
+        },
+        {
+          "bytes": 6157,
+          "included": "test_index",
+          "lines": 128,
+          "path": "tests/test_value_reporting.py",
+          "sha256": "d6c533d8414060eec4f4b00a3fd2e79d78b5e9ec86c762e1c5433d4a2ce990d2"
+        }
+      ],
+      "finished_at": "2026-09-24T07:08:32.475047+00:00",
+      "private_record_sha256": "05c5fa0cf6714bf8cae20467c4fb93a83738545792800ddd2005cca601d1f824",
+      "record": "20260924T070739.961574Z-interrupted_reporting.json",
+      "snapshot_id": "53a8d6e899e436bb2b8d6a44e85bfef36e70196ac6561b5ead72dce5d1294141",
+      "source_commit": "73a10cb90bb88fd66b9deb87ccc10b614139a3dc",
+      "source_hashes_match_committed_revision": true,
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.31477
+    }
+  ],
+  "schema_version": 1,
+  "source_transfer_authorization": "Existing explicit user authorization for private-repository source and additional Fable code review. No raw trial evidence, model content or credentials were submitted.",
+  "unresolved_substantiated_findings": 0
+}

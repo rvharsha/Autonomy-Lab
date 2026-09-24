@@ -86,6 +86,16 @@ def test_broker_scope_is_single_module_plus_test_index(tmp_path):
         review.build_snapshot(tmp_path, "../../.env")
 
 
+def test_fallback_trial_excerpt_discloses_omissions_and_preserves_line_numbers(tmp_path):
+    put(tmp_path, "src/autonomy_lab/experiments.py", "SCENARIOS = {'test'}\n\ndef run_trial():\n    pass\n\ndef run_experiment():\n    OMITTED_HELPER\n")
+    snapshot = review.build_snapshot(tmp_path, "fallback_scenarios")
+    assert snapshot["files"][0]["included"] == "run_trial_and_module_declarations"
+    assert "    3: def run_trial():" in snapshot["prompt"]
+    assert "SOURCE EXCERPT" in snapshot["prompt"]
+    assert "other functions omitted" in snapshot["prompt"]
+    assert "OMITTED_HELPER" not in snapshot["prompt"]
+
+
 def test_broker_profile_enforces_smaller_input_and_low_effort():
     payload = review.request_payload({"scope": "broker", "prompt": "source snapshot"})
     assert payload["output_config"] == {"effort": "low"}
@@ -98,7 +108,7 @@ def test_broker_profile_enforces_smaller_input_and_low_effort():
         review.cost_gate(15_000, "broker")
 
 
-@pytest.mark.parametrize("scope", [scope for scope in review.COMPONENT_SCOPES if scope != "handoff"])
+@pytest.mark.parametrize("scope", [scope for scope in review.COMPONENT_SCOPES if scope not in {"handoff", "interrupted_reporting"}])
 def test_named_components_enforce_explicit_source_allowlists_and_budget(tmp_path, scope):
     modules = review.FOUNDATION | review.AGENTS | set().union(*(m for m, _ in review.COMPONENT_SCOPES.values()))
     for module in modules:
@@ -114,6 +124,22 @@ def test_named_components_enforce_explicit_source_allowlists_and_budget(tmp_path
     assert review.cost_gate(14_999, scope)["estimated_maximum_usd"] < 0.8
     with pytest.raises(review.ReviewError):
         review.cost_gate(15_000, scope)
+
+
+def test_interrupted_reporting_scope_contains_only_explicit_public_sources(tmp_path):
+    expected = {"scripts/recover_interrupted_report.py", "scripts/report_agent_value.py",
+                "scripts/export_report.py"}
+    for name in expected:
+        put(tmp_path, name, "public_source = True\n")
+    put(tmp_path, ".state/private.json", "PRIVATE_PROVIDER_CONTENT")
+    put(tmp_path, "src/autonomy_lab/agent.py", "UNRELATED_SOURCE")
+    snapshot = review.build_snapshot(tmp_path, "interrupted_reporting")
+    assert {item["path"] for item in snapshot["files"]} == expected
+    assert "PRIVATE_PROVIDER_CONTENT" not in snapshot["prompt"]
+    assert "UNRELATED_SOURCE" not in snapshot["prompt"]
+    assert review.cost_gate(14_999, "interrupted_reporting")["estimated_maximum_usd"] < 0.8
+    with pytest.raises(review.ReviewError):
+        review.cost_gate(15_000, "interrupted_reporting")
 
 
 def test_remediation_context_is_scoped_untrusted_and_hash_bound(tmp_path):

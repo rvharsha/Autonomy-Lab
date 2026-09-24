@@ -88,3 +88,43 @@ python3 scripts/report_agent_value.py --run /path/to/experiment-f3cd10f4 --outpu
 Replace the example input path with the actual retained experiment directory; the output must be new. The local archive is under ignored `.state/value-comparison/`, and the second copy is on the stopped GCP host disk at the location in the receipt. Do not publish whole raw directories: they contain private provider content and runtime credentials/configuration. The selected exporter excludes those fields.
 
 A fresh live repetition requires the exact runtime commit, `scenarios/agent-value.yaml`, the [declared gates, budgets and outer timeout](AGENT_VALUE_EXPERIMENT.md), and a deliberately authorized model credential. Plan it with `PYTHONPATH=src .venv/bin/python scripts/run_evaluation.py scenarios/agent-value.yaml` before adding execution flags. Retain it under a new run identifier and denominator. Provider responses are nondeterministic; it cannot replace the recorded 48 trials or validate an altered baseline without a new declaration.
+
+## Reproduce the interrupted fallback comparison
+
+The [80-trial follow-up](RUNBOOK_FALLBACK_RESULTS.md) used runtime `cbddb2503191da285bcfc7c88496ef712ce046a0`. A service stop interrupted trial 80 before final accounting. Its raw archive has 79 finalized results and one unfinished worker record; it is not a controller-finalized 80-trial success. The recovery exporter was added afterward and does not change the frozen runtime or scoring.
+
+Regenerate the committed table from selected evidence:
+
+```sh
+python3 - <<'PY'
+import json
+import sys
+from pathlib import Path
+sys.path.insert(0, "scripts")
+from report_agent_value import render
+report = json.loads(Path("docs/validation/runbook-fallback-comparison.json").read_text())
+assert report["planned"] == report["recorded"] == 80
+assert report["recovery"]["controller_finalized_trials"] == 79
+assert report["trials"][-1]["status"] == "interrupted"
+assert report["trials"][-1]["task_success"] is None
+assert render(report) == Path("docs/RUNBOOK_FALLBACK_MEASUREMENTS.md").read_text()
+print("Recovered measurements reproduce, including the interrupted unknown.")
+PY
+```
+
+Expect original runbook **14/16**, fallback **15/16 with one unassessed**, basic **15/16**, structured **16/16**, and 16 unscored controls. There are 79 assessed audits; the last trial's outcome, duration, final verification and audit remain unknown. The fallback's promotion gate is unmet. Known model usage is 529,412 tokens across 144 requests and retained responses.
+
+An operator with the private archive should first verify its SHA-256 against the [execution receipt](validation/runbook-fallback-comparison-receipt.json), then extract it into a private directory. Use the recovery exporter instead of supplying invented final accounting to the ordinary exporter:
+
+```sh
+python3 scripts/recover_interrupted_report.py \
+  --run /private-evidence/checkout/artifacts/experiment-04cabcfa \
+  --service-journal /private-evidence/interruption-service-journal.jsonl \
+  --cleanup-receipt docs/validation/runbook-fallback-cleanup.json \
+  --unit autolab-fallback-cbddb25.service \
+  --output artifacts/fallback-recovered-report
+```
+
+Replace the example private paths with the actual extraction location; the output must be new. Run twice into separate directories and compare `report.json` and `REPORT.md` byte-for-byte with each other and the committed selected artifacts. Original raw `trial.json` files stay untouched, including trial 80's `running` status. The report explicitly separates operator-classified interruption, original evidence hashes, derived accounting hashes and manual cleanup. Worker records normally lack repetition; the report identifies the ordered manifest position as its source and rejects any conflicting supplied repetition.
+
+The source review and [recovery-review ledger](validation/runbook-fallback-recovery-review.json) cover the exporter, not independent authentication of supplied logs or cleanup receipts. Raw archives contain private model content and runtime configuration and must not be published wholesale. The separate 16 model-free gates do not complete the interrupted comparison. Before another live study, validate maintenance-safe termination, final accounting and independently surviving cleanup; any new study requires its own declaration and denominator, with no replacement of trial 80.

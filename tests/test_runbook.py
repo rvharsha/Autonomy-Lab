@@ -140,6 +140,50 @@ def test_wrong_http_200_total_with_healthy_route_escalates():
     assert tools.proposal is None
 
 
+@pytest.mark.parametrize("verdict,expected", [("verified_success", "healthy"),
+                                             ("verified_failure", "escalated"),
+                                             ("indeterminate", "escalated"), (None, "escalated")])
+def test_fallback_requires_independent_success_and_never_repairs(verdict, expected):
+    tools = ScriptedTools(target_port=9091, app_ok=True)
+    tools.responses["probe_backend"] = {"kind": "error", "error": "transport_failure"}
+    tools.responses["verify_recovery"] = {"verdict": verdict}
+    result = run(tools, verification_fallback=True)
+    assert result["outcome"] == expected and tools.proposal is None
+    assert [name for name, _ in tools.calls] == ["observe_service", "probe_backend", "probe_application", "verify_recovery", "finish"]
+    assert "test-observation-4" in result["evidence_ids"]
+
+
+@pytest.mark.parametrize("outside_scope", [False, True])
+def test_fallback_does_not_override_backend_failure_response_or_service_scope(outside_scope):
+    tools = ScriptedTools()
+    if outside_scope:
+        tools.responses["observe_service"]["service"]["spec"]["selector"] = {"app": "other"}
+        tools.responses["probe_backend"] = {"kind": "error", "error": "transport_failure"}
+    else:
+        tools.responses["probe_backend"] = {"kind": "response", "status_code": 503}
+    assert run(tools, verification_fallback=True)["outcome"] == "escalated"
+    assert tools.proposal is None
+    assert "verify_recovery" not in [name for name, _ in tools.calls]
+
+
+def test_fallback_tool_failure_is_not_a_success():
+    tools = ScriptedTools()
+    tools.responses["probe_backend"] = {"kind": "error", "error": "transport_failure"}
+    tools.responses["verify_recovery"] = {"kind": "error", "error": "tool_unavailable"}
+    assert run(tools, verification_fallback=True)["outcome"] == "escalated"
+    assert tools.proposal is None
+
+
+@pytest.mark.parametrize("healthy", [True, False])
+def test_fallback_preserves_existing_healthy_and_lost_ack_paths(healthy):
+    original = ScriptedTools(target_port=9091 if healthy else 9999, app_ok=healthy)
+    fallback = ScriptedTools(target_port=9091 if healthy else 9999, app_ok=healthy)
+    for tools in [original, fallback]:
+        tools.responses["propose_repair"] = {"kind": "error", "error": "tool_unavailable"}
+    assert run(original)["outcome"] == run(fallback, verification_fallback=True)["outcome"]
+    assert [name for name, _ in original.calls] == [name for name, _ in fallback.calls]
+
+
 def test_out_of_scope_selector_never_mutates():
     tools = ScriptedTools()
     tools.responses["observe_service"]["service"]["spec"]["selector"] = {"app": "other"}

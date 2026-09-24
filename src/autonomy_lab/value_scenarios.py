@@ -4,6 +4,28 @@ import errno
 import socket
 from contextlib import contextmanager
 
+OBSERVER_SCENARIOS = {"observer_outage", "observer_routing", "observer_quote",
+                      "observer_verifier", "observer_quote_verifier"}
+VERIFIER_OUTAGE_SCENARIOS = {"observer_verifier", "observer_quote_verifier"}
+
+
+def verifier_outage_established(verification, *, semantic_fault):
+    """Require actual failed measurement control without erasing observed corruption."""
+    probes = verification.get("probes", [])
+    expected = "verified_failure" if semantic_fault else "indeterminate"
+    return bool(probes) and verification.get("verdict") == expected and all(
+        probe["observations"]["inventory_control"].get("kind") == "error"
+        and probe["observations"]["quote_control"].get("status_code") == 200
+        and probe["observations"]["database"].get("kind") == "rows"
+        and probe["observations"]["service"].get("kind") == "resource"
+        and (not semantic_fault or any(
+            quote.get("case_id") == "available-single" and quote.get("status_code") == 200
+            and isinstance(quote.get("body"), dict) and quote["body"].get("total_minor") == 126
+            for quote in probe["observations"].get("quotes", [])
+        ))
+        for probe in probes
+    )
+
 
 def configure_quote_fault(kube, scenario):
     assignments = {

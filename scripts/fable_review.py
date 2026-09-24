@@ -36,6 +36,11 @@ COMPONENT_SCOPES = {
     "handoff": ({"credentials", "frozen_experiment"}, {"handoff"}),
     "value_scenarios": ({"value_scenarios"}, {"value_scenarios"}),
     "value_reporting": ({"value_scenarios"}, {"value_reporting"}),
+    "fallback_runbook": ({"runbook"}, {"runbook"}),
+    "fallback_scenarios": ({"experiments", "value_scenarios"}, {"value_scenarios", "experiment_boundaries"}),
+    "fallback_verification": ({"value_scenarios", "verifier"}, {"value_scenarios", "verifier"}),
+    "fallback_reporting": ({"value_scenarios"}, {"value_reporting"}),
+    "interrupted_reporting": (set(), {"interrupted_reporting", "value_reporting"}),
     "isolation": ({"isolated_runtime", "isolated_agent", "rpc", "authority_worker"}, {"isolated_runtime"}),
     "context": ({"agent", "context"}, set()),
     "context_logic": ({"context"}, {"context"}),
@@ -61,6 +66,16 @@ COMPONENT_SCOPES = {
 }
 SCOPES = ("foundation", "agents", "all", *COMPONENT_SCOPES)
 REMEDIATION_FINDINGS = {
+    "interrupted_reporting": (
+        "Recovery overwrote a supplied conflicting repetition from the ordered plan and failed "
+        "on unrelated binary journald MESSAGE fields. Worker partial records normally omit "
+        "repetition; check the explicit missing-field provenance and rejection of conflicting "
+        "supplied repetitions, without requiring a field the worker does not write. "
+        "A follow-up identified raw extra plan metadata in the derived unrun list; check "
+        "normalization through export_report.identity, including remaining unrun trials. "
+        "The latest review found missing results.json on a first-trial interruption; "
+        "verify the empty finalized-prefix handling and conditional original-results digest."
+    ),
     "broker": (
         "Pre-dispatch rejection previously retained a reserved budget slot; actual dispatched API "
         "rejections must still consume the dispatch budget. Malformed patch acknowledgments could "
@@ -185,6 +200,14 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
         paths |= {"scripts/run_evaluation.py", "scripts/export_report.py", "scenarios/handoff-acceptance.yaml"}
     if scope == "value_reporting":
         paths |= {"scripts/report_agent_value.py", "scripts/export_report.py", "scenarios/agent-value.yaml", "scenarios/agent-value-gates.yaml", "docs/AGENT_VALUE_EXPERIMENT.md"}
+    if scope.startswith("fallback_"):
+        paths |= {"scenarios/runbook-fallback.yaml", "scenarios/runbook-fallback-gates.yaml"}
+        if scope != "fallback_scenarios":
+            paths.add("docs/RUNBOOK_FALLBACK_EXPERIMENT.md")
+    if scope == "fallback_reporting":
+        paths |= {"scripts/report_agent_value.py", "scripts/export_report.py"}
+    if scope == "interrupted_reporting":
+        paths |= {"scripts/recover_interrupted_report.py", "scripts/report_agent_value.py", "scripts/export_report.py"}
     if scope == "ax_boundary":
         paths |= {"infra/ax/privilege-drop.patch", "infra/ax/privilege_drop_test.go", "infra/ax/durable-cleanup.patch", "infra/ax/README.md"}
     if scope not in COMPONENT_SCOPES:
@@ -205,13 +228,14 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
         except UnicodeDecodeError:
             raise ReviewError("An allowlisted source file is not UTF-8 text") from None
         test_index = relative.startswith("tests/") and relative != "tests/test_harness.py"
+        trial_excerpt = scope == "fallback_scenarios" and relative == "src/autonomy_lab/experiments.py"
         manifest.append(
             {
                 "path": relative,
                 "sha256": hashlib.sha256(data).hexdigest(),
                 "bytes": len(data),
                 "lines": len(contents.splitlines()),
-                "included": "test_index" if test_index else "full_source",
+                "included": "test_index" if test_index else "run_trial_and_module_declarations" if trial_excerpt else "full_source",
             }
         )
         if test_index:
@@ -226,6 +250,16 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
                 f"TEST INDEX ONLY {relative} ({len(names)} test functions; bodies omitted, no execution claimed)\n"
                 + "\n".join(names)
             )
+        elif trial_excerpt:
+            # Preserve original line numbers and full-file digest while explicitly
+            # excluding unchanged orchestration helpers from this bounded review.
+            lines = contents.splitlines()
+            nodes = [node for node in ast.parse(contents).body
+                     if isinstance(node, (ast.Import, ast.ImportFrom, ast.Assign))
+                     or isinstance(node, ast.FunctionDef) and node.name == "run_trial"]
+            numbered = "\n".join(f"{index + 1:5}: {lines[index]}"
+                                 for node in nodes for index in range(node.lineno - 1, node.end_lineno))
+            sections.append(f"SOURCE EXCERPT {relative}: module declarations and run_trial only; other functions omitted\n{numbered}")
         else:
             numbered = "\n".join(
                 f"{number:5}: {line}" for number, line in enumerate(contents.splitlines(), 1)
