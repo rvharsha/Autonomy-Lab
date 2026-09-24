@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import shutil
 import sys
 
 import pytest
@@ -114,3 +115,22 @@ def test_nonobject_journal_record_fails_closed(interrupted):
         stream.write('[]\n')
     with pytest.raises(ValueError, match="Invalid journal record"):
         recovery.recover(*interrupted)
+
+
+def test_first_interrupted_trial_without_results_file_is_not_dropped(interrupted):
+    run, *_ = interrupted
+    for i in range(1, 4):
+        shutil.rmtree(run / f"trial-{i:03d}")
+    (run / "results.json").unlink()
+    (run / "trial-004").rename(run / "trial-001")
+    partial_path = run / "trial-001/trial.json"
+    row = json.loads(partial_path.read_text())
+    row.update(json.loads((run / "manifest.json").read_text())["planned_trials"][0])
+    write(partial_path, row)
+    report = recovery.recover(*interrupted)
+    assert report["recorded"] == 1 and len(report["unrun"]) == 79
+    assert report["recovery"]["controller_finalized_trials"] == 0
+    assert report["trials"][0]["status"] == "interrupted"
+    assert report["trials"][0]["task_success"] is None
+    assert "results.json" not in report["evidence_sha256"]
+    assert not (run / "results.json").exists()

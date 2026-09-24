@@ -32,7 +32,7 @@ def recover(run, service_journal, cleanup_receipt, unit):
     if (run / "accounting.json").exists() or (run / "cleanup.json").exists():
         raise ValueError("Use the ordinary exporter for finalized accounting")
     manifest = read(run / "manifest.json")
-    results = read(run / "results.json")
+    results = read(run / "results.json") if (run / "results.json").exists() else []
     plan = manifest["planned_trials"]
     index = len(results) + 1
     if index > len(plan):
@@ -104,8 +104,9 @@ def recover(run, service_journal, cleanup_receipt, unit):
         report = build(target)
         derived_hashes = {name: digest(target / name) for name in
                           ("results.json", "accounting.json", "cleanup.json")}
-    report["evidence_sha256"] = {name: digest(run / name) for name in
-                                 ("manifest.json", "release.json", "results.json")}
+    report["evidence_sha256"] = {name: digest(run / name) for name in ("manifest.json", "release.json")}
+    if (run / "results.json").exists():
+        report["evidence_sha256"]["results.json"] = digest(run / "results.json")
     report["trials"][-1]["status_source"] = "operator_recovery_from_service_stop"
     report["recovery"] = {
         "kind": "operator_reconstructed_accounting",

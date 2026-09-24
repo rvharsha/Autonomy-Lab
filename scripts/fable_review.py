@@ -72,7 +72,9 @@ REMEDIATION_FINDINGS = {
         "repetition; check the explicit missing-field provenance and rejection of conflicting "
         "supplied repetitions, without requiring a field the worker does not write. "
         "A follow-up identified raw extra plan metadata in the derived unrun list; check "
-        "normalization through export_report.identity, including remaining unrun trials."
+        "normalization through export_report.identity, including remaining unrun trials. "
+        "The latest review found missing results.json on a first-trial interruption; "
+        "verify the empty finalized-prefix handling and conditional original-results digest."
     ),
     "broker": (
         "Pre-dispatch rejection previously retained a reserved budget slot; actual dispatched API "
