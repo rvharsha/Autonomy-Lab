@@ -32,7 +32,7 @@ Observer failure is intentionally distinguishable from workload failure through 
 
 ## Validation before paid execution
 
-Run tests/lint, additional Fable review and existing real acceptance CI. Then execute [agent-value-gates.yaml](../scenarios/agent-value-gates.yaml) on the frozen candidate: six model-free trials across the three additions. Require each injection's controller evidence, expected environment outcome, assessed clean audit and owned-cluster deletion. Require runbook escalation without dispatch in the two Quote faults; retain the expected conservative runbook miss in observer_outage. These gate trials remain separate from the 48-trial comparison.
+Require tests/lint, additional Fable review, existing real acceptance CI, and [agent-value-gates.yaml](../scenarios/agent-value-gates.yaml) before paid execution. The six model-free injection trials may run independently while external source-review permission is pending; this sequencing clarification was made before any gate or live trial. They use the frozen candidate across the three additions. Require each injection's controller evidence, expected environment outcome, assessed clean audit and owned-cluster deletion. Require runbook escalation without dispatch in the two Quote faults; retain the expected conservative runbook miss in observer_outage. These gate trials remain separate from the 48-trial comparison.
 
 Gate failures may lead to a separately recorded harness correction before the live study; actor behavior, scorer and budgets must remain unchanged. Freeze source/manifest hashes again and document any correction. Once paid execution starts, do not tune any component. A stopped study remains a stopped study; a future continuation needs its own declaration and denominator.
 
