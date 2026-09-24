@@ -1,0 +1,23 @@
+{
+  "artifacts_sha256": {
+    "demo-360a740b/REPORT.md": "3e0b1bc2a2ae533c56149bd844bdcbbf27e6974e9f3cad764e99361b6ae4e107",
+    "demo-360a740b/result.json": "5b1d53c2f6bba7218e5cd7f41a3f574e626739571f57fd83a77d0dbba417a235",
+    "handoff-report-a/REPORT.md": "48d0bea23a03ef011eb22df28ea6ba8c5c7ed1917fb6fcbbd9fa2068c07ae329",
+    "handoff-report-a/report.json": "cac36850d647a56d9b4e5beaf4f43658b0a9f929140e4e9abc82cf6da92298ed",
+    "handoff-report-b/REPORT.md": "48d0bea23a03ef011eb22df28ea6ba8c5c7ed1917fb6fcbbd9fa2068c07ae329",
+    "handoff-report-b/report.json": "cac36850d647a56d9b4e5beaf4f43658b0a9f929140e4e9abc82cf6da92298ed",
+    "published-reconciliation-report/REPORT.md": "c12d95ed0789a4348a5a6081d909b65e7b2874e08298e009828ccdcb1ec1a37a",
+    "published-reconciliation-report/report.json": "f3d53f0b69d1227000534e506ebed94bc719e6bba57cb85bbf2fd5f7f37b442e",
+    "published-reliability-report/REPORT.md": "6938159c4f3ec167c522646fc687d12525d01e6327dfb1324778eb397f2887d5",
+    "published-reliability-report/report.json": "b53dfecf786a35e93306c4485e23beef058330424af7b1a2dab1d99c4957d0f1"
+  },
+  "ci_url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36049892892",
+  "duplicate_exports": "byte_identical",
+  "lint": "passed",
+  "log_sha256": "0f2cb405268670cc7f97c38b50a0d671c0a85a71eae0c06db86925131bf2394d",
+  "model_free_handoff_trials": 4,
+  "real_acceptance_checks": 17,
+  "status": "passed",
+  "tested_head": "f905412fa09f4c26e04bad6e4d153579274c4d0b",
+  "tests": 824
+}

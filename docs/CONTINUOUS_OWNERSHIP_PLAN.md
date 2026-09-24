@@ -7,8 +7,9 @@ operation and learned improvement remain proposed, not demonstrated capabilities
 
 ## First claim and implementation boundary
 
-First close the evaluator's [mixed-state termination gate](MIXED_STATE_RECOVERY_EXPERIMENT.md).
-Then implement a separate campaign entry point; do not reuse trial resets as a
+The evaluator's [mixed-state termination gate](MIXED_STATE_RECOVERY_RESULTS.md)
+passed all three declared modes. Next implement a separate campaign entry point;
+do not reuse trial resets as a
 claim of continuous operation or merely disable experiment cleanup.
 
 Use three distinct lifecycles:
