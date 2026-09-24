@@ -1,0 +1,169 @@
+{
+  "scope": "Persistent collection gaps, unavailable reconciliation, and campaign-owner termination; pre-execution source review",
+  "reviews": [
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T23:16:07.044707+00:00",
+      "finished_at": "2026-09-24T23:17:24.428895+00:00",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 scorer crashes (instead of failing) on structurally odd but parseable audit lines**\n\nFiles: `src/autonomy_lab/audit.py` `read_events` (the `event.get(\"stage\")` acceptance) and `assess` (`selected` comprehension); consumed by `src/autonomy_lab/telemetry.py` `assess_telemetry` (`writes`, `denied` comprehensions).\n\n`read_events` only requires the parsed line to be a dict with `stage == \"ResponseComplete\"` and an `auditID`. It does not validate that `objectRef`, `responseStatus`, or `user` are dicts. `assess` and `assess_telemetry` then use the `e.get(\"objectRef\", {}).get(...)` idiom, which only defaults when the key is *absent*; an explicit `null` (or a string/list) is returned as-is and `.get` raises `AttributeError`, which nothing catches.\n\nTrigger / trace: append one line to `campaign/server-audit/events.jsonl`:\n\n```\n{\"auditID\":\"z\",\"stage\":\"ResponseComplete\",\"requestReceivedTimestamp\":\"<inside window>\",\"objectRef\":null}\n```\n\n1. `read_events`: `json.loads` succeeds, `event.get(\"stage\") == \"ResponseComplete\"` \u2192 stored; `malformed` stays 0.\n2. `assess`: `selected = [... e.get(\"objectRef\", {}).get(\"namespace\") ...]` \u2192 `None.get` \u2192 `AttributeError`.\n3. `evaluate` propagates the exception; no `{'status': 'failed', ...}` result is produced, so `test_telemetry_adversarial_evidence_fails`-style evidence yields a crash, not a recorded failure, and the \"flag missing evidence separately\" outcome is never written. Same path via `responseStatus: null` in `telemetry.writes` (`e.get('responseStatus', {}).get('code')`) or `user: \"x\"` in `denied`.\n\nThe verdict is still not wrongly \"passed\", but the gate's durability contract (retain a failed identity with a scored result) is broken by a single line the real API server or a tampered log can contain.\n\nMinimal fix (in `read_events`): treat events whose nested fields are not dicts as malformed, and normalize the rest:\n\n```python\nevent = json.loads(line)\nif not isinstance(event, dict) or event.get(\"stage\") != \"ResponseComplete\":\n    continue\nfor key in (\"objectRef\", \"responseStatus\", \"user\"):\n    if not isinstance(event.get(key, {}), dict):\n        raise TypeError(key)          # falls into the except \u2192 malformed += 1\n    event.setdefault(key, {})\nevents[event[\"auditID\"]] = event\n```\n\n`malformed_lines > 0` then drives `assess` to `status == \"incomplete\"`, so `audit_complete` fails and the failure is recorded rather than raised. (Alternatively wrap `assess_telemetry`'s audit section in a try/except that sets `checks['audit_complete'] = False`, but validating at ingest is smaller.)\n\n**Second candidate \u2014 not substantiated**\n\nI examined `assess`'s correlation clause `(not userAgent.startswith(\"autonomy-lab-operation/\") or userAgent == \".../\"+op_id)`, which lets a broker patch with a default client user-agent correlate to the operation. In this gate it cannot change the verdict: `exact_attributed_mutations` requires `len(writes) == 3` and `correlated_mutations == [repair]`, and a second identical patch would trigger the `duplicates` branch. `read_events` ordering (`events-<ts>.jsonl` sorts before `events.jsonl`, so the current file wins the auditID dedup) and the `stamp()`/RFC3339Micro lexical comparison in `assess` are consistent. No second concrete defect found.\n\nSnapshot 7b8a673c7681391268c2b9055db1a6eca078a07d79e67f8a4fbf91c60e3842dc",
+      "usage_cost_estimate_usd": 0.40465,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "http_status": 200,
+      "snapshot": {
+        "files": [
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/telemetry.py",
+            "sha256": "aee6697a4f0660dcbbd351c256075e611d0d2b18ae778ac813e3f0e91214389b"
+          },
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/audit.py",
+            "sha256": "3a0fc211258421bdea43828d80c2673dc3e86f9c8b050a716407db36c6138cc5"
+          },
+          {
+            "included": "full_source",
+            "path": "scenarios/campaign-telemetry.json",
+            "sha256": "5f6a736c2d31f36d153a3fae25aad13212aaa3a3d4b8867409e17939f6d170de"
+          },
+          {
+            "included": "full_source",
+            "path": "docs/LIFECYCLE_EXPERIMENT.md",
+            "sha256": "f0a86f0b861dd070a391e407665fd5a5a50cec96e08365e743ee900af045fb10"
+          },
+          {
+            "included": "test_names_only",
+            "path": "tests/test_lifecycle.py",
+            "sha256": "eeaf238b2c1a4c1663ac41a123c219043523d41106441e093b9b694e81517eb0"
+          }
+        ],
+        "prompt_sha256": "cb531fb51fe6fee405cb66cce65ae3a982089229fdea76dfb795fb00e1e9b156",
+        "review_kind": "persistent_lifecycle_telemetry_scoring",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "7b8a673c7681391268c2b9055db1a6eca078a07d79e67f8a4fbf91c60e3842dc",
+        "source_bytes": 30577
+      }
+    },
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T23:16:05.457649+00:00",
+      "finished_at": "2026-09-24T23:17:47.909275+00:00",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 In\u2011flight observer sample survives the SIGSTOP window and is recorded as an on\u2011time measurement**\n\nFile: `src/autonomy_lab/campaign.py`, `observe()` (lines with `started = time.time()` \u2026 `save(directory / 'samples' / f'{index:04d}.json', record)`); triggered by `scripts/check_telemetry.py` `signal_worker(observer, signal.SIGSTOP)`.\n\nTrace:\n1. Observer slot *k* starts at `scheduled+\u03b5`; lateness check passes (`started - scheduled \u2264 2`), `record['started_at']` is set, `verify(...)` begins (1 s window, 2 s request timeout).\n2. Gate reaches `window['start'] + spec['pause_offset']` and issues `os.killpg(pid, SIGSTOP)` while `verify` is mid\u2011request. Whenever `pause_offset` lands within ~1\u20133 s after a 10 s slot boundary this is deterministic, not rare.\n3. Process is stopped for `resume_offset \u2212 pause_offset` seconds.\n4. After `SIGCONT`, `verify` continues: pending sockets complete against the *post\u2011resume* service state, or time out. `record['verification']` (or `error_type`) is filled, `finished_at = now`, and the file is saved.\n5. The saved sample has an on\u2011time `started_at`, so the scorecard\u2019s \u201clate or absent \u2192 unknown\u201d rule (keyed on lateness) treats slot *k* as a valid measurement, even though its observation window spans the entire suspension and its result reflects cluster state minutes after `scheduled_at`. The gate\u2019s own failure check (`s['started_at'] >= record['fault']['finished_at']`) also keys on `started_at`, so the same class of sample could later satisfy or contaminate that predicate for slots straddling `resumed_at`.\n\nThis is a measurement\u2011integrity bug: the suspension test exists to prove no backfill, but the observer backfills its own in\u2011flight slot with a post\u2011pause result.\n\nMinimal fix (in `observe()`), bound the elapsed observation time and refuse to attribute an over\u2011long sample:\n\n```python\nrecord['finished_at'] = time.time()\nbound = contract.sample_window_seconds + contract.request_timeout_seconds + contract.sample_lateness_seconds\nif record['finished_at'] - record['started_at'] > bound:\n    record.pop('verification', None)\n    record['error_type'] = 'ObservationInterrupted'\nsave(directory / 'samples' / f'{index:04d}.json', record)\n```\n\n`scorecard`/`evaluate` should then treat `ObservationInterrupted` as unknown (same as late). No change is needed in the gate for the fix to take effect; the gate\u2019s `paused_at`/`resumed_at` already provide independent evidence to cross\u2011check `finished_at`.\n\n**Finding 2 \u2014 none substantiated**\n\nI looked specifically at: budget accounting in `spawn_worker` (initial + repair + resumed = 3 = `max_operator_starts`, consistent); the barrier precondition (`len(before)==1`, `dispatching`, `result is None`, id match) against the described broker ordering (reservation \u2192 dispatching \u2192 adapter \u2192 `after_dispatch` \u2192 ack), which is consistent; `revoke_read`\u2019s JSON\u2011patch `test` guards and the resumed worker\u2019s reconcile path (`get_service` 403 \u2192 unavailable \u2192 `escalation.json` \u2192 `finished.json` \u2192 exit 0, matching `process.wait(...) != 0`); `signal_worker`\u2019s identity/pgid checks and `ps` state polling; and lock hand\u2011off after SIGKILL of the repair worker (`operator.lock` is released on process death). None of these produce a reproducible incorrect outcome from the supplied source alone. `stop_and_reap(initial, \u2026)` on a non\u2011child process and the internals of `wait_ready`, `active`, and `scorecard` slot classification are omitted, so I do not assert defects there.\n\n**Missing evidence (flagged separately, not defects):** `spec` values (`pause_offset`, `resume_offset`, `escalation_deadline_seconds`, etc.) come from `declaration()` which is not supplied, so I cannot confirm Finding 1 is guaranteed to trigger on every run versus probabilistically; `scorecard`\u2019s exact lateness predicate is described, not shown.\n\nSnapshot 679c3dc5c4218851aedc96438a88c75b81f39e7e54b1c5fb1e2562efd1be58d2",
+      "usage_cost_estimate_usd": 0.46661,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "http_status": 200,
+      "snapshot": {
+        "files": [
+          {
+            "included": "full_source",
+            "path": "scripts/check_telemetry.py",
+            "sha256": "b880d597e64b9b94af0d6501eb1c41673b8ad18b4579d2d5fde2d0486ef5a163"
+          },
+          {
+            "included": "selected_functions: dispatch_barrier,observe,operation_rows,operator,reconcile_pending,spawn_worker,stop_worker,worker",
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "8f2b9d6e2589477a8117bdac3fb3a2b3e1db31d1e8043c39eaa7e936f527d737"
+          },
+          {
+            "included": "full_source",
+            "path": "scenarios/campaign-telemetry.json",
+            "sha256": "5f6a736c2d31f36d153a3fae25aad13212aaa3a3d4b8867409e17939f6d170de"
+          },
+          {
+            "included": "change_routing only",
+            "path": "scripts/check_ambiguity.py",
+            "sha256": "e214ebca1e1a17c8574f70776d569bccce9559e622877e6250a083614613d9d0"
+          }
+        ],
+        "prompt_sha256": "9d67fbfc77517d3d6b569bd8868c7afb985cfea69711ac7d857137e7e2b85562",
+        "review_kind": "persistent_lifecycle_telemetry_runtime",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "679c3dc5c4218851aedc96438a88c75b81f39e7e54b1c5fb1e2562efd1be58d2",
+        "source_bytes": 22336
+      }
+    },
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T23:16:05.988225+00:00",
+      "finished_at": "2026-09-24T23:18:03.236139+00:00",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 `scripts/check_campaign_stop.py`, `post_stop_receipt_unchanged` is tautological (measurement bug)**\n\nLines (in `run`, after the ActiveState wait loop):\n\n```python\nreceipt_hash = evidence_digest(directory, 'post-stop.json')\n...\nresult['post_stop_receipt_unchanged'] = receipt_hash == evidence_digest(directory, 'post-stop.json')\n```\n\nTrace (restart mode):\n1. `systemctl restart` returns after invocation #1's ExecStopPost writes `post-stop.json` and invocation #2 has exec'd.\n2. `receipt = await_file(directory / 'post-stop.json', ...)` \u2014 parses the *original* receipt into memory. No digest is taken here.\n3. Invocation #2 exits 1 (`FileExistsError`), its ExecStopPost runs `finalize` again, unit reaches `failed`.\n4. Only now does the gate compute `receipt_hash`, then immediately recomputes the same file's digest and compares the two. Both reads occur after every writer has finished, so the comparison is `hash(file) == hash(file)` and is always `True`.\n\nConsequence: if the second `finalize` (or any other post-stop writer) overwrote/rewrote `post-stop.json` between steps 2 and 4, `no_restart_replay` in `campaign_stop.assess_stop` still passes on `post_stop_receipt_unchanged is True`, and `assess_stop` scores the in-memory `receipt` from step 2 while `gate/post-stop.json` and `receipt_hash` reflect a different file. The check is intended to detect exactly this overwrite and cannot. (Whether `finalize`'s lock/exists guard is correct is separate; the gate is supposed to measure it independently, and it doesn't.)\n\nRepro without any code path in `finalize` changing: replace `post-stop.json` with any other valid JSON after `await_file` returns and before the ActiveState loop exits \u2014 the gate still reports `post_stop_receipt_unchanged: True`.\n\nMinimal fix \u2014 digest the file at the time the original receipt is captured, and compare after recovery settles:\n\n```python\nreceipt = await_file(directory / 'post-stop.json', ...)\nreceipt_hash = evidence_digest(directory, 'post-stop.json')   # move here\nreceipt_body = (directory / 'post-stop.json').read_bytes()\n...  # ActiveState wait loop\nresult['post_stop_receipt_unchanged'] = (\n    receipt_hash == evidence_digest(directory, 'post-stop.json')\n    and hashlib.sha256(receipt_body).hexdigest() == receipt_hash)\n```\n\n(Better: have `await_file` return raw bytes so the parsed `receipt` and the digest are derived from the same read, closing the residual window between `await_file`'s read and the digest.)\n\n**Finding 2 \u2014 none substantiated.**\n\nI looked at the remaining candidates and could not build a concrete failing trace from the supplied code alone:\n\n- `Type=exec` + `systemctl restart` where invocation #2 dies almost immediately: whether the start job (and thus `check=True`) fails depends on systemd's exec-fd notification ordering, not on supplied code. Not asserted.\n- `frozen_calendar_retained` in restart mode depends on observer SIGTERM handling (omitted component). Not asserted.\n- `ExecMainStatus == '9'` in kill mode relies on systemd reporting the signal number for a `killed` main process; consistent with systemd behaviour, not a supplied-code defect.\n\nMissing evidence (flagged separately, not a defect): no run receipts, journals, or scorecards were supplied; the authored tests in `tests/test_lifecycle.py` are not evidence that either gate passed.\n\n30f36db003420c6c7e417d9f8010222aad14a3f5f5b1019bbc6db618b9caac5c",
+      "usage_cost_estimate_usd": 0.58238,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "http_status": 200,
+      "snapshot": {
+        "files": [
+          {
+            "included": "full_source",
+            "path": "scripts/service_campaign.py",
+            "sha256": "bf2818f05a7905f5d5f351cf9f50f210bedc8bb4f8d5f218ee93df0a9d19f78a"
+          },
+          {
+            "included": "full_source",
+            "path": "scripts/check_campaign_stop.py",
+            "sha256": "d9e3d43bed37d4c8a4e1b18e48463cd8a7d14c83a52cfb6d25183ec8a578b186"
+          },
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/campaign_stop.py",
+            "sha256": "f35352f07a53bc14a9e5336866a4f26a25d0522c9bf6b1b4a72257488184445b"
+          },
+          {
+            "included": "full_source",
+            "path": "scenarios/campaign-owner-stop.json",
+            "sha256": "ee0200b910e2361c02e5c85cda440d32fcf72610fd8331c73a3f48b608669f71"
+          },
+          {
+            "included": "full_source",
+            "path": "docs/LIFECYCLE_EXPERIMENT.md",
+            "sha256": "f0a86f0b861dd070a391e407665fd5a5a50cec96e08365e743ee900af045fb10"
+          },
+          {
+            "included": "test_names_only",
+            "path": "tests/test_lifecycle.py",
+            "sha256": "eeaf238b2c1a4c1663ac41a123c219043523d41106441e093b9b694e81517eb0"
+          }
+        ],
+        "prompt_sha256": "50a086cf206554308aa019ee54eea81be8429e8b8cf3708688f5c0594264a4b2",
+        "review_kind": "persistent_lifecycle_owner",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "30f36db003420c6c7e417d9f8010222aad14a3f5f5b1019bbc6db618b9caac5c",
+        "source_bytes": 37484
+      }
+    }
+  ],
+  "dispositions": [
+    {
+      "review": "telemetry_scoring",
+      "finding": 1,
+      "decision": "fixed",
+      "reason": "Reject malformed nested audit shapes while retaining valid rows and marking independent assessment incomplete. Eleven adversarial shapes cover null objects, invalid text and invalid nested response ports.",
+      "test": "test_malformed_json_shapes_preserve_other_rows_and_fail_assessment"
+    },
+    {
+      "review": "telemetry_runtime",
+      "finding": 1,
+      "decision": "not_applicable",
+      "reason": "The review packet omitted the scorecard completion predicate. A slot requires completion by the next slot or window end, in addition to starting on time. A probe interrupted across the pause is retained but scored unknown/late; it cannot pass the declared exact missing-slot test. Existing test_late_or_invalid_timing_never_credits_healthy_slot covers this behavior."
+    },
+    {
+      "review": "owner",
+      "finding": 1,
+      "decision": "fixed",
+      "reason": "Capture the parsed receipt and its hash from the same bytes before waiting for final unit state, then compare afterward. Original systemd InvocationID is also required.",
+      "test": "test_receipt_snapshot_binds_reviewed_body_before_later_replacement"
+    }
+  ],
+  "validation": "984 authored tests passed; lint passed. Fable reviewed the recorded prior snapshots, not the fixed source. Real experiment execution is still pending.",
+  "final_component_sha256": {
+    "src/autonomy_lab/audit.py": "149b2721f6b67ecf8135ab50049c595af4871f837784c2b71b2db4db83e6d352",
+    "scripts/check_campaign_stop.py": "b184bc590ffa97c04a04f6bce3ed3cd29636002f8aba44c20969f0d014706242",
+    "tests/test_audit.py": "0da0e1db3a56f40dccb2f94e77bc12c766dd60cf64e444d5d4c5ffaa92e7528b",
+    "tests/test_lifecycle.py": "822644b50c4f90cda0a08d9f636a7fba7702c15b1b4d694a61c44c159dc35d7d"
+  }
+}
