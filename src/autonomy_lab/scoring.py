@@ -16,7 +16,7 @@ from autonomy_lab.broker import Proposal
 
 VERDICTS = {"verified_success", "verified_failure", "indeterminate"}
 STATUSES = {"prepared", "dispatching", "acknowledged", "uncertain", "rejected"}
-VARIANTS = {"runbook", "basic", "structured", "no_agent"}
+VARIANTS = {"runbook", "runbook_fallback", "basic", "structured", "no_agent"}
 STALE_REASONS = {
     "service_uid_changed",
     "resource_version_changed",

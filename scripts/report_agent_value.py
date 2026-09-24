@@ -13,6 +13,15 @@ from export_report import boolean, choice, number, raw_run
 
 ACTORS = ("runbook", "basic", "structured", "no_agent")
 SCENARIOS = ("routing", "healthy", "lost_ack", "quote_arithmetic", "quote_upstream", "observer_outage")
+FALLBACK_ACTORS = ("runbook", "runbook_fallback", "basic", "structured", "no_agent")
+FALLBACK_SCENARIOS = ("routing", "healthy", "lost_ack", "observer_outage", "observer_routing",
+                      "observer_quote", "observer_verifier", "observer_quote_verifier")
+STUDIES = {
+    "agent-value-comparison": (SCENARIOS, ACTORS, range(2)),
+    "agent-value-injection-gates": (SCENARIOS[3:], ("runbook", "no_agent"), range(1)),
+    "runbook-fallback-comparison": (FALLBACK_SCENARIOS, FALLBACK_ACTORS, range(2)),
+    "runbook-fallback-gates": (FALLBACK_SCENARIOS, ("runbook_fallback", "no_agent"), range(1)),
+}
 
 
 def elapsed(value):
@@ -44,9 +53,8 @@ def build(run):
     release_id = release["release_id"]
     if not isinstance(release_id, str) or re.fullmatch(r"[a-f0-9]{64}", release_id) is None:
         raise ValueError("Invalid release identifier")
-    name = choice(manifest["name"], {"agent-value-comparison", "agent-value-injection-gates"})
-    scenarios, actors, repetitions = ((SCENARIOS, ACTORS, range(2)) if name == "agent-value-comparison"
-                                      else (SCENARIOS[3:], ("runbook", "no_agent"), range(1)))
+    name = choice(manifest["name"], set(STUDIES))
+    scenarios, actors, repetitions = STUDIES[name]
     plan = manifest["planned_trials"]
     if {(p["scenario"], p["variant"], p["repetition"]) for p in plan} != set(product(scenarios, actors, repetitions)):
         raise ValueError("Plan differs from the declared comparison")
@@ -72,12 +80,21 @@ def build(run):
         # Exposure is factual only when the actual observation record contains an error.
         evidence = directory / "evidence.jsonl"
         row["backend_error_observed"] = None
+        observations = None
         if row["external_tool_calls"] is not None:
             observations = [json.loads(line) for line in evidence.read_bytes().splitlines()]
             if any(not isinstance(o.get("payload"), dict) for o in observations):
                 raise ValueError("Invalid observation payload")
             row["backend_error_observed"] = any(o.get("source") == "probe_backend" and
                 o["payload"].get("kind") == "error" for o in observations)
+        if name.startswith("runbook-fallback-"):
+            verdicts = {"verified_success", "verified_failure", "indeterminate"}
+            final_verdict = score.get("verification_verdict")
+            row["final_verification_verdict"] = None if final_verdict is None else choice(final_verdict, verdicts)
+            row["actor_verification_verdicts"] = None if observations is None else [
+                None if o["payload"].get("verdict") is None else choice(o["payload"]["verdict"], verdicts)
+                for o in observations if o.get("source") == "verify_recovery"
+            ]
         trials.append(row)
     return {"schema_version": 1, "name": name, "release_id": release_id,
             "evidence_sha256": selected["evidence_sha256"], "planned": selected["planned"],
@@ -96,16 +113,23 @@ def distribution(values):
 
 
 def render(report):
-    title = "Model-free injection gates" if report["name"] == "agent-value-injection-gates" else "Automation and agent comparison"
+    fallback = report["name"].startswith("runbook-fallback-")
+    actors = FALLBACK_ACTORS if fallback else ACTORS
+    scenarios = FALLBACK_SCENARIOS if fallback else SCENARIOS
+    title = ("Runbook fallback injection gates" if report["name"] == "runbook-fallback-gates" else
+             "Runbook verification fallback comparison") if fallback else (
+             "Model-free injection gates" if report["name"] == "agent-value-injection-gates" else "Automation and agent comparison")
+    labels = {"runbook": "Runbook", "runbook_fallback": "Fallback", "basic": "Basic",
+              "structured": "Structured", "no_agent": "No-agent healthy"}
     lines = [f"# {title}", "", f"Study: `{report['name']}`.", "",
              f"Release `{report['release_id']}`. Recorded {report['recorded']}/{report['planned']}; cleanup: {report['cleanup']}.",
              "", "Supported completions / planned trials. Controls show independently healthy environments / planned trials.", "",
-             "| Scenario | Runbook | Basic | Structured | No-agent healthy |", "|---|---:|---:|---:|---:|"]
-    for scenario in SCENARIOS:
+             "| Scenario | " + " | ".join(labels[a] for a in actors) + " |", "|---|" + "---:|" * len(actors)]
+    for scenario in scenarios:
         if not any(p["scenario"] == scenario for p in report["plan"]):
             continue
         cells = []
-        for actor in ACTORS:
+        for actor in actors:
             planned = sum(p["scenario"] == scenario and p["variant"] == actor for p in report["plan"])
             rows = [t for t in report["trials"] if t["scenario"] == scenario and t["variant"] == actor]
             metric = "environment_recovered" if actor == "no_agent" else "task_success"
@@ -115,7 +139,7 @@ def render(report):
               "Medians [minimum, maximum] include successful and unsuccessful recorded attempts; missing values are explicit. Unrun trials have no measured duration or usage.", "",
               "| Variant | Recorded | Known tokens | Trials with unknown tokens | Unknown provider outcome (true / unassessed) | Trial seconds | External tool calls |",
               "|---|---:|---:|---:|---|---|---|"]
-    for actor in ACTORS:
+    for actor in actors:
         rows = [t for t in report["trials"] if t["variant"] == actor]
         if rows:
             known = sum(t["known_tokens"] for t in rows if t["known_tokens"] is not None)

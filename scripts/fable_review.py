@@ -36,6 +36,10 @@ COMPONENT_SCOPES = {
     "handoff": ({"credentials", "frozen_experiment"}, {"handoff"}),
     "value_scenarios": ({"value_scenarios"}, {"value_scenarios"}),
     "value_reporting": ({"value_scenarios"}, {"value_reporting"}),
+    "fallback_runbook": ({"runbook"}, {"runbook"}),
+    "fallback_scenarios": ({"experiments", "value_scenarios"}, {"value_scenarios", "experiment_boundaries"}),
+    "fallback_verification": ({"value_scenarios", "verifier"}, {"value_scenarios", "verifier"}),
+    "fallback_reporting": ({"value_scenarios"}, {"value_reporting"}),
     "isolation": ({"isolated_runtime", "isolated_agent", "rpc", "authority_worker"}, {"isolated_runtime"}),
     "context": ({"agent", "context"}, set()),
     "context_logic": ({"context"}, {"context"}),
@@ -185,6 +189,12 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
         paths |= {"scripts/run_evaluation.py", "scripts/export_report.py", "scenarios/handoff-acceptance.yaml"}
     if scope == "value_reporting":
         paths |= {"scripts/report_agent_value.py", "scripts/export_report.py", "scenarios/agent-value.yaml", "scenarios/agent-value-gates.yaml", "docs/AGENT_VALUE_EXPERIMENT.md"}
+    if scope.startswith("fallback_"):
+        paths |= {"scenarios/runbook-fallback.yaml", "scenarios/runbook-fallback-gates.yaml"}
+        if scope != "fallback_scenarios":
+            paths.add("docs/RUNBOOK_FALLBACK_EXPERIMENT.md")
+    if scope == "fallback_reporting":
+        paths |= {"scripts/report_agent_value.py", "scripts/export_report.py"}
     if scope == "ax_boundary":
         paths |= {"infra/ax/privilege-drop.patch", "infra/ax/privilege_drop_test.go", "infra/ax/durable-cleanup.patch", "infra/ax/README.md"}
     if scope not in COMPONENT_SCOPES:

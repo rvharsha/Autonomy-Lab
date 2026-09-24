@@ -46,7 +46,7 @@ def _application_matches(application: dict, backend: dict) -> bool:
     )
 
 
-def run(toolbox: ObservationTools) -> dict:
+def run(toolbox: ObservationTools, *, verification_fallback: bool = False) -> dict:
     """Run once in a fresh workspace; mid-run resumption is unsupported.
 
     Existing terminal claims may be read again. Reusing nonterminal observations
@@ -93,6 +93,17 @@ def run(toolbox: ObservationTools) -> dict:
         )
     )
     if not scoped_service or not _backend_works(backend):
+        if verification_fallback and scoped_service and backend.get("kind") == "error":
+            verification = call("verify_recovery")
+            if verification.get("verdict") == "verified_success":
+                return finish(
+                    "healthy",
+                    "Backend observation was unavailable, but independent verification established health without mutation.",
+                )
+            return finish(
+                "escalated",
+                "Backend observation was unavailable and independent verification did not establish health. No repair was attempted.",
+            )
         return finish(
             "escalated",
             "Required Service or direct-backend evidence is unavailable or outside the permitted repair scope.",

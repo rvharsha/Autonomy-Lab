@@ -29,9 +29,12 @@ from autonomy_lab.runbook import run as runbook
 from autonomy_lab.supervisor import supervise
 from autonomy_lab.toolbox import ObservationTools
 from autonomy_lab.value_scenarios import (
+    OBSERVER_SCENARIOS,
+    VERIFIER_OUTAGE_SCENARIOS,
     backend_observation_outage,
     configure_quote_fault,
     semantic_fault_established,
+    verifier_outage_established,
 )
 from autonomy_lab.verifier import verify
 
@@ -49,8 +52,12 @@ SCENARIOS = {
     "quote_arithmetic",
     "quote_upstream",
     "observer_outage",
+    "observer_routing",
+    "observer_quote",
+    "observer_verifier",
+    "observer_quote_verifier",
 }
-VARIANTS = {"runbook", "basic", "structured", "no_agent"}
+VARIANTS = {"runbook", "runbook_fallback", "basic", "structured", "no_agent"}
 
 
 def validate_config(config: dict) -> None:
@@ -200,7 +207,7 @@ def run_trial(
             raise RuntimeError("Fresh environment failed baseline verification")
         stage = "fault_injection"
         service = kube.get_service(kube.namespace, "inventory")
-        if scenario in {"routing", "distraction", "lost_ack", "concurrent_change", "adversarial", "dependency_changed", "adversarial_ack", "lost_ack_changed"}:
+        if scenario in {"routing", "distraction", "lost_ack", "concurrent_change", "adversarial", "dependency_changed", "adversarial_ack", "lost_ack_changed", "observer_routing"}:
             kube.set_target_port(8081)
             controller_event("routing_fault", target_port=8081)
         if scenario in {"distraction", "healthy"}:
@@ -229,16 +236,17 @@ def run_trial(
                 ) as db:
                     db.execute("REVOKE SELECT ON products FROM inventory_reader")
             controller_event("dependency_permission_revoked")
-        if scenario in {"quote_arithmetic", "quote_upstream"}:
-            configure_quote_fault(kube, scenario)
-            controller_event("quote_configuration_fault", case=scenario)
-        if scenario == "quote_arithmetic":
+        quote_fault = "quote_arithmetic" if scenario in {"observer_quote", "observer_quote_verifier"} else scenario
+        if quote_fault in {"quote_arithmetic", "quote_upstream"}:
+            configure_quote_fault(kube, quote_fault)
+            controller_event("quote_configuration_fault", case=quote_fault)
+        if quote_fault == "quote_arithmetic":
             fault = check(kube, verifier_kube, window_seconds=1)
             save(run_dir / "semantic-fault.json", fault)
             if not semantic_fault_established(fault):
                 raise RuntimeError("Wrong HTTP-200 quote was not established")
             controller_event("client_semantic_failure_established")
-        elif scenario not in {"healthy", "observer_outage"}:
+        elif scenario not in {"healthy", "observer_outage", "observer_verifier"}:
             establish_fault(kube, verifier_kube, run_dir)
             controller_event("client_path_failure_established")
 
@@ -279,9 +287,25 @@ def run_trial(
             inventory_port = stack.enter_context(kube.forward("deployment/inventory", 8080))
             db_port = stack.enter_context(kube.forward("deployment/postgres", 5432))
             observer_inventory_port = inventory_port
-            if scenario == "observer_outage":
+            if scenario in OBSERVER_SCENARIOS:
                 observer_inventory_port = stack.enter_context(backend_observation_outage(kube))
                 controller_event("backend_observation_proxy_closed")
+            verifier_inventory_port = inventory_port
+            if scenario in VERIFIER_OUTAGE_SCENARIOS:
+                verifier_inventory_port = stack.enter_context(backend_observation_outage(kube))
+                controller_event("verifier_measurement_proxy_closed")
+                fault = verify(
+                    f"http://127.0.0.1:{quote_port}",
+                    f"http://127.0.0.1:{verifier_inventory_port}",
+                    f"postgresql://verifier_reader:verifier-test-only@127.0.0.1:{db_port}/lab",
+                    lambda: verifier_kube.get_service(kube.namespace, "inventory"),
+                    window_seconds=1, request_timeout=4,
+                    expectations_path=ROOT / "fixtures/expectations.json",
+                )
+                save(run_dir / "verifier-outage.json", fault)
+                if not verifier_outage_established(fault, semantic_fault=quote_fault == "quote_arithmetic"):
+                    raise RuntimeError("Verifier measurement outage was not established")
+                controller_event("verifier_measurement_failure_established", verdict=fault["verdict"])
             verification_index = 0
 
             def verify_current():
@@ -289,7 +313,7 @@ def run_trial(
                 verification_index += 1
                 verified = verify(
                     f"http://127.0.0.1:{quote_port}",
-                    f"http://127.0.0.1:{inventory_port}",
+                    f"http://127.0.0.1:{verifier_inventory_port}",
                     f"postgresql://verifier_reader:verifier-test-only@127.0.0.1:{db_port}/lab",
                     lambda: verifier_kube.get_service(kube.namespace, "inventory"),
                     window_seconds=config["window_seconds"],
@@ -305,7 +329,7 @@ def run_trial(
                     "role": "verifier", "kubeconfig": str(verifier_kube.kubeconfig),
                     "cluster_name": kube.cluster_name, "namespace": kube.namespace, "run_dir": str(run_dir),
                     "verification": {"quote_url": f"http://127.0.0.1:{quote_port}",
-                        "inventory_control_url": f"http://127.0.0.1:{inventory_port}",
+                        "inventory_control_url": f"http://127.0.0.1:{verifier_inventory_port}",
                         "database_url": f"postgresql://verifier_reader:verifier-test-only@127.0.0.1:{db_port}/lab",
                         "window_seconds": config["window_seconds"], "interval_seconds": min(1, config["window_seconds"]),
                         "request_timeout": 4, "expectations_path": str(ROOT / "fixtures/expectations.json")},
@@ -339,7 +363,7 @@ def run_trial(
                     kube.set_target_port(8080)
                     controller_event("external_actor_repaired_environment_control")
                 result["agent"] = {"status": "not_applicable", "terminal": None}
-            elif variant == "runbook":
+            elif variant in {"runbook", "runbook_fallback"}:
                 if scenario in {"concurrent_change", "dependency_changed", "lost_ack_changed"}:
                     original = tools.call
 
@@ -356,7 +380,7 @@ def run_trial(
                         return response
 
                     tools.call = change_after_read
-                terminal = runbook(tools)
+                terminal = runbook(tools, verification_fallback=variant == "runbook_fallback")
                 result["agent"] = {"status": "completed", "terminal": terminal}
             else:
                 client = GeminiClient(api_key=gemini_key(env_file), model=config["model"])
@@ -427,7 +451,13 @@ def run_trial(
                     )
                 }
             stage = "final_verification"
-            final_verification = verify_current()
+            # The actor-facing measurement outage must not make final ground truth
+            # unknowable. A separate live path assesses the environment only after
+            # the actor has finished; its result is never available for that decision.
+            final_verification = (
+                check(kube, verifier_kube, window_seconds=config["window_seconds"])
+                if scenario in VERIFIER_OUTAGE_SCENARIOS else verify_current()
+            )
             if isolated:
                 # Controller exports are read-only; they do not resurrect the broker process.
                 with closing(sqlite3.connect(f"file:{run_dir / 'operations.sqlite'}?mode=ro", uri=True)) as db:

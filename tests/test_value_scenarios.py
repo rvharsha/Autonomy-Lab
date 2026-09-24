@@ -11,6 +11,7 @@ from autonomy_lab.value_scenarios import (
     backend_observation_outage,
     configure_quote_fault,
     semantic_fault_established,
+    verifier_outage_established,
 )
 
 
@@ -57,3 +58,22 @@ def test_outage_closes_real_listener_and_reserves_dead_endpoint():
             replacement.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             with pytest.raises(OSError):
                 replacement.bind(("127.0.0.1", port))
+
+
+@pytest.mark.parametrize("semantic_fault,verdict,accepted", [
+    (False, "indeterminate", True), (False, "verified_success", False),
+    (False, "verified_failure", False), (True, "verified_failure", True),
+    (True, "indeterminate", False), (True, "verified_success", False),
+])
+def test_verifier_outage_gate_keeps_failure_and_uncertainty_distinct(semantic_fault, verdict, accepted):
+    snapshot = {"inventory_control": {"kind": "error"}, "quote_control": {"status_code": 200},
+                "database": {"kind": "rows"}, "service": {"kind": "resource"},
+                "quotes": [{"case_id": "available-single", "status_code": 200, "body": {"total_minor": 126}}]}
+    measurement = {"verdict": verdict, "probes": [{"observations": snapshot}]}
+    assert verifier_outage_established(measurement, semantic_fault=semantic_fault) is accepted
+    snapshot["quotes"][0]["body"]["total_minor"] = 125
+    if semantic_fault:
+        assert not verifier_outage_established(measurement, semantic_fault=semantic_fault)
+    snapshot["inventory_control"] = {"kind": "response", "status_code": 200}
+    assert not verifier_outage_established(measurement, semantic_fault=semantic_fault)
+    assert not verifier_outage_established({"verdict": verdict, "probes": []}, semantic_fault=semantic_fault)

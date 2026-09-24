@@ -22,9 +22,10 @@ def write(path, value):
     path.write_text(json.dumps(value))
 
 
-def fixture_run(path):
+def fixture_run(path, name="agent-value-comparison"):
+    scenarios, actors, repetitions = reporter.STUDIES[name]
     plan = [dict(scenario=s, variant=v, repetition=r) for s, v, r in
-            product(reporter.SCENARIOS, reporter.ACTORS, range(2))]
+            product(scenarios, actors, repetitions)]
     rows = [{**p, "status": "recorded", "score": {"task_success": False, "environment_recovered": False},
              "protected_state_damage": [], "elapsed_seconds": 10} for p in plan[:3]]
     rows[2]["status"] = "infrastructure_error"
@@ -34,10 +35,10 @@ def fixture_run(path):
         directory = path / f"trial-{index:03d}"
         directory.mkdir()
         write(directory / "trial.json", row)
-    write(path / "manifest.json", {"name": "agent-value-comparison", "planned_trials": plan})
+    write(path / "manifest.json", {"name": name, "planned_trials": plan})
     write(path / "release.json", {"release_id": "a" * 64})
     write(path / "results.json", rows)
-    write(path / "accounting.json", {"planned": 48, "recorded": 3, "unrun": plan[3:]})
+    write(path / "accounting.json", {"planned": len(plan), "recorded": 3, "unrun": plan[3:]})
     write(path / "cleanup.json", {"status": "deleted"})
     return rows
 
@@ -102,3 +103,26 @@ def test_other_valid_scenario_cannot_be_silently_omitted(tmp_path):
     write(tmp_path / "accounting.json", accounting)
     with pytest.raises(ValueError, match="declared comparison"):
         reporter.build(tmp_path)
+
+
+def test_fallback_plan_keeps_original_and_treatment_and_unknown_verification(tmp_path):
+    rows = fixture_run(tmp_path, "runbook-fallback-comparison")
+    rows[0]["score"]["verification_verdict"] = "verified_success"
+    write(tmp_path / "results.json", rows)
+    (tmp_path / "trial-001/evidence.jsonl").write_text(json.dumps({
+        "source": "verify_recovery", "payload": {"verdict": "indeterminate", "private": "NOT_EXPORTED"}}) + "\n")
+    r = reporter.build(tmp_path)
+    assert (r["planned"], r["recorded"], len(r["unrun"])) == (80, 3, 77)
+    assert r["trials"][0]["final_verification_verdict"] == "verified_success"
+    assert r["trials"][0]["actor_verification_verdicts"] == ["indeterminate"]
+    assert r["trials"][2]["actor_verification_verdicts"] is None
+    assert r["trials"][2]["known_tokens"] == 0  # Explicit model-free treatment.
+    assert "| Scenario | Runbook | Fallback | Basic | Structured | No-agent healthy |" in reporter.render(r)
+    assert "NOT_EXPORTED" not in json.dumps(r)
+
+
+@pytest.mark.parametrize("source,table", [("agent-value-comparison.json", "AGENT_VALUE_MEASUREMENTS.md"),
+                                         ("agent-value-gates.json", "AGENT_VALUE_GATES.md")])
+def test_historical_published_tables_are_unchanged(source, table):
+    docs = SCRIPTS.parent / "docs"
+    assert reporter.render(json.loads((docs / "validation" / source).read_text())) == (docs / table).read_text()
