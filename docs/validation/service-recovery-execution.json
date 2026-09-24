@@ -1,0 +1,144 @@
+{
+  "assessed_scoped_audits": 32,
+  "candidate_ci": {
+    "artifacts_sha256": {
+      "demo-3742fdec/REPORT.md": "975deb5af566834a11c173033a402967ac61d801b435ace4f5ead4f187f2101c",
+      "demo-3742fdec/result.json": "401d4fabf79df63ac5754c867a798ba2baef8b14c95249c5020707f6c491f4bf",
+      "handoff-report-a/REPORT.md": "48d0bea23a03ef011eb22df28ea6ba8c5c7ed1917fb6fcbbd9fa2068c07ae329",
+      "handoff-report-a/report.json": "8ce969bcc6c2b925ed2b4bac2090b0b012a0a69d7f4a206746904910f07634e3",
+      "handoff-report-b/REPORT.md": "48d0bea23a03ef011eb22df28ea6ba8c5c7ed1917fb6fcbbd9fa2068c07ae329",
+      "handoff-report-b/report.json": "8ce969bcc6c2b925ed2b4bac2090b0b012a0a69d7f4a206746904910f07634e3",
+      "published-reconciliation-report/REPORT.md": "c12d95ed0789a4348a5a6081d909b65e7b2874e08298e009828ccdcb1ec1a37a",
+      "published-reconciliation-report/report.json": "f3d53f0b69d1227000534e506ebed94bc719e6bba57cb85bbf2fd5f7f37b442e",
+      "published-reliability-report/REPORT.md": "6938159c4f3ec167c522646fc687d12525d01e6327dfb1324778eb397f2887d5",
+      "published-reliability-report/report.json": "b53dfecf786a35e93306c4485e23beef058330424af7b1a2dab1d99c4957d0f1"
+    },
+    "ci_url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/36017718526",
+    "duplicate_exports": "byte_identical",
+    "lint": "passed",
+    "log_sha256": "6773260f198d46dc7b6937efe913c065b571dfea34848bb1a88ecf088a341e83",
+    "model_free_handoff_trials": 4,
+    "real_acceptance_checks": 17,
+    "status": "passed",
+    "tested_head": "2c2e04e62638920b6003cdb66b45274b88b313db",
+    "tests": 797
+  },
+  "controller_finalized": 32,
+  "credential_test_limit": "No live provider file was supplied in these model-free cloud gates/trials. Revocation ordering is covered by source review and authored failure tests, not live cloud credential revocation.",
+  "decision": "Verification fallback validated for the declared bounded policy; explicit variant only. Original runbook remains the default/control. No authority expansion.",
+  "evidence_sha256": {
+    "accounting.json": "bf0b1f44bcc44e4b0c2f1b4a7950755516c256cd1fb1be0fdc5cf89dec115c41",
+    "cleanup.json": "b17c5306dd387cfe34a6c48f25ba7608ab6b06e719f0e8df15f68840211afa7f",
+    "manifest.json": "08a0655731786a1ea28fff68e8c69325d0cc76366b5536f4801c802bb6266e14",
+    "release.json": "74c9220ec72ebbae3065d4feec392c5fecc0e5569bf3bf9585b597f9aee36e4b",
+    "results.json": "8a2aedf48049337e3cdfbb43e610dbf6ff77b05fd7a378eac8ff7f7486b44f3c"
+  },
+  "export_sha256": {
+    "REPORT.md": "edbe7d9e26201eba7cba9aed28a875b3d0e3b18840a61417dce7d5eeea6435ef",
+    "report.json": "8a341c773af753b7736bf53c2676ee99575750c04907d35b6eaef06e978108ef"
+  },
+  "fallback_terminal_outcomes": {
+    "escalated": 8,
+    "healthy": 4,
+    "resolved": 4
+  },
+  "gcp": {
+    "installed_release": "v0.1.1",
+    "installed_release_replaced": false,
+    "installed_source_commit": "b28e309c8c2b86fa4a1914d5c1db1b732dccd83c",
+    "lastStartTimestamp": "2026-09-24T07:40:28.708-07:00",
+    "lastStopTimestamp": "2026-09-24T09:05:12.241-07:00",
+    "name": "autonomy-lab",
+    "project": "autonomy-lab-509518",
+    "remaining_kind_containers_before_stop": [],
+    "status": "TERMINATED",
+    "zone": "us-central1-a"
+  },
+  "independent_exports_byte_identical": true,
+  "limitations": "Eight known designed scenario families, two repetitions. Model-free validation, not a new model comparison, causal representation ablation, generalization or production reliability estimate. Host/systemd/Docker remain trusted and available.",
+  "model_generation_calls": 0,
+  "model_tokens": 0,
+  "planned_trials": 32,
+  "post_stop": {
+    "accounting": "recorded",
+    "cleanup": "deleted",
+    "credential_removed": true,
+    "errors": [],
+    "finished_at": "2026-09-24T16:01:31.084558+00:00",
+    "kind": "systemd_post_stop",
+    "remaining": {
+      "cluster_nodes": [],
+      "registered_agents": []
+    },
+    "run_id": "0acc5582",
+    "service_result": "success",
+    "started_at": "2026-09-24T16:01:30.640189+00:00",
+    "status": "finished"
+  },
+  "post_stop_accounting": {
+    "attempted": 32,
+    "controller_final_accounting_available": true,
+    "controller_recorded": 32,
+    "planned": 32,
+    "unassessed_attempts": 0,
+    "unrun": 0
+  },
+  "prelaunch_checker_sha256": "3f0aa5db6eaf3840de227b7cc8e107e424245bb6a50d35dbff7229962f4ab9ed",
+  "prelaunch_declaration": {
+    "checker_sha256": "3f0aa5db6eaf3840de227b7cc8e107e424245bb6a50d35dbff7229962f4ab9ed",
+    "original_fallback_archive_sha256": "f3b64f9268ab4fab5e56c6457c1a6da3e21b51e93cffc1d3d9c446224ebc268a",
+    "original_fallback_unknown_trial_preserved": true,
+    "reviews_sha256": "b9452a36a1c587a55735e605ead4d191e18748956cae9d68b45220a8678c63ea",
+    "runtime_source_commit": "2c2e04e62638920b6003cdb66b45274b88b313db"
+  },
+  "prior_interrupted_study": {
+    "controller_finalized": 79,
+    "planned_trials": 80,
+    "promotion_gate": "unmet; unchanged",
+    "run_id": "04cabcfa",
+    "unknown_attempts": 1
+  },
+  "private_evidence_archive_sha256": "ed8d052826770c35bcf786b1bfdf735270dac1c73274607a178d692a116a277f",
+  "provider_credential_supplied": false,
+  "release_id": "69715cb3494772ec3aa235db4589434870eb36c38b93451d7b662388ef4dfd35",
+  "run_id": "0acc5582",
+  "schema_version": 1,
+  "scored_fallback_trials": 16,
+  "source_archive_sha256": "65c40d9a4f4a19bfe332bafe0423494c121fb4f0132dc63c7431b1b2cd32d5c8",
+  "source_commit": "2c2e04e62638920b6003cdb66b45274b88b313db",
+  "source_files_rechecked": 224,
+  "status": "passed",
+  "study": "runbook-fallback-validation",
+  "supported_fallback_completions": 16,
+  "systemd": {
+    "exit_status": 0,
+    "exit_utc": null,
+    "journal_retained": true,
+    "load_state_at_export": "not-found",
+    "missing_fields": "Transient unit properties may be unavailable after successful unit collection; the retained final receipt records SERVICE_RESULT.",
+    "result": "success",
+    "start_utc": null,
+    "unit": "autolab-study-0acc5582.service"
+  },
+  "unchanged_runtime_components": {
+    "compared_to": "cbddb2503191da285bcfc7c88496ef712ce046a0",
+    "files": {
+      "src/autonomy_lab/agent.py": "0a9cde266d9a5c2a76d417155d1482d289e743872e45ad8a5ebc2e1d16859e2f",
+      "src/autonomy_lab/authority_worker.py": "cc6cf51973c263ebb4b5e9dfee77e5b4cc9a5f7026312359ead35ce154804d82",
+      "src/autonomy_lab/broker.py": "64b02b1e17171524fdc612aa8f520fec4c3eecda0782ef42a28f698ff4af812b",
+      "src/autonomy_lab/context.py": "b36eb6a628a7ec084a48d64e0d14cd37dd5e027e7825ec0d225cced57a01aaba",
+      "src/autonomy_lab/gemini.py": "c259ef6eab36b5c955c2d01db4bb4c5002e9597552caf5c878820ba20fd6745b",
+      "src/autonomy_lab/isolated_agent.py": "33146f8dfad4b450b62dc33738ec016c55896fe85417914ca2d759a3bbe9a0fd",
+      "src/autonomy_lab/isolated_runtime.py": "b2c0db0775aef66a67b3ea1fc7442cfcfda3e6ef90d7b8282f6339f47ab53b91",
+      "src/autonomy_lab/janitor.py": "8fa208543b245e632f1a07cb00e236c856c2570aca42e79ac2d1dd88f5c25966",
+      "src/autonomy_lab/runbook.py": "7be131c242eb440c000afcca1e2623b9cfa5310ee0fa3e5bb8907e19a172f973",
+      "src/autonomy_lab/scoring.py": "c61b0ec2cc1c633b38aa19edd8a589ba764296e3dc20abff78993b0d592ffc8e",
+      "src/autonomy_lab/toolbox.py": "8fbfa23b8a88432c105670eb989edc7b153d763a729ae21610633fdadc033a43",
+      "src/autonomy_lab/value_scenarios.py": "e2ef9e26ef3ea02550b05542df4663a71c23175e5d4fa4e9c6b8b67f457487df",
+      "src/autonomy_lab/verifier.py": "4f61c4e917aa297f4591a7594bef950de98ea3ed3ce0d040984092ac3d36a434"
+    }
+  },
+  "unknown_attempts": 0,
+  "unrun_trials": 0,
+  "unscored_controls": 16
+}

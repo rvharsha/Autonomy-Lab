@@ -33,6 +33,9 @@ MAX_INPUT_TOKENS = 50_000
 MAX_OUTPUT_TOKENS = 6_000
 MAX_BUDGET_USD = 1.0
 COMPONENT_SCOPES = {
+    "service_lifecycle": ({"experiments", "frozen_experiment"}, {"service_experiment"}),
+    "service_gate": ({"janitor"}, {"service_experiment"}),
+    "fallback_validation": ({"value_scenarios"}, {"value_reporting"}),
     "handoff": ({"credentials", "frozen_experiment"}, {"handoff"}),
     "value_scenarios": ({"value_scenarios"}, {"value_scenarios"}),
     "value_reporting": ({"value_scenarios"}, {"value_reporting"}),
@@ -66,6 +69,34 @@ COMPONENT_SCOPES = {
 }
 SCOPES = ("foundation", "agents", "all", *COMPONENT_SCOPES)
 REMEDIATION_FINDINGS = {
+    "service_lifecycle": (
+        "A service SIGTERM intentionally need not produce controller-final accounting: the "
+        "post-stop sidecar owns crash accounting and keeps the uncommitted attempt unassessed. "
+        "The previous suggestion to map SIGTERM to KeyboardInterrupt was rejected because "
+        "this boundary must also work after SIGKILL. Check actual receipt/accounting loss, "
+        "not absence of a controller receipt alone. A verified finding moved transient "
+        "credential deletion before Docker cleanup, with a distinct durable progress receipt. "
+        "Self-review added an ownership token before provisioning and wrapper-source freezing; "
+        "check collision handling, interruption windows and preservation of original outcomes. "
+        "Liveness-probe errors now revoke credentials and persist a failure receipt before "
+        "refusing cleanup; unknown process state is not silently treated as controller death."
+    ),
+    "service_gate": (
+        "The plan preserves scenario order and shuffles only variants; the gate now explicitly "
+        "requires routing then healthy. The omitted harness.save writes an fsynced temporary "
+        "file followed by atomic os.replace, and the worker writes trial.json before tool "
+        "calls. Prior conditional findings about shuffled scenarios and torn trial.json "
+        "were therefore not reproduced. Check actual stop/restart/kill execution and "
+        "assertion paths. Credentials now precede potentially slow cleanup; ownership-token "
+        "checking prevents adoption of an unrelated existing experiment directory. "
+        "Stop/restart now wait for the systemctl job with 630 seconds for both 300-second "
+        "phases, preventing a transient inactive-state race before the restarted process starts. "
+        "Failed recovery receipts are saved in gate evidence before reading accounting. "
+        "Liveness exceptions now produce a durable failure after credential revocation. "
+        "The claim that a second finalize can hit that guard despite an existing completed "
+        "receipt was rejected: the existing receipt returns before the guard. The restart "
+        "gate checks failed-unit state before its finally/stop; it never resets failed units."
+    ),
     "interrupted_reporting": (
         "Recovery overwrote a supplied conflicting repetition from the ordered plan and failed "
         "on unrelated binary journald MESSAGE fields. Worker partial records normally omit "
@@ -198,9 +229,17 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
     paths = {f"src/autonomy_lab/{name}.py" for name in modules}
     if scope == "handoff":
         paths |= {"scripts/run_evaluation.py", "scripts/export_report.py", "scenarios/handoff-acceptance.yaml"}
+    if scope == "service_lifecycle":
+        paths |= {"scripts/service_experiment.py"}
+    if scope == "service_gate":
+        paths |= {"scripts/service_experiment.py", "scripts/check_service_stop.py",
+                  "scenarios/service-stop-gate.yaml"}
+    if scope == "fallback_validation":
+        paths |= {"scripts/report_agent_value.py", "scripts/export_report.py",
+                  "scenarios/runbook-fallback-validation.yaml", "docs/SERVICE_RECOVERY_EXPERIMENT.md"}
     if scope == "value_reporting":
         paths |= {"scripts/report_agent_value.py", "scripts/export_report.py", "scenarios/agent-value.yaml", "scenarios/agent-value-gates.yaml", "docs/AGENT_VALUE_EXPERIMENT.md"}
-    if scope.startswith("fallback_"):
+    if scope.startswith("fallback_") and scope != "fallback_validation":
         paths |= {"scenarios/runbook-fallback.yaml", "scenarios/runbook-fallback-gates.yaml"}
         if scope != "fallback_scenarios":
             paths.add("docs/RUNBOOK_FALLBACK_EXPERIMENT.md")
@@ -229,13 +268,15 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
             raise ReviewError("An allowlisted source file is not UTF-8 text") from None
         test_index = relative.startswith("tests/") and relative != "tests/test_harness.py"
         trial_excerpt = scope == "fallback_scenarios" and relative == "src/autonomy_lab/experiments.py"
+        orchestration_excerpt = scope == "service_lifecycle" and relative == "src/autonomy_lab/experiments.py"
+        service_gate_excerpt = scope == "service_gate" and relative == "scripts/service_experiment.py"
         manifest.append(
             {
                 "path": relative,
                 "sha256": hashlib.sha256(data).hexdigest(),
                 "bytes": len(data),
                 "lines": len(contents.splitlines()),
-                "included": "test_index" if test_index else "run_trial_and_module_declarations" if trial_excerpt else "full_source",
+                "included": "test_index" if test_index else "run_trial_and_module_declarations" if trial_excerpt else "orchestration_and_module_declarations" if orchestration_excerpt else "post_stop_and_launch_declarations" if service_gate_excerpt else "full_source",
             }
         )
         if test_index:
@@ -250,16 +291,19 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
                 f"TEST INDEX ONLY {relative} ({len(names)} test functions; bodies omitted, no execution claimed)\n"
                 + "\n".join(names)
             )
-        elif trial_excerpt:
+        elif trial_excerpt or orchestration_excerpt or service_gate_excerpt:
             # Preserve original line numbers and full-file digest while explicitly
             # excluding unchanged orchestration helpers from this bounded review.
             lines = contents.splitlines()
+            selected_functions = ({"run_trial"} if trial_excerpt else
+                {"read", "digest", "credential_path", "load_job", "remaining_resources", "finalize", "launch_command"}
+                if service_gate_excerpt else {"release_manifest", "planned_trials", "run_experiment"})
             nodes = [node for node in ast.parse(contents).body
                      if isinstance(node, (ast.Import, ast.ImportFrom, ast.Assign))
-                     or isinstance(node, ast.FunctionDef) and node.name == "run_trial"]
+                     or isinstance(node, ast.FunctionDef) and node.name in selected_functions]
             numbered = "\n".join(f"{index + 1:5}: {lines[index]}"
                                  for node in nodes for index in range(node.lineno - 1, node.end_lineno))
-            sections.append(f"SOURCE EXCERPT {relative}: module declarations and run_trial only; other functions omitted\n{numbered}")
+            sections.append(f"SOURCE EXCERPT {relative}: module declarations and {', '.join(sorted(selected_functions))}; other functions omitted\n{numbered}")
         else:
             numbered = "\n".join(
                 f"{number:5}: {line}" for number, line in enumerate(contents.splitlines(), 1)

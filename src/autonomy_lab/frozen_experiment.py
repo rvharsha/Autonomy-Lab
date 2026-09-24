@@ -11,7 +11,7 @@ from pathlib import Path
 from autonomy_lab.kubernetes import ROOT
 
 
-def freeze(config, *, env_file=None, keep=False):
+def freeze(config, *, env_file=None, keep=False, run_id=None, owner_token=None):
     from autonomy_lab.experiments import release_manifest
 
     release = release_manifest(config)
@@ -37,7 +37,7 @@ def freeze(config, *, env_file=None, keep=False):
     request = directory / (snapshot.name + "-request.json")
     output = directory / (snapshot.name + "-result.json")
     request.write_text(json.dumps({"config": config, "env_file": str(env_file.expanduser().resolve()) if env_file else None,
-                                   "keep": keep, "output": str(output)}))
+                                   "keep": keep, "run_id": run_id, "owner_token": owner_token, "output": str(output)}))
     process = subprocess.run([sys.executable, "-m", "autonomy_lab.frozen_experiment", str(request)],
                              cwd=snapshot, env={**os.environ, "PYTHONPATH": str(snapshot / "src"),
                                                "PYTHONDONTWRITEBYTECODE": "1"})
@@ -53,7 +53,7 @@ def main():
         raise ValueError("Frozen execution requires a copied release")
     request = json.loads(Path(sys.argv[1]).read_text())
     path = run_experiment(request["config"], env_file=Path(request["env_file"]) if request["env_file"] else None,
-                          keep=request["keep"])
+                          keep=request["keep"], run_id=request.get("run_id"), owner_token=request.get("owner_token"))
     Path(request["output"]).write_text(json.dumps({"run_dir": str(path.resolve())}))
 
 

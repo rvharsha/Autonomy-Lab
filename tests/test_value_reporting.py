@@ -53,6 +53,17 @@ def test_failed_unscored_and_unrun_trials_remain_in_denominator(tmp_path):
     assert "| routing | 0/2 | 0/2 | 0/2 | 0/2 |" in reporter.render(report)
 
 
+def test_separate_fallback_validation_keeps_its_own_denominator(tmp_path):
+    fixture_run(tmp_path, 'runbook-fallback-validation')
+    report = reporter.build(tmp_path)
+    assert report['planned'] == 32 and report['recorded'] == 3 and len(report['unrun']) == 29
+    assert set(p['variant'] for p in report['plan']) == {'runbook_fallback', 'no_agent'}
+    assert report['trials'][2]['task_success'] is None
+    text = reporter.render(report)
+    assert '| Scenario | Fallback | No-agent healthy |' in text
+    assert 'Separate runbook fallback validation' in text
+
+
 def test_private_payloads_excluded_and_actual_observer_error_selected(tmp_path):
     rows = fixture_run(tmp_path)
     marker = "DO_NOT_EXPORT_PRIVATE_TEXT"

@@ -204,10 +204,45 @@ different termination boundary: a systemd service stop/restart during unattended
 package maintenance interrupted both the controller and its detached janitor.
 The controller-only SIGKILL check above does not validate whole-service
 termination. The original evidence was archived, the owned cluster was manually
-deleted, and the VM was stopped. Before another live comparison, require a real
-service-stop gate proving final accounting and cleanup survive independently of
-the study's control group. Keep host maintenance and restoration explicit and
-bounded; do not disable security updates indefinitely to make a run pass.
+deleted, and the VM was stopped at that point. The subsequent
+[service-recovery results](../../docs/SERVICE_RECOVERY_RESULTS.md) record real
+stop, restart and entire-group SIGKILL gates on the corrected wrapper. Each
+cleaned owned resources and preserved honest interrupted/unrun accounting. Host
+security updates remain enabled; the correction does not suppress maintenance.
+
+The correction and separate validation are declared in
+[SERVICE_RECOVERY_EXPERIMENT.md](../../docs/SERVICE_RECOVERY_EXPERIMENT.md).
+Use the managed entry point for new cloud studies: prepare one manifest as
+`autolab`, then launch that prepared job as the host administrator. Enter the
+exact staged checkout from an administrator shell (`sudo -i`); its parent is
+private to the lab account. For example (replace the printed job path below):
+
+```sh
+sudo -u autolab env PYTHONPATH=src .venv/bin/python scripts/service_experiment.py prepare scenarios/runbook-fallback-validation.yaml
+sudo env PYTHONPATH=src .venv/bin/python scripts/service_experiment.py launch /absolute/checkout/artifacts/service-PRINTED_ID
+```
+
+The wrapper uses `Restart=no`, `KillMode=control-group`, a bounded service runtime,
+and systemd `ExecStopPost` recovery. A persistent launch claim prevents a restart
+from replaying the study. Cleanup starts in the supervised post-stop phase after
+the original processes terminate. This does not guarantee recovery after loss of
+the host or systemd itself. The local detached janitor remains a separate,
+narrower controller-death mechanism.
+
+`post-stop-accounting.json` is explicitly derived accounting; it does not overwrite
+original `trial.json`, `results.json`, `accounting.json` or `cleanup.json`. An
+uncommitted worker result stays unassessed. `post-stop-started.json` records
+credential removal before Docker work; only `post-stop.json` with status `finished`
+establishes completed recovery. A missing final receipt is not success. If cleanup
+fails, retain the original receipt and investigate owned resources before another
+job. The existing raw exporter still requires original controller-final accounting.
+
+For future live-model studies, supply `prepare --env-file` with a dedicated
+`/run/autonomy-lab/.../provider.env`, following the credential-transfer restrictions
+above. Never give this wrapper the reusable local `.env`: recovery removes the
+declared transient file. If service creation fails before any start/stop phase,
+the operator must remove that transient file. The declared fallback validation is
+model-free and does not require a credential.
 
 Use the same explicit project, zone, and IAP flags when restarting or accessing
 the host. Starting it grants a new 12-hour run interval. Applications exist only

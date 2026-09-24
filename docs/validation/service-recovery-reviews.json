@@ -1,0 +1,882 @@
+{
+  "completed_reviews": 9,
+  "dispositions": [
+    {
+      "disposition": "rejected",
+      "finding": "SIGTERM can bypass controller finally blocks",
+      "reason": "This is the failure boundary being tested. Systemd post-stop accounting does not require controller receipts and intentionally leaves uncommitted attempts unassessed; SIGKILL must be supported as well.",
+      "scope": "service_lifecycle"
+    },
+    {
+      "disposition": "fixed",
+      "finding": "Credential removal followed potentially slow Docker cleanup",
+      "reason": "Credential revocation and a distinct progress receipt precede cleanup; regression test covers blocked cleanup.",
+      "scope": "service_lifecycle"
+    },
+    {
+      "disposition": "not_reproduced_with_explicit_guard_added",
+      "finding": "Scenario shuffle can put healthy before routing",
+      "reason": "planned_trials preserves scenario order and shuffles only variants. The gate now additionally checks its exact two-row ordered plan.",
+      "scope": "service_gate"
+    },
+    {
+      "disposition": "rejected",
+      "finding": "trial.json could be read while torn",
+      "reason": "harness.save fsyncs a temporary file and atomically replaces the target; run_trial publishes its initial record before tool observations.",
+      "scope": "service_gate"
+    },
+    {
+      "disposition": "fixed",
+      "finding": "Gate timeout covered only one of two systemd stop phases",
+      "reason": "Trigger command and stop cleanup allow 630 seconds for the 300-second process stop and 300-second post-stop phases.",
+      "scope": "service_gate"
+    },
+    {
+      "disposition": "fixed",
+      "finding": "Missing accounting could hide the failed post-stop receipt",
+      "reason": "Gate retains and checks the post-stop receipt before opening accounting.",
+      "scope": "service_gate"
+    },
+    {
+      "disposition": "fixed",
+      "finding": "Liveness probe exception could bypass revocation and receipts",
+      "reason": "Credentials are removed first; liveness errors produce a durable failed receipt and refuse resource cleanup. Authored timeout regression verifies this ordering.",
+      "scope": "service_gate"
+    },
+    {
+      "disposition": "rejected",
+      "finding": "Second finalize can hit liveness failure despite an existing receipt",
+      "reason": "The existing immutable receipt returns before the liveness guard. Gate checks the failed unit before final stop and never resets failed units.",
+      "scope": "service_gate"
+    },
+    {
+      "disposition": "fixed",
+      "finding": "Asynchronous restart could expose inactive state before new invocation",
+      "reason": "Wait for the systemctl restart job, including its new start phase, before checking the refused invocation.",
+      "scope": "service_gate"
+    },
+    {
+      "disposition": "unsubstantiated_observation",
+      "finding": "Journald ingestion might delay restart refusal text",
+      "reason": "No reproduction provided. Real restart gate requires actual persisted refusal evidence and fails if it is absent; it does not infer a passing restart.",
+      "scope": "service_gate"
+    },
+    {
+      "disposition": "rejected",
+      "finding": "No probe records produce backend_error_observed=false",
+      "reason": "The field means whether an error exposure occurred in a complete journal, not whether a backend was healthy. Applicable validation requires this field to be true; missing exposure cannot pass. Truncated or unavailable evidence remains unknown.",
+      "scope": "fallback_validation"
+    },
+    {
+      "disposition": "rejected",
+      "finding": "Missing quotes in trusted verifier output can raise instead of returning false",
+      "reason": "verify.collect populates quotes before returning every snapshot. A thrown collection exception produces no partial snapshot. Malformed evidence fails closed as infrastructure error; no actor or promotion gate can bypass establishment.",
+      "scope": "fallback_validation"
+    }
+  ],
+  "final_coverage": {
+    "fallback_validation": {
+      "current_file_hashes_match": true,
+      "record": "20260924T150406.982610Z-fallback_validation.json",
+      "snapshot_id": "1f6902919f9fed81160120f84df8ee18afde8dc4e6049fefeaef986b1d0a3bbd"
+    },
+    "service_gate": {
+      "current_file_hashes_match": true,
+      "record": "20260924T150519.323421Z-service_gate.json",
+      "snapshot_id": "0b2ba42057dab39c27827f111d9f443c3158ce7593ffa590bfa3f9c034efc7cc"
+    },
+    "service_lifecycle": {
+      "current_file_hashes_match": true,
+      "record": "20260924T150231.609816Z-service_lifecycle.json",
+      "snapshot_id": "75282b84ca933bf8d66b29ba39b75fdfd9c50cadbc34b7dffb7f7bfce38c10d5"
+    }
+  },
+  "limitations": "Source review only. Model findings were checked against implementation; conditional claims are not assumed true. No review authenticates experiments or grants promotion. Raw responses and private thinking are not published.",
+  "model": "claude-fable-5-1",
+  "preflight_blocked_without_generation": 4,
+  "provider": "direct Anthropic",
+  "records": [
+    {
+      "error": "Token preflight exceeds 14,999 input tokens or returned an invalid count",
+      "generation_attempts": 0,
+      "preflight_input_tokens": 22511,
+      "record": "20260924T144910.049791Z-service_lifecycle.json",
+      "scope": "service_lifecycle",
+      "snapshot_id": "3a78994308355686791efed17db2fcb55c4aa81fb3d9ed9aa21ac0870b6b920c",
+      "source_manifest": [
+        {
+          "bytes": 6381,
+          "included": "full_source",
+          "lines": 46,
+          "path": "docs/SERVICE_RECOVERY_EXPERIMENT.md",
+          "sha256": "d41b91195e39e3ae9967872b4cb331ae59346f14338b70ae9f6bedc64737de0f"
+        },
+        {
+          "bytes": 311,
+          "included": "full_source",
+          "lines": 17,
+          "path": "scenarios/service-stop-gate.yaml",
+          "sha256": "47ae4dcf450e2646da2854c58bc88a7cf7af0cf0f0755be94bb894da0b6ab2db"
+        },
+        {
+          "bytes": 7545,
+          "included": "full_source",
+          "lines": 136,
+          "path": "scripts/check_service_stop.py",
+          "sha256": "750c09ab6d5d931074ce9984f606b0cbb22e8c6b6340feb00c42b19431af3831"
+        },
+        {
+          "bytes": 14057,
+          "included": "full_source",
+          "lines": 289,
+          "path": "scripts/service_experiment.py",
+          "sha256": "727a4b9adf3e2792818acc84b573d7e9c2b462545562cf792aba62598a7271a3"
+        },
+        {
+          "bytes": 36396,
+          "included": "orchestration_and_module_declarations",
+          "lines": 719,
+          "path": "src/autonomy_lab/experiments.py",
+          "sha256": "e05ed6cfb042a204ca3e6366e4e8794fa199bad90eff6044379c92a742e2760c"
+        },
+        {
+          "bytes": 2750,
+          "included": "full_source",
+          "lines": 61,
+          "path": "src/autonomy_lab/frozen_experiment.py",
+          "sha256": "575c52f9ee4a045945fae529094bf7d724f2db2daf52fdfffcdd24d9302cd74b"
+        },
+        {
+          "bytes": 6754,
+          "included": "full_source",
+          "lines": 134,
+          "path": "src/autonomy_lab/janitor.py",
+          "sha256": "8fa208543b245e632f1a07cb00e236c856c2570aca42e79ac2d1dd88f5c25966"
+        },
+        {
+          "bytes": 7365,
+          "included": "test_index",
+          "lines": 170,
+          "path": "tests/test_service_experiment.py",
+          "sha256": "5f7d82f0833b98d4d1a6f65c14fc7b31a3540ca5ae77b749c2e0ed23473fb510"
+        }
+      ],
+      "status": "failed"
+    },
+    {
+      "error": "Token preflight exceeds 14,999 input tokens or returned an invalid count",
+      "generation_attempts": 0,
+      "preflight_input_tokens": 16729,
+      "record": "20260924T144943.476412Z-service_lifecycle.json",
+      "scope": "service_lifecycle",
+      "snapshot_id": "b807771d6eda55d3d09b3d713e694325caee6fd512e5f8c32004cf30d589e642",
+      "source_manifest": [
+        {
+          "bytes": 14057,
+          "included": "full_source",
+          "lines": 289,
+          "path": "scripts/service_experiment.py",
+          "sha256": "727a4b9adf3e2792818acc84b573d7e9c2b462545562cf792aba62598a7271a3"
+        },
+        {
+          "bytes": 36396,
+          "included": "orchestration_and_module_declarations",
+          "lines": 719,
+          "path": "src/autonomy_lab/experiments.py",
+          "sha256": "e05ed6cfb042a204ca3e6366e4e8794fa199bad90eff6044379c92a742e2760c"
+        },
+        {
+          "bytes": 2750,
+          "included": "full_source",
+          "lines": 61,
+          "path": "src/autonomy_lab/frozen_experiment.py",
+          "sha256": "575c52f9ee4a045945fae529094bf7d724f2db2daf52fdfffcdd24d9302cd74b"
+        },
+        {
+          "bytes": 6754,
+          "included": "full_source",
+          "lines": 134,
+          "path": "src/autonomy_lab/janitor.py",
+          "sha256": "8fa208543b245e632f1a07cb00e236c856c2570aca42e79ac2d1dd88f5c25966"
+        },
+        {
+          "bytes": 7365,
+          "included": "test_index",
+          "lines": 170,
+          "path": "tests/test_service_experiment.py",
+          "sha256": "5f7d82f0833b98d4d1a6f65c14fc7b31a3540ca5ae77b749c2e0ed23473fb510"
+        }
+      ],
+      "status": "failed"
+    },
+    {
+      "generation_attempts": 1,
+      "preflight_input_tokens": 13643,
+      "record": "20260924T145034.159796Z-service_lifecycle.json",
+      "reported_usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 13643,
+        "output_tokens": 5313,
+        "output_tokens_details": {
+          "thinking_tokens": 3898
+        },
+        "service_tier": "standard"
+      },
+      "scope": "service_lifecycle",
+      "snapshot_id": "6617ab30c6d110589ae3d61d8376a92e927a22f95ccf9d5b6d7ba6f6ac7a6272",
+      "source_manifest": [
+        {
+          "bytes": 14057,
+          "included": "full_source",
+          "lines": 289,
+          "path": "scripts/service_experiment.py",
+          "sha256": "727a4b9adf3e2792818acc84b573d7e9c2b462545562cf792aba62598a7271a3"
+        },
+        {
+          "bytes": 36396,
+          "included": "orchestration_and_module_declarations",
+          "lines": 719,
+          "path": "src/autonomy_lab/experiments.py",
+          "sha256": "e05ed6cfb042a204ca3e6366e4e8794fa199bad90eff6044379c92a742e2760c"
+        },
+        {
+          "bytes": 2750,
+          "included": "full_source",
+          "lines": 61,
+          "path": "src/autonomy_lab/frozen_experiment.py",
+          "sha256": "575c52f9ee4a045945fae529094bf7d724f2db2daf52fdfffcdd24d9302cd74b"
+        },
+        {
+          "bytes": 7365,
+          "included": "test_index",
+          "lines": 170,
+          "path": "tests/test_service_experiment.py",
+          "sha256": "5f7d82f0833b98d4d1a6f65c14fc7b31a3540ca5ae77b749c2e0ed23473fb510"
+        }
+      ],
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.40208
+    },
+    {
+      "generation_attempts": 1,
+      "preflight_input_tokens": 12662,
+      "record": "20260924T145504.311759Z-service_lifecycle.json",
+      "reported_usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 12662,
+        "output_tokens": 5908,
+        "output_tokens_details": {
+          "thinking_tokens": 4889
+        },
+        "service_tier": "standard"
+      },
+      "scope": "service_lifecycle",
+      "snapshot_id": "687ae485ce7bfa445a103f5d8a5e3f2c9775fb6c845e4b3f568265c6a761fb98",
+      "source_manifest": [
+        {
+          "bytes": 15024,
+          "included": "full_source",
+          "lines": 306,
+          "path": "scripts/service_experiment.py",
+          "sha256": "b085c5034274e787947c22fdd6657fd44db2a6ff9a7a07a0957ac5bdffc10a76"
+        },
+        {
+          "bytes": 36784,
+          "included": "orchestration_and_module_declarations",
+          "lines": 724,
+          "path": "src/autonomy_lab/experiments.py",
+          "sha256": "c2d790e44f98c986817d9d00f166d84584d306e872878315076d67d7885541d4"
+        },
+        {
+          "bytes": 2836,
+          "included": "full_source",
+          "lines": 61,
+          "path": "src/autonomy_lab/frozen_experiment.py",
+          "sha256": "932e476b298411d337dc673f5de489b180f00abc13b8bf8a21e2c9c918268cd0"
+        },
+        {
+          "bytes": 9376,
+          "included": "test_index",
+          "lines": 209,
+          "path": "tests/test_service_experiment.py",
+          "sha256": "b6962e012e2c3ae620faf40ced165d6948b2c04c46642b45359dcea85155b8ca"
+        }
+      ],
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.42202
+    },
+    {
+      "generation_attempts": 1,
+      "preflight_input_tokens": 12882,
+      "record": "20260924T150231.609816Z-service_lifecycle.json",
+      "reported_usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 12882,
+        "output_tokens": 7597,
+        "output_tokens_details": {
+          "thinking_tokens": 6664
+        },
+        "service_tier": "standard"
+      },
+      "scope": "service_lifecycle",
+      "snapshot_id": "75282b84ca933bf8d66b29ba39b75fdfd9c50cadbc34b7dffb7f7bfce38c10d5",
+      "source_manifest": [
+        {
+          "bytes": 15425,
+          "included": "full_source",
+          "lines": 313,
+          "path": "scripts/service_experiment.py",
+          "sha256": "3e2240927594fc3e9f75c8218b4f118174b6d1d9bbbc4c68de62136c91919bfa"
+        },
+        {
+          "bytes": 36784,
+          "included": "orchestration_and_module_declarations",
+          "lines": 724,
+          "path": "src/autonomy_lab/experiments.py",
+          "sha256": "c2d790e44f98c986817d9d00f166d84584d306e872878315076d67d7885541d4"
+        },
+        {
+          "bytes": 2836,
+          "included": "full_source",
+          "lines": 61,
+          "path": "src/autonomy_lab/frozen_experiment.py",
+          "sha256": "932e476b298411d337dc673f5de489b180f00abc13b8bf8a21e2c9c918268cd0"
+        },
+        {
+          "bytes": 10416,
+          "included": "test_index",
+          "lines": 229,
+          "path": "tests/test_service_experiment.py",
+          "sha256": "1a486a4cacda7b77f80515a5486c7726f9bf21382e406525a4eefa167ddd1eb2"
+        }
+      ],
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.50867
+    },
+    {
+      "error": "Token preflight exceeds 14,999 input tokens or returned an invalid count",
+      "generation_attempts": 0,
+      "preflight_input_tokens": 15841,
+      "record": "20260924T144947.567701Z-service_gate.json",
+      "scope": "service_gate",
+      "snapshot_id": "1a30e7bee1200fa068e4fe995063ae1c7e99e9e777eb8bb188a16db37d2341fd",
+      "source_manifest": [
+        {
+          "bytes": 6381,
+          "included": "full_source",
+          "lines": 46,
+          "path": "docs/SERVICE_RECOVERY_EXPERIMENT.md",
+          "sha256": "d41b91195e39e3ae9967872b4cb331ae59346f14338b70ae9f6bedc64737de0f"
+        },
+        {
+          "bytes": 311,
+          "included": "full_source",
+          "lines": 17,
+          "path": "scenarios/service-stop-gate.yaml",
+          "sha256": "47ae4dcf450e2646da2854c58bc88a7cf7af0cf0f0755be94bb894da0b6ab2db"
+        },
+        {
+          "bytes": 7545,
+          "included": "full_source",
+          "lines": 136,
+          "path": "scripts/check_service_stop.py",
+          "sha256": "750c09ab6d5d931074ce9984f606b0cbb22e8c6b6340feb00c42b19431af3831"
+        },
+        {
+          "bytes": 14057,
+          "included": "full_source",
+          "lines": 289,
+          "path": "scripts/service_experiment.py",
+          "sha256": "727a4b9adf3e2792818acc84b573d7e9c2b462545562cf792aba62598a7271a3"
+        },
+        {
+          "bytes": 6754,
+          "included": "full_source",
+          "lines": 134,
+          "path": "src/autonomy_lab/janitor.py",
+          "sha256": "8fa208543b245e632f1a07cb00e236c856c2570aca42e79ac2d1dd88f5c25966"
+        },
+        {
+          "bytes": 7365,
+          "included": "test_index",
+          "lines": 170,
+          "path": "tests/test_service_experiment.py",
+          "sha256": "5f7d82f0833b98d4d1a6f65c14fc7b31a3540ca5ae77b749c2e0ed23473fb510"
+        }
+      ],
+      "status": "failed"
+    },
+    {
+      "generation_attempts": 1,
+      "preflight_input_tokens": 13575,
+      "record": "20260924T145028.444270Z-service_gate.json",
+      "reported_usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 13575,
+        "output_tokens": 7691,
+        "output_tokens_details": {
+          "thinking_tokens": 6201
+        },
+        "service_tier": "standard"
+      },
+      "scope": "service_gate",
+      "snapshot_id": "adc5beb04e71c646650af7a3212b16c279ecd6e1927e7ad9e6c6ab7c5d8e085b",
+      "source_manifest": [
+        {
+          "bytes": 311,
+          "included": "full_source",
+          "lines": 17,
+          "path": "scenarios/service-stop-gate.yaml",
+          "sha256": "47ae4dcf450e2646da2854c58bc88a7cf7af0cf0f0755be94bb894da0b6ab2db"
+        },
+        {
+          "bytes": 7545,
+          "included": "full_source",
+          "lines": 136,
+          "path": "scripts/check_service_stop.py",
+          "sha256": "750c09ab6d5d931074ce9984f606b0cbb22e8c6b6340feb00c42b19431af3831"
+        },
+        {
+          "bytes": 14057,
+          "included": "full_source",
+          "lines": 289,
+          "path": "scripts/service_experiment.py",
+          "sha256": "727a4b9adf3e2792818acc84b573d7e9c2b462545562cf792aba62598a7271a3"
+        },
+        {
+          "bytes": 6754,
+          "included": "full_source",
+          "lines": 134,
+          "path": "src/autonomy_lab/janitor.py",
+          "sha256": "8fa208543b245e632f1a07cb00e236c856c2570aca42e79ac2d1dd88f5c25966"
+        },
+        {
+          "bytes": 7365,
+          "included": "test_index",
+          "lines": 170,
+          "path": "tests/test_service_experiment.py",
+          "sha256": "5f7d82f0833b98d4d1a6f65c14fc7b31a3540ca5ae77b749c2e0ed23473fb510"
+        }
+      ],
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.5203
+    },
+    {
+      "generation_attempts": 1,
+      "preflight_input_tokens": 11339,
+      "record": "20260924T145502.985433Z-service_gate.json",
+      "reported_usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 11339,
+        "output_tokens": 3799,
+        "output_tokens_details": {
+          "thinking_tokens": 2393
+        },
+        "service_tier": "standard"
+      },
+      "scope": "service_gate",
+      "snapshot_id": "9b0b34edb0a8ff239e5bbde37c65fca6d092adfb6b03d1ee64b6e438cc29f566",
+      "source_manifest": [
+        {
+          "bytes": 311,
+          "included": "full_source",
+          "lines": 17,
+          "path": "scenarios/service-stop-gate.yaml",
+          "sha256": "47ae4dcf450e2646da2854c58bc88a7cf7af0cf0f0755be94bb894da0b6ab2db"
+        },
+        {
+          "bytes": 7963,
+          "included": "full_source",
+          "lines": 142,
+          "path": "scripts/check_service_stop.py",
+          "sha256": "594b7b2935a3373db22554ae540de5cdec10e52bd170810a39082cda8bd96e23"
+        },
+        {
+          "bytes": 15024,
+          "included": "post_stop_and_launch_declarations",
+          "lines": 306,
+          "path": "scripts/service_experiment.py",
+          "sha256": "b085c5034274e787947c22fdd6657fd44db2a6ff9a7a07a0957ac5bdffc10a76"
+        },
+        {
+          "bytes": 6754,
+          "included": "full_source",
+          "lines": 134,
+          "path": "src/autonomy_lab/janitor.py",
+          "sha256": "8fa208543b245e632f1a07cb00e236c856c2570aca42e79ac2d1dd88f5c25966"
+        },
+        {
+          "bytes": 9376,
+          "included": "test_index",
+          "lines": 209,
+          "path": "tests/test_service_experiment.py",
+          "sha256": "b6962e012e2c3ae620faf40ced165d6948b2c04c46642b45359dcea85155b8ca"
+        }
+      ],
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.30334
+    },
+    {
+      "generation_attempts": 1,
+      "preflight_input_tokens": 11445,
+      "record": "20260924T145843.995723Z-service_gate.json",
+      "reported_usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 11445,
+        "output_tokens": 5006,
+        "output_tokens_details": {
+          "thinking_tokens": 3589
+        },
+        "service_tier": "standard"
+      },
+      "scope": "service_gate",
+      "snapshot_id": "947e6939001386609d14e66ebee594cb71a2389879c3a1d377bbf70f07e40f42",
+      "source_manifest": [
+        {
+          "bytes": 311,
+          "included": "full_source",
+          "lines": 17,
+          "path": "scenarios/service-stop-gate.yaml",
+          "sha256": "47ae4dcf450e2646da2854c58bc88a7cf7af0cf0f0755be94bb894da0b6ab2db"
+        },
+        {
+          "bytes": 8200,
+          "included": "full_source",
+          "lines": 145,
+          "path": "scripts/check_service_stop.py",
+          "sha256": "3f7b763140a72306dbec92ee2d275315863bc9a9b82844e2e87a84f798933453"
+        },
+        {
+          "bytes": 15024,
+          "included": "post_stop_and_launch_declarations",
+          "lines": 306,
+          "path": "scripts/service_experiment.py",
+          "sha256": "b085c5034274e787947c22fdd6657fd44db2a6ff9a7a07a0957ac5bdffc10a76"
+        },
+        {
+          "bytes": 6754,
+          "included": "full_source",
+          "lines": 134,
+          "path": "src/autonomy_lab/janitor.py",
+          "sha256": "8fa208543b245e632f1a07cb00e236c856c2570aca42e79ac2d1dd88f5c25966"
+        },
+        {
+          "bytes": 9376,
+          "included": "test_index",
+          "lines": 209,
+          "path": "tests/test_service_experiment.py",
+          "sha256": "b6962e012e2c3ae620faf40ced165d6948b2c04c46642b45359dcea85155b8ca"
+        }
+      ],
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.36475
+    },
+    {
+      "generation_attempts": 1,
+      "preflight_input_tokens": 11760,
+      "record": "20260924T150231.609131Z-service_gate.json",
+      "reported_usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 11760,
+        "output_tokens": 3779,
+        "output_tokens_details": {
+          "thinking_tokens": 2561
+        },
+        "service_tier": "standard"
+      },
+      "scope": "service_gate",
+      "snapshot_id": "b5e326cdb1d745456acead944730d5cbce696ad9830de67447bb8f3838564103",
+      "source_manifest": [
+        {
+          "bytes": 311,
+          "included": "full_source",
+          "lines": 17,
+          "path": "scenarios/service-stop-gate.yaml",
+          "sha256": "47ae4dcf450e2646da2854c58bc88a7cf7af0cf0f0755be94bb894da0b6ab2db"
+        },
+        {
+          "bytes": 8200,
+          "included": "full_source",
+          "lines": 145,
+          "path": "scripts/check_service_stop.py",
+          "sha256": "3f7b763140a72306dbec92ee2d275315863bc9a9b82844e2e87a84f798933453"
+        },
+        {
+          "bytes": 15425,
+          "included": "post_stop_and_launch_declarations",
+          "lines": 313,
+          "path": "scripts/service_experiment.py",
+          "sha256": "3e2240927594fc3e9f75c8218b4f118174b6d1d9bbbc4c68de62136c91919bfa"
+        },
+        {
+          "bytes": 6754,
+          "included": "full_source",
+          "lines": 134,
+          "path": "src/autonomy_lab/janitor.py",
+          "sha256": "8fa208543b245e632f1a07cb00e236c856c2570aca42e79ac2d1dd88f5c25966"
+        },
+        {
+          "bytes": 10416,
+          "included": "test_index",
+          "lines": 229,
+          "path": "tests/test_service_experiment.py",
+          "sha256": "1a486a4cacda7b77f80515a5486c7726f9bf21382e406525a4eefa167ddd1eb2"
+        }
+      ],
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.30655
+    },
+    {
+      "generation_attempts": 1,
+      "preflight_input_tokens": 11840,
+      "record": "20260924T150519.323421Z-service_gate.json",
+      "reported_usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 11840,
+        "output_tokens": 5167,
+        "output_tokens_details": {
+          "thinking_tokens": 3992
+        },
+        "service_tier": "standard"
+      },
+      "scope": "service_gate",
+      "snapshot_id": "0b2ba42057dab39c27827f111d9f443c3158ce7593ffa590bfa3f9c034efc7cc",
+      "source_manifest": [
+        {
+          "bytes": 311,
+          "included": "full_source",
+          "lines": 17,
+          "path": "scenarios/service-stop-gate.yaml",
+          "sha256": "47ae4dcf450e2646da2854c58bc88a7cf7af0cf0f0755be94bb894da0b6ab2db"
+        },
+        {
+          "bytes": 8349,
+          "included": "full_source",
+          "lines": 147,
+          "path": "scripts/check_service_stop.py",
+          "sha256": "db621dbb8a728e64ffd61ecec5c73ebc5f98bc3ff138d1b2a6aec58779bde5d5"
+        },
+        {
+          "bytes": 15425,
+          "included": "post_stop_and_launch_declarations",
+          "lines": 313,
+          "path": "scripts/service_experiment.py",
+          "sha256": "3e2240927594fc3e9f75c8218b4f118174b6d1d9bbbc4c68de62136c91919bfa"
+        },
+        {
+          "bytes": 6754,
+          "included": "full_source",
+          "lines": 134,
+          "path": "src/autonomy_lab/janitor.py",
+          "sha256": "8fa208543b245e632f1a07cb00e236c856c2570aca42e79ac2d1dd88f5c25966"
+        },
+        {
+          "bytes": 10416,
+          "included": "test_index",
+          "lines": 229,
+          "path": "tests/test_service_experiment.py",
+          "sha256": "1a486a4cacda7b77f80515a5486c7726f9bf21382e406525a4eefa167ddd1eb2"
+        }
+      ],
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.37675
+    },
+    {
+      "error": "Token preflight exceeds 14,999 input tokens or returned an invalid count",
+      "generation_attempts": 0,
+      "preflight_input_tokens": 17723,
+      "record": "20260924T150331.926972Z-fallback_validation.json",
+      "scope": "fallback_validation",
+      "snapshot_id": "597f024d2f31d3f5af5693118f1c33d3f487e6d83d63046b09993c6b3c1d2645",
+      "source_manifest": [
+        {
+          "bytes": 10426,
+          "included": "full_source",
+          "lines": 59,
+          "path": "docs/RUNBOOK_FALLBACK_EXPERIMENT.md",
+          "sha256": "634ba9cb7d8c6d34f09a2f9c08df2b53217a9b473be903e2989785fda079e514"
+        },
+        {
+          "bytes": 6381,
+          "included": "full_source",
+          "lines": 46,
+          "path": "docs/SERVICE_RECOVERY_EXPERIMENT.md",
+          "sha256": "d41b91195e39e3ae9967872b4cb331ae59346f14338b70ae9f6bedc64737de0f"
+        },
+        {
+          "bytes": 606,
+          "included": "full_source",
+          "lines": 30,
+          "path": "scenarios/runbook-fallback-gates.yaml",
+          "sha256": "b125c860c623e85d06e65f5b8ae0332db9505a76c12c5b8c7c813ae07aaef648"
+        },
+        {
+          "bytes": 611,
+          "included": "full_source",
+          "lines": 30,
+          "path": "scenarios/runbook-fallback-validation.yaml",
+          "sha256": "eac5657ec25eb50e14df146c82cf31fc04965273076910c0c90b85e8b362d517"
+        },
+        {
+          "bytes": 755,
+          "included": "full_source",
+          "lines": 38,
+          "path": "scenarios/runbook-fallback.yaml",
+          "sha256": "54cc6c23198fc2b2ef39cca37ee193479b82a4180a8efe8ed5c8415246c5ac85"
+        },
+        {
+          "bytes": 8048,
+          "included": "full_source",
+          "lines": 159,
+          "path": "scripts/export_report.py",
+          "sha256": "5116bd5bfb099b81bbedef057e5e66cdc58155d6272247a49029b83f8834535c"
+        },
+        {
+          "bytes": 11123,
+          "included": "full_source",
+          "lines": 181,
+          "path": "scripts/report_agent_value.py",
+          "sha256": "15ed335e23d0413a927048182567a3073fb13343d46c6f5f9623098d49bf4ebf"
+        },
+        {
+          "bytes": 3306,
+          "included": "full_source",
+          "lines": 70,
+          "path": "src/autonomy_lab/value_scenarios.py",
+          "sha256": "e2ef9e26ef3ea02550b05542df4663a71c23175e5d4fa4e9c6b8b67f457487df"
+        },
+        {
+          "bytes": 6724,
+          "included": "test_index",
+          "lines": 139,
+          "path": "tests/test_value_reporting.py",
+          "sha256": "deb784a13a609c6d16a6c3f1b3ef40b7aa09b6e19a4b683c737d6a21d1fa635e"
+        }
+      ],
+      "status": "failed"
+    },
+    {
+      "generation_attempts": 1,
+      "preflight_input_tokens": 13181,
+      "record": "20260924T150406.982610Z-fallback_validation.json",
+      "reported_usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 13181,
+        "output_tokens": 4833,
+        "output_tokens_details": {
+          "thinking_tokens": 3701
+        },
+        "service_tier": "standard"
+      },
+      "scope": "fallback_validation",
+      "snapshot_id": "1f6902919f9fed81160120f84df8ee18afde8dc4e6049fefeaef986b1d0a3bbd",
+      "source_manifest": [
+        {
+          "bytes": 6381,
+          "included": "full_source",
+          "lines": 46,
+          "path": "docs/SERVICE_RECOVERY_EXPERIMENT.md",
+          "sha256": "d41b91195e39e3ae9967872b4cb331ae59346f14338b70ae9f6bedc64737de0f"
+        },
+        {
+          "bytes": 611,
+          "included": "full_source",
+          "lines": 30,
+          "path": "scenarios/runbook-fallback-validation.yaml",
+          "sha256": "eac5657ec25eb50e14df146c82cf31fc04965273076910c0c90b85e8b362d517"
+        },
+        {
+          "bytes": 8048,
+          "included": "full_source",
+          "lines": 159,
+          "path": "scripts/export_report.py",
+          "sha256": "5116bd5bfb099b81bbedef057e5e66cdc58155d6272247a49029b83f8834535c"
+        },
+        {
+          "bytes": 11123,
+          "included": "full_source",
+          "lines": 181,
+          "path": "scripts/report_agent_value.py",
+          "sha256": "15ed335e23d0413a927048182567a3073fb13343d46c6f5f9623098d49bf4ebf"
+        },
+        {
+          "bytes": 3306,
+          "included": "full_source",
+          "lines": 70,
+          "path": "src/autonomy_lab/value_scenarios.py",
+          "sha256": "e2ef9e26ef3ea02550b05542df4663a71c23175e5d4fa4e9c6b8b67f457487df"
+        },
+        {
+          "bytes": 6724,
+          "included": "test_index",
+          "lines": 139,
+          "path": "tests/test_value_reporting.py",
+          "sha256": "deb784a13a609c6d16a6c3f1b3ef40b7aa09b6e19a4b683c737d6a21d1fa635e"
+        }
+      ],
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.37346
+    }
+  ],
+  "runtime_candidate": "2c2e04e62638920b6003cdb66b45274b88b313db",
+  "self_review_fixes": [
+    "Reserved run ownership token prevents adoption/deletion of colliding prior artifacts.",
+    "Freeze the service wrapper source as well as runtime files.",
+    "Retain final-stop failures in gate evidence."
+  ],
+  "status": "reviewed"
+}

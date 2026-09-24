@@ -21,6 +21,7 @@ STUDIES = {
     "agent-value-injection-gates": (SCENARIOS[3:], ("runbook", "no_agent"), range(1)),
     "runbook-fallback-comparison": (FALLBACK_SCENARIOS, FALLBACK_ACTORS, range(2)),
     "runbook-fallback-gates": (FALLBACK_SCENARIOS, ("runbook_fallback", "no_agent"), range(1)),
+    "runbook-fallback-validation": (FALLBACK_SCENARIOS, ("runbook_fallback", "no_agent"), range(2)),
 }
 
 
@@ -114,11 +115,14 @@ def distribution(values):
 
 def render(report):
     fallback = report["name"].startswith("runbook-fallback-")
-    actors = FALLBACK_ACTORS if fallback else ACTORS
+    actors = (("runbook_fallback", "no_agent") if report["name"] == "runbook-fallback-validation"
+              else FALLBACK_ACTORS if fallback else ACTORS)
     scenarios = FALLBACK_SCENARIOS if fallback else SCENARIOS
     title = ("Runbook fallback injection gates" if report["name"] == "runbook-fallback-gates" else
              "Runbook verification fallback comparison") if fallback else (
              "Model-free injection gates" if report["name"] == "agent-value-injection-gates" else "Automation and agent comparison")
+    if report["name"] == "runbook-fallback-validation":
+        title = "Separate runbook fallback validation"
     labels = {"runbook": "Runbook", "runbook_fallback": "Fallback", "basic": "Basic",
               "structured": "Structured", "no_agent": "No-agent healthy"}
     lines = [f"# {title}", "", f"Study: `{report['name']}`.", "",

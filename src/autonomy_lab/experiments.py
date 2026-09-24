@@ -6,6 +6,7 @@ import hashlib
 import json
 import math
 import random
+import re
 import sqlite3
 import sys
 import time
@@ -590,31 +591,41 @@ def supervise_trial(kube, run_dir, scenario, variant, config, *, env_file=None, 
     return result
 
 
-def run_experiment(config: dict, *, env_file: Path | None = None, keep=False) -> Path:
-    validate_config(config)
-    if config.get("runtime") == "isolated-docker" and not (ROOT / ".frozen-release").exists():
-        from autonomy_lab.frozen_experiment import freeze
-        return freeze(config, env_file=env_file, keep=keep)
-    config = {**config, "trial_timeout_seconds": config.get("trial_timeout_seconds", 900)}
-    if set(config["variants"]) & {"basic", "structured"}:
-        gemini_key(env_file)  # fail before provisioning if no authorized credential is available
-    run_id = uuid.uuid4().hex[:8]
-    run_dir = ROOT / "artifacts" / f"experiment-{run_id}"
-    run_dir.mkdir(parents=True, mode=0o700)
-    if config.get("runtime") == "isolated-docker":
-        config["agent_image_id"] = build_agent_image()
-    release = release_manifest(config)
-    save(run_dir / "release.json", release)
+def planned_trials(config):
     plan = []
     rng = random.Random(config.get("run_order_seed", 20260923))
     for repetition in range(config["repetitions"]):
         for scenario in config["scenarios"]:
             variants = list(config["variants"])
             rng.shuffle(variants)
-            plan.extend(
-                {"scenario": scenario, "variant": variant, "repetition": repetition}
-                for variant in variants
-            )
+            plan.extend({"scenario": scenario, "variant": variant, "repetition": repetition}
+                        for variant in variants)
+    return plan
+
+
+def run_experiment(config: dict, *, env_file: Path | None = None, keep=False, run_id=None, owner_token=None) -> Path:
+    validate_config(config)
+    if run_id is not None and (not isinstance(run_id, str) or re.fullmatch(r"[a-f0-9]{8}", run_id) is None):
+        raise ValueError("Invalid reserved experiment identity")
+    if owner_token is not None and (run_id is None or not isinstance(owner_token, str)
+                                   or re.fullmatch(r"[a-f0-9]{32}", owner_token) is None):
+        raise ValueError("Invalid service ownership token")
+    if config.get("runtime") == "isolated-docker" and not (ROOT / ".frozen-release").exists():
+        from autonomy_lab.frozen_experiment import freeze
+        return freeze(config, env_file=env_file, keep=keep, run_id=run_id, owner_token=owner_token)
+    config = {**config, "trial_timeout_seconds": config.get("trial_timeout_seconds", 900)}
+    if set(config["variants"]) & {"basic", "structured"}:
+        gemini_key(env_file)  # fail before provisioning if no authorized credential is available
+    run_id = run_id or uuid.uuid4().hex[:8]
+    run_dir = ROOT / "artifacts" / f"experiment-{run_id}"
+    run_dir.mkdir(parents=True, mode=0o700)
+    if owner_token is not None:
+        save(run_dir / "service-owner.json", {"owner_token": owner_token})
+    if config.get("runtime") == "isolated-docker":
+        config["agent_image_id"] = build_agent_image()
+    release = release_manifest(config)
+    save(run_dir / "release.json", release)
+    plan = planned_trials(config)
     save(run_dir / "manifest.json", {**config, "planned_trials": plan, "frozen_at": timestamp()})
     results = []
     try:
