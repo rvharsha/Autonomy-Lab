@@ -26,6 +26,7 @@ def unit_state(unit):
 def run(mode, user):
     if os.geteuid() != 0:
         raise PermissionError('System service gate requires host administrator access')
+    subprocess.run(['sudo', '-u', user, 'mkdir', '-p', str(ROOT / 'artifacts')], check=True, timeout=15)
     output = ROOT / 'artifacts' / ('service-gate-' + uuid.uuid4().hex[:8])
     output.mkdir(parents=True, mode=0o700)
     result = {'mode': mode, 'status': 'running', 'started_at': timestamp()}
@@ -82,17 +83,19 @@ def run(mode, user):
         if mode == 'kill':
             command = ['systemctl', 'kill', '--kill-whom=all', '--signal=SIGKILL', unit]
         else:
-            command = ['systemctl', mode, unit]
-        subprocess.run(command, check=True, timeout=330)
-        deadline = time.monotonic() + 330
+            command = ['systemctl', '--no-block', mode, unit]
+        subprocess.run(command, check=True, timeout=30)
+        # TimeoutStopSec bounds process termination and ExecStopPost separately.
+        deadline = time.monotonic() + 630
         while not (directory / 'post-stop.json').exists() or unit_state(unit)['ActiveState'] in {'active', 'activating', 'deactivating'}:
             if time.monotonic() >= deadline:
                 raise TimeoutError('Post-stop phase did not finish')
             time.sleep(0.5)
         receipt = read(directory / 'post-stop.json')
-        accounting = read(directory / 'post-stop-accounting.json')
+        result['post_stop'] = receipt
         if receipt['status'] != 'finished' or receipt['cleanup'] != 'deleted' or any(receipt['remaining'].values()):
             raise RuntimeError('Post-stop cleanup failed')
+        accounting = read(directory / 'post-stop-accounting.json')
         if (accounting['planned'], accounting['controller_recorded'], accounting['attempted'],
                 accounting['unassessed_attempts'], accounting['unrun']) != (2, 0, 1, 1, 1):
             raise RuntimeError('Interruption accounting differs from the declared gate')
@@ -121,7 +124,7 @@ def run(mode, user):
         # running study because the test's own assertion or readiness check failed.
         if unit:
             try:
-                stopped = subprocess.run(['systemctl', 'stop', unit], capture_output=True, timeout=330)
+                stopped = subprocess.run(['systemctl', 'stop', unit], capture_output=True, timeout=630)
                 result['final_stop_exit_code'] = stopped.returncode
                 journal = subprocess.run(['journalctl', '-u', unit, '--no-pager', '-o', 'json'],
                                          capture_output=True, timeout=15)
