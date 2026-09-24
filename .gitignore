@@ -7,6 +7,7 @@ __pycache__/
 .state/
 .kube/
 artifacts/
+output/
 .env
 *.egg-info/
 .terraform/

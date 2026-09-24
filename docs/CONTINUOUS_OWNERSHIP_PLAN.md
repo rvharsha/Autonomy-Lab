@@ -1,5 +1,10 @@
 # Continuous service ownership: next implementation milestone
 
+The [purpose and alignment check](GOAL_ALIGNMENT.md) connects each milestone to the
+evidence needed for an autonomy or investment decision. The next implementation
+priority is recurring incidents on one persistent workload, followed by one
+independently gated procedure improvement and a fair sustained comparison.
+
 This is the next phase after the bounded experiments in [the findings](FINDINGS.md).
 The objective is to keep one real service within an explicit operating contract
 while its operator stops, restarts and faces recurring incidents. Continuous
@@ -8,7 +13,8 @@ operation and learned improvement remain proposed, not demonstrated capabilities
 ## First claim and implementation boundary
 
 The evaluator's [mixed-state termination gate](MIXED_STATE_RECOVERY_RESULTS.md)
-passed all three declared modes. Next implement a separate campaign entry point;
+passed all three declared modes. The [first persistent campaign implementation](PERSISTENT_CAMPAIGN.md) provides
+a separate campaign entry point;
 do not reuse trial resets as a
 claim of continuous operation or merely disable experiment cleanup.
 
@@ -58,6 +64,11 @@ Implement and challenge the scorecard before attributing an improvement to an
 operator. Unit tests can validate accounting and state transitions; only real
 workload observations can pass these gates. Predeclare fault schedules and stopping
 rules. Preserve every failed run and record the source/policy/checker hashes.
+
+The [first healthy-workload restart gate](PERSISTENT_CAMPAIGN_RESULTS.md) now passes
+on GCP and in CI, including concurrent-owner refusal and normal cleanup. Gates 2–5
+still require their full fault/uncertainty/owner-termination campaigns; this first
+pass does not close them.
 
 ## Subsequent milestones
 

@@ -63,7 +63,8 @@ def cleanup(run_dir, lease):
         raise ValueError("Invalid cleanup target")
     errors = []
     # Only kill registered process groups whose leader still has the same start time.
-    for path in [run_dir / "worker-lease.json", *run_dir.glob("trial-*/worker-lease.json")]:
+    for path in [run_dir / "worker-lease.json", *run_dir.glob("trial-*/worker-lease.json"),
+                 *run_dir.glob("workers/*/worker-lease.json")]:
         if not path.exists():
             continue
         try:
@@ -103,8 +104,10 @@ def cleanup(run_dir, lease):
     metadata = json.loads((run_dir / "environment.json").read_text())
     metadata["status"] = "deleted"
     save(run_dir / "environment.json", metadata)
-    save(run_dir / "janitor-result.json", {"status": "deleted" if not errors else "partial", "nodes": nodes,
-                                          "errors": errors, "finished_at": time.time()})
+    result = {"status": "deleted" if not errors else "partial", "nodes": nodes,
+              "errors": errors, "finished_at": time.time()}
+    save(run_dir / "janitor-result.json", result)
+    return result
 
 
 def main(run_dir):

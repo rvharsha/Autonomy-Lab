@@ -4,13 +4,13 @@
 
 **Working proposal · September 2026**
 
-After reading the AutoCloud role description, I wanted to explore one of its central problems hands-on. Over the last year, I have been building an agent-first engineering company, using coding agents across development, testing, deployment, and monitoring. That experience has made me interested in the next boundary: agents that operate systems over time.
+Autonomy Lab explores how agents can operate cloud systems over time, with evaluation and bounded execution authority built into the operating loop.
 
 The question I want to investigate is:
 
 > What would it take to trust an agent to perform a cloud operation, and what evidence should determine whether it receives more autonomy?
 
-Autonomy Lab is a small, self-directed technical exercise for exploring that question. It is intended to produce working experiments, understandable failures, and concrete technical opinions for the AutoCloud discussion. This document describes the proposed design and experiments; it does not report experimental results or assume knowledge of Google's internal architecture.
+Autonomy Lab is a small, self-directed technical exercise for exploring that question. It is intended to produce working experiments, understandable failures, and evidence for technical decisions. This document describes the proposed design and experiments; it does not report experimental results or assume knowledge of any internal cloud architecture.
 
 **1. The thesis**
 

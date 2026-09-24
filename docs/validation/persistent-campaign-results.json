@@ -1,0 +1,384 @@
+{
+  "final_candidate": "42cdd9dd74222a0d95afcc9c99d1d264cc6bad55",
+  "gcp_runs": [
+    {
+      "source_commit": "5b3c986fdd12f00974f5ef4fbf78cfbe5dcf2339",
+      "platform": "GCP autonomy-lab-509518 / us-central1-a",
+      "gate_id": "campaign-gate-382fe372",
+      "result": {
+        "complete_downtime_samples": 2,
+        "concurrent_operator_refused": true,
+        "declaration": {
+          "checker_sha256": "dc8cb06eefc87fe943adf59722da1e312c345dcfc207fae6b700443e2887121e",
+          "contract_sha256": "6dd8961f1fbe1affe0dab6a1bf58c1cf7b52863ee448883f5174bc3d05d701ca",
+          "minimum_complete_downtime_samples": 2,
+          "minimum_successful_episodes_per_generation": 1,
+          "restart_offset_seconds": 60,
+          "stop_offset_seconds": 30
+        },
+        "downtime_seconds": 30.43800187110901,
+        "export_identical": true,
+        "finished_at": 1790282731.6449149,
+        "initial_operator": "operator-742fb60211e2485aa415c189d3163e33",
+        "operator_resumed_at": 1790282670.5354953,
+        "operator_stopped_at": 1790282640.0974934,
+        "resumed_operator": "operator-394d61b1b9734cdbb95bf801865e7eea",
+        "scorecard_sha256": "171e6d328e764223d92f9b82ce1ac0daac5e40af5d71eb4d557b19214fa2956d",
+        "started_at": 1790282531.06886,
+        "status": "passed",
+        "unchanged_resources": 11
+      },
+      "scorecard_sha256": "171e6d328e764223d92f9b82ce1ac0daac5e40af5d71eb4d557b19214fa2956d",
+      "sample_hashes_verified": 12,
+      "source_files_verified": 244,
+      "execution": {
+        "source_commit": "5b3c986fdd12f00974f5ef4fbf78cfbe5dcf2339",
+        "started_at": 1790282530.7854939,
+        "source_verified_before": true,
+        "exit_code": 0,
+        "finished_at": 1790282731.7266934,
+        "source_verified_after": true
+      },
+      "sample_counts": {
+        "unknown": 0,
+        "verified_failure": 0,
+        "verified_success": 12
+      },
+      "measured_requests": {
+        "http_200": 96,
+        "http_404": 24,
+        "http_422": 24,
+        "response": 144
+      },
+      "measured_request_latency_seconds": {
+        "count": 144,
+        "maximum": 0.048698
+      },
+      "cleanup": {
+        "errors": [],
+        "finished_at": 1790282731.5274282,
+        "nodes": [
+          "autolab-5c5cae37-control-plane"
+        ],
+        "status": "deleted"
+      },
+      "source_archive_sha256": "afdf8ccaaa7f2fed9d11eeff9d5b879809f7ff61aadf70c67e70a6e6fcbc7d91"
+    },
+    {
+      "source_commit": "42cdd9dd74222a0d95afcc9c99d1d264cc6bad55",
+      "platform": "GCP autonomy-lab-509518 / us-central1-a",
+      "gate_id": "campaign-gate-371b5f19",
+      "result": {
+        "complete_downtime_samples": 2,
+        "concurrent_operator_refused": true,
+        "declaration": {
+          "checker_sha256": "dc8cb06eefc87fe943adf59722da1e312c345dcfc207fae6b700443e2887121e",
+          "contract_sha256": "6dd8961f1fbe1affe0dab6a1bf58c1cf7b52863ee448883f5174bc3d05d701ca",
+          "minimum_complete_downtime_samples": 2,
+          "minimum_successful_episodes_per_generation": 1,
+          "restart_offset_seconds": 60,
+          "stop_offset_seconds": 30
+        },
+        "downtime_seconds": 30.435660123825073,
+        "export_identical": true,
+        "finished_at": 1790283150.2347918,
+        "initial_operator": "operator-d019e43e74af42aca0d67645f147e84f",
+        "operator_resumed_at": 1790283089.027525,
+        "operator_stopped_at": 1790283058.5918648,
+        "resumed_operator": "operator-f878a61713ca40d4b769a01b811fbd61",
+        "scorecard_sha256": "c02e7b445f44c5514dea83e45cbf6bbf945d7aacf6c96aefec72d080a23edbcc",
+        "started_at": 1790282968.6713538,
+        "status": "passed",
+        "unchanged_resources": 11
+      },
+      "scorecard_sha256": "c02e7b445f44c5514dea83e45cbf6bbf945d7aacf6c96aefec72d080a23edbcc",
+      "sample_hashes_verified": 12,
+      "source_files_verified": 245,
+      "execution": {
+        "source_commit": "42cdd9dd74222a0d95afcc9c99d1d264cc6bad55",
+        "started_at": 1790282968.3741724,
+        "source_verified_before": true,
+        "exit_code": 0,
+        "finished_at": 1790283150.3016505,
+        "source_verified_after": true
+      },
+      "sample_counts": {
+        "unknown": 0,
+        "verified_failure": 0,
+        "verified_success": 12
+      },
+      "measured_requests": {
+        "http_200": 96,
+        "http_404": 24,
+        "http_422": 24,
+        "response": 144
+      },
+      "measured_request_latency_seconds": {
+        "count": 144,
+        "maximum": 0.041295
+      },
+      "cleanup": {
+        "errors": [],
+        "finished_at": 1790283150.0696018,
+        "nodes": [
+          "autolab-95da49c8-control-plane"
+        ],
+        "status": "deleted"
+      },
+      "source_archive_sha256": "c744e4cf969040a3a9e8be479d096af368cbf908eb5574171028c884c81ec6d5"
+    }
+  ],
+  "private_archive": {
+    "archive_sha256": "d40f24e84a94bb32e6390bf344dd3b2bd3d1d02096f76cc6f893cc3e233e5bf3",
+    "bytes": 166980,
+    "source_commits": [
+      "5b3c986fdd12f00974f5ef4fbf78cfbe5dcf2339",
+      "42cdd9dd74222a0d95afcc9c99d1d264cc6bad55"
+    ]
+  },
+  "ci_campaigns": [
+    {
+      "source_commit": "d88beaa9eb71951acdaa45eef57f6f0d47c7b12c",
+      "workflow_url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36055674156",
+      "gate_id": "campaign-gate-2b5c6a4e",
+      "result": {
+        "complete_downtime_samples": 2,
+        "concurrent_operator_refused": true,
+        "declaration": {
+          "checker_sha256": "2c1b977a44c2647b4a3a00793197c59b38a73e5a99bba3841432e51382f55600",
+          "contract_sha256": "6dd8961f1fbe1affe0dab6a1bf58c1cf7b52863ee448883f5174bc3d05d701ca",
+          "minimum_complete_downtime_samples": 2,
+          "minimum_successful_episodes_per_generation": 1,
+          "restart_offset_seconds": 60,
+          "stop_offset_seconds": 30
+        },
+        "downtime_seconds": 30.666455030441284,
+        "export_identical": true,
+        "finished_at": 1790282211.052024,
+        "initial_operator": "operator-3bd6371af2154884bc1f35792a021e13",
+        "operator_resumed_at": 1790282149.2203116,
+        "operator_stopped_at": 1790282118.5538566,
+        "resumed_operator": "operator-82b4c917d5c6476d8d95e8d62cb6989f",
+        "scorecard_sha256": "8b2570d413854a0f36f98bd1db3d83f43b570be795aecb7030ce093099ae00e3",
+        "started_at": 1790282021.5651789,
+        "status": "passed",
+        "unchanged_resources": 11
+      },
+      "sample_counts": {
+        "unknown": 0,
+        "verified_failure": 0,
+        "verified_success": 12
+      },
+      "measured_requests": {
+        "http_200": 96,
+        "http_404": 24,
+        "http_422": 24,
+        "response": 144
+      },
+      "measured_request_latency_seconds": {
+        "count": 144,
+        "maximum": 0.037674
+      },
+      "cleanup": {
+        "errors": [],
+        "finished_at": 1790282210.9644694,
+        "nodes": [
+          "autolab-714df52e-control-plane"
+        ],
+        "status": "deleted"
+      }
+    },
+    {
+      "source_commit": "5b3c986fdd12f00974f5ef4fbf78cfbe5dcf2339",
+      "workflow_url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36056263369",
+      "gate_id": "campaign-gate-bd4bd2af",
+      "result": {
+        "complete_downtime_samples": 2,
+        "concurrent_operator_refused": true,
+        "declaration": {
+          "checker_sha256": "dc8cb06eefc87fe943adf59722da1e312c345dcfc207fae6b700443e2887121e",
+          "contract_sha256": "6dd8961f1fbe1affe0dab6a1bf58c1cf7b52863ee448883f5174bc3d05d701ca",
+          "minimum_complete_downtime_samples": 2,
+          "minimum_successful_episodes_per_generation": 1,
+          "restart_offset_seconds": 60,
+          "stop_offset_seconds": 30
+        },
+        "downtime_seconds": 30.445494890213013,
+        "export_identical": true,
+        "finished_at": 1790282525.2814217,
+        "initial_operator": "operator-e0b30677fc0542dd838d70cf48b48231",
+        "operator_resumed_at": 1790282463.764575,
+        "operator_stopped_at": 1790282433.31908,
+        "resumed_operator": "operator-5edb27a95da44e81bc15c6831dd987ad",
+        "scorecard_sha256": "0bbc65486f2de31dd471c338f01d9edd29e0bad68ee68ce3eae962dbfbe46135",
+        "started_at": 1790282336.841024,
+        "status": "passed",
+        "unchanged_resources": 11
+      },
+      "sample_counts": {
+        "unknown": 0,
+        "verified_failure": 0,
+        "verified_success": 12
+      },
+      "measured_requests": {
+        "http_200": 96,
+        "http_404": 24,
+        "http_422": 24,
+        "response": 144
+      },
+      "measured_request_latency_seconds": {
+        "count": 144,
+        "maximum": 0.031942
+      },
+      "cleanup": {
+        "errors": [],
+        "finished_at": 1790282525.2043989,
+        "nodes": [
+          "autolab-225cd9c9-control-plane"
+        ],
+        "status": "deleted"
+      }
+    },
+    {
+      "source_commit": "10e750004847aadb93e6d7e595014bd9ba2bad3d",
+      "workflow_url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36057023666",
+      "gate_id": "campaign-gate-9a3e1cd5",
+      "result": {
+        "complete_downtime_samples": 2,
+        "concurrent_operator_refused": true,
+        "declaration": {
+          "checker_sha256": "dc8cb06eefc87fe943adf59722da1e312c345dcfc207fae6b700443e2887121e",
+          "contract_sha256": "6dd8961f1fbe1affe0dab6a1bf58c1cf7b52863ee448883f5174bc3d05d701ca",
+          "minimum_complete_downtime_samples": 2,
+          "minimum_successful_episodes_per_generation": 1,
+          "restart_offset_seconds": 60,
+          "stop_offset_seconds": 30
+        },
+        "downtime_seconds": 30.433257579803467,
+        "export_identical": true,
+        "finished_at": 1790282967.609189,
+        "initial_operator": "operator-4cc4ebd6491e4c33a0adacd09c490117",
+        "operator_resumed_at": 1790282901.5749228,
+        "operator_stopped_at": 1790282871.1416652,
+        "resumed_operator": "operator-cf21eb705ed1453ea86a3b556e32eaec",
+        "scorecard_sha256": "f58631d3865aeea02a0d51899e6d0c659f2926a51d263825721dd6da3a9a36bc",
+        "started_at": 1790282751.5347226,
+        "status": "passed",
+        "unchanged_resources": 11
+      },
+      "sample_counts": {
+        "unknown": 0,
+        "verified_failure": 0,
+        "verified_success": 12
+      },
+      "measured_requests": {
+        "http_200": 96,
+        "http_404": 24,
+        "http_422": 24,
+        "response": 144
+      },
+      "measured_request_latency_seconds": {
+        "count": 144,
+        "maximum": 0.028236
+      },
+      "cleanup": {
+        "errors": [],
+        "finished_at": 1790282967.3410318,
+        "nodes": [
+          "autolab-03799733-control-plane"
+        ],
+        "status": "deleted"
+      }
+    },
+    {
+      "source_commit": "42cdd9dd74222a0d95afcc9c99d1d264cc6bad55",
+      "workflow_url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36057264716",
+      "gate_id": "campaign-gate-bde9fc57",
+      "result": {
+        "complete_downtime_samples": 2,
+        "concurrent_operator_refused": true,
+        "declaration": {
+          "checker_sha256": "dc8cb06eefc87fe943adf59722da1e312c345dcfc207fae6b700443e2887121e",
+          "contract_sha256": "6dd8961f1fbe1affe0dab6a1bf58c1cf7b52863ee448883f5174bc3d05d701ca",
+          "minimum_complete_downtime_samples": 2,
+          "minimum_successful_episodes_per_generation": 1,
+          "restart_offset_seconds": 60,
+          "stop_offset_seconds": 30
+        },
+        "downtime_seconds": 30.53162169456482,
+        "export_identical": true,
+        "finished_at": 1790283060.9752054,
+        "initial_operator": "operator-f779b3274ec247eb899bf36a790142cd",
+        "operator_resumed_at": 1790282999.142531,
+        "operator_stopped_at": 1790282968.6109092,
+        "resumed_operator": "operator-1579ea4b7044417aad7ace6903b5aa87",
+        "scorecard_sha256": "a2af0c2fc2d9596fe6cd4de2f262bdfb1dcf248cd8feee92a1c2e65c2769a668",
+        "started_at": 1790282874.384245,
+        "status": "passed",
+        "unchanged_resources": 11
+      },
+      "sample_counts": {
+        "unknown": 0,
+        "verified_failure": 0,
+        "verified_success": 12
+      },
+      "measured_requests": {
+        "http_200": 96,
+        "http_404": 24,
+        "http_422": 24,
+        "response": 144
+      },
+      "measured_request_latency_seconds": {
+        "count": 144,
+        "maximum": 0.030986
+      },
+      "cleanup": {
+        "errors": [],
+        "finished_at": 1790283060.8593903,
+        "nodes": [
+          "autolab-0360a4d7-control-plane"
+        ],
+        "status": "deleted"
+      }
+    }
+  ],
+  "limits": [
+    "A healthy 120-second workload; one operator restart per gate. No repeated-fault, owner-cgroup failure, learning or ROI claim.",
+    "Author-supplied receipts and hashes are not independent authentication against a malicious host user.",
+    "Private raw GCP sample hashes were verified locally; CI raw samples were not uploaded."
+  ],
+  "final_candidate_ci": {
+    "source_commit": "42cdd9dd74222a0d95afcc9c99d1d264cc6bad55",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "persistent-campaign",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36057264716/job/107827270375"
+      },
+      {
+        "name": "tests",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36057264716/job/107827270620"
+      },
+      {
+        "name": "kubernetes-acceptance",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36057264716/job/107827270703"
+      }
+    ]
+  },
+  "gcp_shutdown": {
+    "project": "autonomy-lab-509518",
+    "zone": "us-central1-a",
+    "instance": "autonomy-lab",
+    "status": "TERMINATED",
+    "last_stop_timestamp": "2026-09-24T13:55:28.630-07:00",
+    "docker_names_before_stop": [],
+    "archive_verified_before_stop": true
+  }
+}
