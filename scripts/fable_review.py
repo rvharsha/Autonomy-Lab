@@ -215,13 +215,14 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
         except UnicodeDecodeError:
             raise ReviewError("An allowlisted source file is not UTF-8 text") from None
         test_index = relative.startswith("tests/") and relative != "tests/test_harness.py"
+        trial_excerpt = scope == "fallback_scenarios" and relative == "src/autonomy_lab/experiments.py"
         manifest.append(
             {
                 "path": relative,
                 "sha256": hashlib.sha256(data).hexdigest(),
                 "bytes": len(data),
                 "lines": len(contents.splitlines()),
-                "included": "test_index" if test_index else "full_source",
+                "included": "test_index" if test_index else "run_trial_and_module_declarations" if trial_excerpt else "full_source",
             }
         )
         if test_index:
@@ -236,6 +237,16 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
                 f"TEST INDEX ONLY {relative} ({len(names)} test functions; bodies omitted, no execution claimed)\n"
                 + "\n".join(names)
             )
+        elif trial_excerpt:
+            # Preserve original line numbers and full-file digest while explicitly
+            # excluding unchanged orchestration helpers from this bounded review.
+            lines = contents.splitlines()
+            nodes = [node for node in ast.parse(contents).body
+                     if isinstance(node, (ast.Import, ast.ImportFrom, ast.Assign))
+                     or isinstance(node, ast.FunctionDef) and node.name == "run_trial"]
+            numbered = "\n".join(f"{index + 1:5}: {lines[index]}"
+                                 for node in nodes for index in range(node.lineno - 1, node.end_lineno))
+            sections.append(f"SOURCE EXCERPT {relative}: module declarations and run_trial only; other functions omitted\n{numbered}")
         else:
             numbered = "\n".join(
                 f"{number:5}: {line}" for number, line in enumerate(contents.splitlines(), 1)

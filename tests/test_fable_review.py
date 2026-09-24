@@ -86,6 +86,16 @@ def test_broker_scope_is_single_module_plus_test_index(tmp_path):
         review.build_snapshot(tmp_path, "../../.env")
 
 
+def test_fallback_trial_excerpt_discloses_omissions_and_preserves_line_numbers(tmp_path):
+    put(tmp_path, "src/autonomy_lab/experiments.py", "SCENARIOS = {'test'}\n\ndef run_trial():\n    pass\n\ndef run_experiment():\n    OMITTED_HELPER\n")
+    snapshot = review.build_snapshot(tmp_path, "fallback_scenarios")
+    assert snapshot["files"][0]["included"] == "run_trial_and_module_declarations"
+    assert "    3: def run_trial():" in snapshot["prompt"]
+    assert "SOURCE EXCERPT" in snapshot["prompt"]
+    assert "other functions omitted" in snapshot["prompt"]
+    assert "OMITTED_HELPER" not in snapshot["prompt"]
+
+
 def test_broker_profile_enforces_smaller_input_and_low_effort():
     payload = review.request_payload({"scope": "broker", "prompt": "source snapshot"})
     assert payload["output_config"] == {"effort": "low"}
