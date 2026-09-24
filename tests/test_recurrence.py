@@ -12,7 +12,7 @@ from autonomy_lab.recurrence import evaluate
 
 
 def stamp(value):
-    return datetime.fromtimestamp(value, UTC).isoformat()
+    return datetime.fromtimestamp(value, UTC).isoformat(timespec='microseconds').replace('+00:00', 'Z')
 
 
 @pytest.fixture
@@ -101,7 +101,7 @@ def test_authored_success_keeps_failed_service_separate_from_gate_pass(authored)
 @pytest.mark.parametrize('defect', ['missing', 'protected', 'unresolved', 'wrong_generation', 'late',
                                   'budget_reset', 'extra_repair', 'missing_audit', 'wrong_audit_id',
                                   'false_recovery', 'lost_cleanup', 'unassessed_fault', 'late_escalation_exit',
-                                  'recovery_regression', 'controller_repair'])
+                                  'recovery_regression', 'controller_repair', 'missing_worker', 'audit_end_boundary'])
 def test_adversarial_changes_cannot_pass(authored, defect):
     gate, card, events = authored
     if defect == 'missing':
@@ -139,4 +139,9 @@ def test_adversarial_changes_cannot_pass(authored, defect):
         card['samples'][8]['reasons'] = ['quote available-single: HTTP 503 (expected 200)']
     elif defect == 'controller_repair':
         events.append({**events[1], 'auditID': 'authored-extra-controller-write', 'user': {'username': 'kubernetes-admin'}})
+    elif defect == 'missing_worker':
+        card['workers'].pop()
+    elif defect == 'audit_end_boundary':
+        events.append({**events[1], 'auditID': 'authored-write-at-inclusive-end', 'requestReceivedTimestamp': stamp(1300),
+                       'user': {'username': 'kubernetes-admin'}})
     assert evaluate(gate)['status'] == 'failed'

@@ -29,8 +29,8 @@ def evaluate(gate):
     window = card['window']
     captured = read_events(directory / 'server-audit')
     audit = assess(captured['events'], operations,
-                   started_at=datetime.fromtimestamp(window['start'], UTC).isoformat(),
-                   finished_at=datetime.fromtimestamp(window['end'], UTC).isoformat(),
+                   started_at=datetime.fromtimestamp(window['start'], UTC).isoformat(timespec='microseconds').replace('+00:00', 'Z'),
+                   finished_at=datetime.fromtimestamp(window['end'], UTC).isoformat(timespec='microseconds').replace('+00:00', 'Z'),
                    malformed_lines=captured['malformed_lines'])
     checks = {
         'complete_calendar': card['sample_counts']['unknown'] == 0,
@@ -82,7 +82,7 @@ def evaluate(gate):
         within_schedule = all(0 <= record[field] - (window['start'] + spec[offset]) <= declaration['schedule_lateness_seconds']
                               for field, offset in [('stop_requested_at', 'stop_offset'), ('requested_at', 'inject_offset'),
                                                     ('restart_requested_at', 'restart_offset')])
-        valid = (within_schedule and len(fault_writes) == 1 and len(own_ops) == 1 and bool(fault_samples)
+        valid = (worker is not None and within_schedule and len(fault_writes) == 1 and len(own_ops) == 1 and bool(fault_samples)
                  and 0 <= record['ready_at'] - record['stopped_at'] <= card['contract']['max_restart_downtime_seconds'])
         operation = own_ops[0] if len(own_ops) == 1 else None
         if operation:
