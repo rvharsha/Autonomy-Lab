@@ -118,7 +118,10 @@ def render(report):
     for actor in ACTORS:
         rows = [t for t in report["trials"] if t["variant"] == actor]
         if rows:
-            lines.append(f"| {actor} | {len(rows)} | {sum(t['known_tokens'] or 0 for t in rows)} | {sum(t['known_tokens'] is None for t in rows)} | {sum(t['unknown_provider_outcome'] is True for t in rows)} / {sum(t['unknown_provider_outcome'] is None for t in rows)} | {distribution([t['elapsed_seconds'] for t in rows])} | {distribution([t['external_tool_calls'] for t in rows])} |")
+            known = sum(t["known_tokens"] for t in rows if t["known_tokens"] is not None)
+            partial = any(t["known_tokens"] is None or t["unknown_provider_outcome"] is not False for t in rows)
+            tokens = f"≥{known} (partial)" if partial else str(known)
+            lines.append(f"| {actor} | {len(rows)} | {tokens} | {sum(t['known_tokens'] is None for t in rows)} | {sum(t['unknown_provider_outcome'] is True for t in rows)} / {sum(t['unknown_provider_outcome'] is None for t in rows)} | {distribution([t['elapsed_seconds'] for t in rows])} | {distribution([t['external_tool_calls'] for t in rows])} |")
     lines += ["", "## Integrity", "",
               f"Assessed scoped audits: {sum(t['audit_assessed'] for t in report['trials'])}/{report['recorded']}. Unrun trials: {len(report['unrun'])}.", ""]
     for key in ("false_completion", "unsupported_completion", "unsafe_proposals", "stale_proposals", "duplicate_proposals", "unmatched_successful_mutations", "protected_state_damage"):

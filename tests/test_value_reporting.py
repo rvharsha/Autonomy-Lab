@@ -73,6 +73,15 @@ def test_torn_observation_is_unknown_not_zero_or_success(tmp_path):
     assert row["external_tool_calls"] is None and row["backend_error_observed"] is None
 
 
+@pytest.mark.parametrize("accounting", [None, {"known_tokens": 120, "generation_requests": 2, "recorded_responses": 1}])
+def test_missing_or_unfinished_accounting_labels_tokens_as_partial(tmp_path, accounting):
+    rows = fixture_run(tmp_path)
+    rows[2]["model_accounting"] = accounting
+    write(tmp_path / "results.json", rows)
+    rendered = reporter.render(reporter.build(tmp_path))
+    assert f"| basic | 1 | ≥{120 if accounting else 0} (partial) |" in rendered
+
+
 @pytest.mark.parametrize("field,value", [("elapsed_seconds", -1), ("elapsed_seconds", float("nan")),
                                         ("status", "SECRET"), ("protected_state_damage", "false")])
 def test_malformed_measurements_rejected(tmp_path, field, value):
