@@ -65,12 +65,16 @@ def scorecard(directory):
     before = read(directory / 'identities-before.json')
     after = read(directory / 'identities-after.json') if (directory / 'identities-after.json').exists() else None
     operations = operation_rows(directory)
+    finalization = read(directory / 'finalization.json') if (directory / 'finalization.json').exists() else None
+    window_completed = (directory / 'finished.json').exists()
     return {
         'claim_scope': 'bounded trusted-runbook lifecycle; sampled observations, not continuous availability',
         'contract': contract.model_dump(), 'window': window, 'source_sha256': read(directory / 'source.json'),
-        'owner_finished': (directory / 'finished.json').exists(),
+        'owner_window_completed': window_completed,
+        'owner_finished': (window_completed and finalization is not None
+                           and finalization.get('status') == 'finished' and not (directory / 'failed.json').exists()),
         'owner_failure': read(directory / 'failed.json') if (directory / 'failed.json').exists() else None,
-        'owner_finalization': read(directory / 'finalization.json') if (directory / 'finalization.json').exists() else None,
+        'owner_finalization': finalization,
         'cleanup': read(directory / 'cleanup.json') if (directory / 'cleanup.json').exists() else None,
         'identities_before': before, 'identities_after': after,
         'identities_unchanged': None if after is None else before == after,

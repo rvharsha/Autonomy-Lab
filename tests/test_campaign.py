@@ -210,3 +210,15 @@ def test_malformed_response_status_cannot_break_export_or_credit_health(campaign
     result = scorecard(campaign)
     assert result['samples'][0]['verdict'] == 'unknown'
     assert result['measured_requests']['http_unknown'] == 1
+
+
+def test_finished_owner_requires_successful_finalization(campaign):
+    save(campaign / 'finished.json', {'contract_pass': None})
+    save(campaign / 'finalization.json', {'status': 'failed'})
+    result = scorecard(campaign)
+    assert result['owner_window_completed'] is True
+    assert result['owner_finished'] is False
+    save(campaign / 'finalization.json', {'status': 'finished'})
+    assert scorecard(campaign)['owner_finished'] is True
+    save(campaign / 'failed.json', {'error_type': 'AuthoredFailure'})
+    assert scorecard(campaign)['owner_finished'] is False

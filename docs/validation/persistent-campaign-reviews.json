@@ -122,6 +122,51 @@
       "usage_cost_estimate_usd": 0.5438,
       "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
       "source_commit": "5b3c986fdd12f00974f5ef4fbf78cfbe5dcf2339"
+    },
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T20:45:22.548445+00:00",
+      "finished_at": "2026-09-24T20:46:32.816251+00:00",
+      "generation_attempts": 1,
+      "snapshot": {
+        "files": [
+          {
+            "included": "selected_lifecycle_functions",
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "681fa67cee2dc750ece47ae8f1deb8b19b6d573ed26b954d6898a3be89b877f6"
+          },
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/campaign_report.py",
+            "sha256": "3ddfd4d7a596eb0979e2e71c154d04d21def87eb48a615b2988550399bb6013c"
+          },
+          {
+            "included": "finalize_gate_only",
+            "path": "scripts/check_campaign.py",
+            "sha256": "dc8cb06eefc87fe943adf59722da1e312c345dcfc207fae6b700443e2887121e"
+          },
+          {
+            "included": "selected_function:cleanup",
+            "path": "src/autonomy_lab/janitor.py",
+            "sha256": "5684c4cfa853b5623cec87fba62964b241eb1302380979e35f2316aaf97e2829"
+          },
+          {
+            "included": "selected_function:run_window",
+            "path": "src/autonomy_lab/verifier.py",
+            "sha256": "4f61c4e917aa297f4591a7594bef950de98ea3ed3ce0d040984092ac3d36a434"
+          }
+        ],
+        "prompt_sha256": "6216fe2a754ba653f68cdd05d0ccddb40f1ffcf3591b045dce0ef31db4872930",
+        "review_kind": "campaign_finalization",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "2fe7c9d49dca0d87eb7d26566e1ed3bede2e6e0523e80a46cf29c312031cbf19",
+        "source_bytes": 21107
+      },
+      "findings_text": "**Scope reviewed:** `finalize_owner`, exporter attempt/outcome handling, malformed-HTTP-status handling. Two substantiated defects; the three named corrections otherwise behave as described.\n\n---\n\n### Defect 1 \u2014 Malformed sample shape aborts the entire scorecard instead of yielding `unknown`\n**File:** `src/autonomy_lab/campaign_report.py`, `scorecard()`, lines beginning `verification = sample.get('verification', {})` and `row.update(started_at=sample['started_at'], finished_at=sample['finished_at'], ...)`.\n\n**Trigger:** The correction hardens only `status_code`. Any other malformed field in one sample raises and discards the whole report:\n- `\"verification\": null` \u2192 `verification.get(...)` \u2192 `AttributeError`.\n- Sample missing `finished_at` (observer crashed mid-slot; the code already anticipates such samples via `sample.get('error_type', 'missing_verification')`) \u2192 `KeyError`.\n- Non-numeric `started_at` \u2192 `TypeError` in the `timely` comparison.\n\n**Trace:** slot 0007 file `{\"slot\":7,\"scheduled_at\":...,\"started_at\":...,\"error_type\":\"TimeoutError\"}` \u2192 `sample['finished_at']` \u2192 `KeyError` \u2192 `scorecard` raises \u2192 no `sample_counts`, no `owner_finalization`, no `cleanup` accounting emitted. A single bad slot suppresses the accounting of all other slots and of the finalization receipts this round was meant to surface. Malformed identity (`slot`/`scheduled_at`) legitimately raises; malformed *content* should not.\n\n**Minimal fix:**\n```python\nverification = sample.get('verification')\nif not isinstance(verification, dict):\n    verification = {}\nstarted, finished = sample.get('started_at'), sample.get('finished_at')\nif not all(isinstance(v, (int, float)) for v in (started, finished)):\n    row.update(observed_verdict='indeterminate', reasons=['malformed_sample'])\n    rows.append(row); continue          # coverage stays 'missing', verdict 'unknown'\nrow.update(started_at=started, finished_at=finished, ...)\n```\n\n---\n\n### Defect 2 \u2014 `owner_finished` credits completion after failed finalization\n**File:** `src/autonomy_lab/campaign.py`, `own()` success path (`save(directory / 'finished.json', ...)`) followed by `finally: finalize_owner(...)`; `campaign_report.py` line `'owner_finished': (directory / 'finished.json').exists()`.\n\n**Trigger:** Window completes \u2192 `finished.json` written \u2192 `finalize_owner` records a `cleanup`/`reap_worker` error, writes `failed.json` (`stage: finalization`) and raises. Directory now holds both `finished.json` and `failed.json`.\n\n**Trace:** `scorecard()` emits `owner_finished: True`, `owner_failure: {...OwnerFinalizationFailed}`, `owner_finalization.status: 'failed'`, `cleanup.status: 'partial'`. Three fields disagree and no reconciled disposition exists; a consumer keying on `owner_finished` (the only boolean) credits a run whose cluster may still exist and whose workers may still be running. `finished.json` also lacks any reference to finalization, so it cannot be distinguished from a fully finalized run on its own.\n\n**Minimal fix (report side, deterministic):**\n```python\nfinalization = read(directory / 'finalization.json') if (directory / 'finalization.json').exists() else None\n'owner_finished': (directory / 'finished.json').exists()\n                  and finalization is not None and finalization['status'] == 'finished',\n'owner_window_completed': (directory / 'finished.json').exists(),\n```\n\n---\n\n### Unsupported assumptions (flagged, not reviewed)\n- Whether `provision` writes `environment.json` before `kind create`; if not, a mid-provision failure leaves `finalize_owner` skipping `cleanup` entirely (relies on detached janitor, not supplied).\n- Sample schema for observer error paths (existence of `error_type`-only samples) inferred from `campaign_report.py`, not from supplied observer source.\n- `stop_worker` trusts `lease['pid']` without the `type(pid) is int and pid > 1` guard present in `janitor.cleanup`; impact depends on worker trust, stated as trusted here.\n\nSnapshot ID: 2fe7c9d49dca0d87eb7d26566e1ed3bede2e6e0523e80a46cf29c312031cbf19",
+      "usage_cost_estimate_usd": 0.33122,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "source_commit": "10e750004847aadb93e6d7e595014bd9ba2bad3d"
     }
   ],
   "incomplete_attempts": [
@@ -195,6 +240,16 @@
       "finding": "A response without status_code breaks metrics export",
       "decision": "defensive_hardening",
       "evidence": "Current _http_observation creates kind and status_code together, so no emitted example was established. The exporter now retains an unknown status and classifies its slot unknown if partial/malformed evidence is supplied."
+    },
+    {
+      "finding": "Malformed sample content can prevent an export",
+      "decision": "unsupported_emission_path; fail_closed_on_corrupt_evidence",
+      "evidence": "observe adds finished_at before atomic save on success and error paths. A killed observer leaves no completed slot file, which exports unknown; it cannot emit the suggested partial JSON. Arbitrary malformed/edited content may reject the export instead of generating a trusted scorecard. No healthy credit or gate pass follows an export error. Broad corrupt-file recovery is outside this first gate."
+    },
+    {
+      "finding": "owner_finished boolean can be mistaken for successful finalization",
+      "decision": "fixed",
+      "evidence": "Exporter now separates owner_window_completed from owner_finished; the latter requires successful finalization and no failure receipt. Tests cover unfinished, failed, completed and contradictory receipts. This final report-only correction was self-checked after the model review."
     }
   ],
   "limits": "Source review is not execution or human approval. Separate component omissions are identified in each snapshot; real Kubernetes receipts are separate."
