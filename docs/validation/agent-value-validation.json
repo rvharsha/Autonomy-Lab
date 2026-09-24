@@ -21,12 +21,12 @@
     {
       "conclusion": "success",
       "headSha": "5c14303ef54bc46a0fb56616bbaa5e46868d0296",
-      "url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35938485347"
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/35938485347"
     },
     {
       "conclusion": "success",
       "headSha": "fa09cdf283c09ba9dbcc5ad929f82b6ef6b0b3ea",
-      "url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35938837069"
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/35938837069"
     }
   ],
   "ci_model_free_handoff_trials": 4,

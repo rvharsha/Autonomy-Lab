@@ -1,6 +1,6 @@
 {
   "validated_source_commit": "75bd50bb7de5c75a37ba00d5965d02089d51a070",
-  "ci_url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35930987050",
+  "ci_url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/35930987050",
   "ci_conclusion": "success",
   "unit_tests_passed": 710,
   "lint": "passed",
@@ -126,5 +126,5 @@
     "src/autonomy_lab/trial_worker.py": "d0983730b2c7059895938584b2adbdbcdb30362065e2ffb6f2725110f7648076",
     "src/autonomy_lab/verifier.py": "4f61c4e917aa297f4591a7594bef950de98ea3ed3ce0d040984092ac3d36a434"
   },
-  "release_installation_receipt": "https://github.com/rvharsha/Autonomy-Lab-/releases/download/v0.1.1/release-receipt.json"
+  "release_installation_receipt": "https://github.com/rvharsha/Autonomy-Lab/releases/download/v0.1.1/release-receipt.json"
 }

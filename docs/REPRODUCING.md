@@ -3,7 +3,7 @@
 Start from a fresh checkout of the corrected `v0.1.1` research release. Requirements are Git, Python 3.12, uv and a working Docker daemon; initial setup needs internet access. GCP operators use the [existing host and access instructions](../infra/gcp/README.md). The package version is 0.1.1; the release tag identifies the complete repository, not a claim that historical experiments used this version.
 
 ```sh
-git clone --branch v0.1.1 https://github.com/rvharsha/Autonomy-Lab- autonomy-lab
+git clone --branch v0.1.1 https://github.com/rvharsha/Autonomy-Lab autonomy-lab
 cd autonomy-lab
 make setup
 make test lint

@@ -3023,7 +3023,7 @@
   "source_ci": {
     "conclusion": "success",
     "headSha": "a5e1912e07733ee6958f7d87298c84173835fd50",
-    "url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35923478442"
+    "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/35923478442"
   },
   "fable_reviews": "docs/validation/gcp-deployment-reviews.json",
   "limitations": [
