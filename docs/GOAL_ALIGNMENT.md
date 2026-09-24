@@ -23,7 +23,7 @@ must be earned by the evidence.
 | Can evaluations determine whether work succeeded and whether a candidate should advance? | Independent semantic/invariant checks, retained unknowns, and a [candidate withheld after a regression miss](RECONCILIATION_RESULTS.md) | General production safety or an automated procedure-promotion system |
 | Does more agent structure repay its cost? | [Matched model/runbook comparisons](AGENT_VALUE_RESULTS.md); the apparent observer-outage advantage was closed by a [deterministic fallback](SERVICE_RECOVERY_RESULTS.md) | Structured-state superiority, model necessity or greater repair authority |
 | Can state and evidence survive interrupted execution? | Durable operations, conditional repair, response-loss cases and [mixed-state termination gates](MIXED_STATE_RECOVERY_RESULTS.md) | Arbitrary exactly-once effects or host-failure tolerance |
-| Can the workload outlive its operator? | [One healthy 120-second campaign](PERSISTENT_CAMPAIGN_RESULTS.md), reproduced on GCP and CI: 12/12 measured slots and 11 unchanged resource UIDs in each | Sustained incident handling, capacity/release/security autonomy or production availability |
+| Can the workload outlive its operator? | [Healthy restart](PERSISTENT_CAMPAIGN_RESULTS.md) and [300-second recurrence](RECURRENCE_RESULTS.md) gates on GCP and CI: unchanged workload, two attributed repairs, then cumulative-budget escalation with the service failure retained | Persistent-workload ambiguous-effect recovery, broader sustained incident handling, capacity/release/security autonomy or production availability |
 | Can operating experience produce a better operator? | Human-directed interventions and regression evaluations; a [controlled-improvement design](CONTINUOUS_OWNERSHIP_PLAN.md) | An autonomous procedure-generation, promotion and withdrawal loop |
 | Does the system reduce customer impact or human work at acceptable cost? | Scoped task outcomes, timings and model usage | Measured human-work savings, full recurring cost advantage or ROI |
 
@@ -36,9 +36,9 @@ objective's achievement.
 
 1. **Operate through recurring incidents.** Complete the remaining
    [persistent-ownership gates](CONTINUOUS_OWNERSHIP_PLAN.md#evaluation-gates-for-the-implementation)
-   using the same workload throughout each campaign. Demonstrate attributed repair,
-   recurrence after operator restart, cumulative budget exhaustion, ambiguous-effect
-   reconciliation, external changes, measurement gaps and supervised owner cleanup.
+   using the same workload throughout each campaign. Attributed recurring repair
+   and cumulative budget exhaustion now pass the bounded recurrence gate. Next prove
+   ambiguous-effect reconciliation, external changes, measurement gaps and supervised owner cleanup.
    Keep the current routing authority. Freeze the fault schedule, deadlines,
    complete calendar, pass criteria and stop conditions before each experiment.
    Escalation can be correct while the service remains failed; retain both facts.

@@ -2,8 +2,9 @@
 
 The [purpose and alignment check](GOAL_ALIGNMENT.md) connects each milestone to the
 evidence needed for an autonomy or investment decision. The next implementation
-priority is recurring incidents on one persistent workload, followed by one
-independently gated procedure improvement and a fair sustained comparison.
+priority is ambiguous effects, external changes and remaining lifecycle gates on
+one persistent workload, followed by one independently gated procedure improvement
+and a fair sustained comparison.
 
 This is the next phase after the bounded experiments in [the findings](FINDINGS.md).
 The objective is to keep one real service within an explicit operating contract
@@ -65,10 +66,15 @@ operator. Unit tests can validate accounting and state transitions; only real
 workload observations can pass these gates. Predeclare fault schedules and stopping
 rules. Preserve every failed run and record the source/policy/checker hashes.
 
-The [first healthy-workload restart gate](PERSISTENT_CAMPAIGN_RESULTS.md) now passes
-on GCP and in CI, including concurrent-owner refusal and normal cleanup. Gates 2–5
-still require their full fault/uncertainty/owner-termination campaigns; this first
-pass does not close them.
+The [healthy-workload restart gate](PERSISTENT_CAMPAIGN_RESULTS.md) passed on GCP
+and in CI, including concurrent-owner refusal and normal cleanup. The
+[recurring-incident gate](RECURRENCE_RESULTS.md) now also passes on both platforms:
+two attributed repairs across operator restarts, followed by budget rejection and
+escalation on a third fault, with one workload and one complete observation calendar.
+This closes the declared recurrence slice of gate 2 and budget portion of gate 4.
+Ambiguous effects, conflicting external changes, telemetry gaps and supervised
+owner termination still require their separate gates. Procedure improvement and
+a sustained comparison remain unproven.
 
 ## Subsequent milestones
 

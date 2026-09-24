@@ -1,0 +1,1141 @@
+{
+  "claim_scope": "bounded trusted-runbook lifecycle; sampled observations, not continuous availability",
+  "cleanup": {
+    "errors": [],
+    "finished_at": 1790285902.2791698,
+    "nodes": [
+      "autolab-27b0cb15-control-plane"
+    ],
+    "status": "deleted"
+  },
+  "contract": {
+    "duration_seconds": 300,
+    "lease_seconds": 1800,
+    "max_dispatches": 2,
+    "max_operator_starts": 4,
+    "max_restart_downtime_seconds": 45,
+    "operator_interval_seconds": 5,
+    "request_timeout_seconds": 2,
+    "sample_interval_seconds": 10,
+    "sample_lateness_seconds": 2,
+    "sample_window_seconds": 1
+  },
+  "dispatch_budget_reserved": 2,
+  "identities_after": {
+    "Deployment/inventory": "0411bd95-dfa0-4602-96c9-09dfd126552a",
+    "Deployment/postgres": "44bc6e72-e2cd-42cd-9235-b3e2d1921fa4",
+    "Deployment/quote": "fa0732d7-7541-4770-b3f9-14224c0294b3",
+    "Namespace/autonomy-lab": "496a7c8f-61cd-416f-914f-79efbfb61a1e",
+    "PersistentVolumeClaim/postgres-data": "8f61a3e2-a2cc-4cf1-8d8a-041f8278ec9a",
+    "Pod/inventory-c7bfd5467-jnm9b": "c22ee4c4-5a70-45f7-8556-ead5e40d5ca2",
+    "Pod/postgres-69958fd9f9-m5s8f": "cb2db165-3fff-4a6c-a9d0-5d71a6b925c5",
+    "Pod/quote-bfd8b9cc9-nx6ck": "ec6beea8-991a-4193-a414-bd9c90e1265a",
+    "Service/inventory": "23d50531-8ee2-4063-96c9-e1db1ee7fd97",
+    "Service/postgres": "18563094-4a7e-41c2-b2ab-b8da6683ce03",
+    "Service/quote": "ecde9086-48f4-4d9c-936d-e676c0795ff1"
+  },
+  "identities_before": {
+    "Deployment/inventory": "0411bd95-dfa0-4602-96c9-09dfd126552a",
+    "Deployment/postgres": "44bc6e72-e2cd-42cd-9235-b3e2d1921fa4",
+    "Deployment/quote": "fa0732d7-7541-4770-b3f9-14224c0294b3",
+    "Namespace/autonomy-lab": "496a7c8f-61cd-416f-914f-79efbfb61a1e",
+    "PersistentVolumeClaim/postgres-data": "8f61a3e2-a2cc-4cf1-8d8a-041f8278ec9a",
+    "Pod/inventory-c7bfd5467-jnm9b": "c22ee4c4-5a70-45f7-8556-ead5e40d5ca2",
+    "Pod/postgres-69958fd9f9-m5s8f": "cb2db165-3fff-4a6c-a9d0-5d71a6b925c5",
+    "Pod/quote-bfd8b9cc9-nx6ck": "ec6beea8-991a-4193-a414-bd9c90e1265a",
+    "Service/inventory": "23d50531-8ee2-4063-96c9-e1db1ee7fd97",
+    "Service/postgres": "18563094-4a7e-41c2-b2ab-b8da6683ce03",
+    "Service/quote": "ecde9086-48f4-4d9c-936d-e676c0795ff1"
+  },
+  "identities_unchanged": true,
+  "limits": [
+    "No inference for intervals between probes.",
+    "Late/missing measurements are unknown even if a later observation succeeds.",
+    "Operator outcomes are claims; only the independent timeline supplies campaign measurements.",
+    "This timeline alone does not pass a fault or owner-termination gate."
+  ],
+  "measured_request_latency_seconds": {
+    "count": 360,
+    "maximum": 0.045259
+  },
+  "measured_requests": {
+    "http_200": 120,
+    "http_404": 30,
+    "http_422": 60,
+    "http_503": 150,
+    "response": 360
+  },
+  "operations": [
+    {
+      "budget_reserved": 1,
+      "created_at": "2026-09-24T21:34:06.481933+00:00",
+      "digest": "c8c04ef74d02456f2ce9e2ea8a8c0654a0b11e54644a24c57c366bf61c622a77",
+      "operation_id": "ae9ea328-4984-40da-9a67-108fcbe34f09",
+      "owner": "6807976b-41a6-4d1a-add6-e47627753334",
+      "reason": "api_acknowledged",
+      "reconciliation": null,
+      "request": "{\"evidence_ids\":[\"b3e91c4c-ea2b-4916-8eb6-e92bb9680526\",\"43d1fe8e-5516-4349-8967-ecc90576aebe\",\"30a180c1-1f82-488e-b9fa-123edd95cb3d\"],\"expected_target_port\":9999,\"namespace\":\"autonomy-lab\",\"operation_id\":\"ae9ea328-4984-40da-9a67-108fcbe34f09\",\"port_name\":\"http\",\"resource_version\":\"709\",\"run_id\":\"27b0cb15\",\"service_name\":\"inventory\",\"service_uid\":\"23d50531-8ee2-4063-96c9-e1db1ee7fd97\",\"target_port\":8080}",
+      "result": "{\"service_uid\": \"23d50531-8ee2-4063-96c9-e1db1ee7fd97\", \"resource_version\": \"739\"}",
+      "run_id": "27b0cb15",
+      "status": "acknowledged",
+      "updated_at": "2026-09-24T21:34:06.595605+00:00"
+    },
+    {
+      "budget_reserved": 1,
+      "created_at": "2026-09-24T21:35:26.416890+00:00",
+      "digest": "dfa7b9f589a3dbdd3920a6e2cd9c399119326836958ee109258aa2a12d1fb188",
+      "operation_id": "5424f01c-258a-4b59-b174-fba163a12484",
+      "owner": "693b93ef-21d9-4f9b-b13a-6df7db55655b",
+      "reason": "api_acknowledged",
+      "reconciliation": null,
+      "request": "{\"evidence_ids\":[\"8326cac0-0279-4f9b-9e13-a22397a7abb6\",\"1800c471-973e-4632-957c-29eb35b6a76f\",\"73fe3a3a-f1b0-4127-863e-575ac31ec965\"],\"expected_target_port\":9999,\"namespace\":\"autonomy-lab\",\"operation_id\":\"5424f01c-258a-4b59-b174-fba163a12484\",\"port_name\":\"http\",\"resource_version\":\"819\",\"run_id\":\"27b0cb15\",\"service_name\":\"inventory\",\"service_uid\":\"23d50531-8ee2-4063-96c9-e1db1ee7fd97\",\"target_port\":8080}",
+      "result": "{\"service_uid\": \"23d50531-8ee2-4063-96c9-e1db1ee7fd97\", \"resource_version\": \"849\"}",
+      "run_id": "27b0cb15",
+      "status": "acknowledged",
+      "updated_at": "2026-09-24T21:35:26.533366+00:00"
+    },
+    {
+      "budget_reserved": 0,
+      "created_at": "2026-09-24T21:36:46.382617+00:00",
+      "digest": "2dda510a332a3a8976e097ef01ed02a7d83369f5f56dfd6d1b9e170e0a15a9be",
+      "operation_id": "c9702fd5-b752-4724-a845-64e2f89bb41c",
+      "owner": null,
+      "reason": "budget_exhausted",
+      "reconciliation": null,
+      "request": "{\"evidence_ids\":[\"7d4bf70b-1bc3-4ce2-a5ee-c040a7a572b1\",\"704db4cc-c2b8-4689-811f-f8f90c5cc97b\",\"71dd17e7-d7ca-4770-bb8f-a873c3f647a3\"],\"expected_target_port\":9999,\"namespace\":\"autonomy-lab\",\"operation_id\":\"c9702fd5-b752-4724-a845-64e2f89bb41c\",\"port_name\":\"http\",\"resource_version\":\"929\",\"run_id\":\"27b0cb15\",\"service_name\":\"inventory\",\"service_uid\":\"23d50531-8ee2-4063-96c9-e1db1ee7fd97\",\"target_port\":8080}",
+      "result": null,
+      "run_id": "27b0cb15",
+      "status": "rejected",
+      "updated_at": "2026-09-24T21:36:46.382617+00:00"
+    }
+  ],
+  "owner_failure": null,
+  "owner_finalization": {
+    "at": 1790285902.288124,
+    "errors": [],
+    "status": "finished"
+  },
+  "owner_finished": true,
+  "owner_window_completed": true,
+  "sample_counts": {
+    "unknown": 0,
+    "verified_failure": 15,
+    "verified_success": 15
+  },
+  "sample_sha256": {
+    "0000.json": "b90509b9eb5fb48e63bfd7a0f1c65db1a548daa7422ed1c8a982d59ea374959d",
+    "0001.json": "28438675e1fb1d6a12aea6099c0db722e80aa7bc49d5ab3684815d8ea13d7f95",
+    "0002.json": "f2732a5ebdceeb8f700b59ae7c9716984699e99f91138166cdce12a8bb72bbd4",
+    "0003.json": "c245176fb9a7cc3ee2689e50910d79a3243b0fc40d511eaa90101974c86934de",
+    "0004.json": "519aedc2c1f1e11357c0cae516ad448146a3923325747ce2aff9342b30ec1471",
+    "0005.json": "165d75413f63a03261d474260090113eee0d443a4fd018cec4200ebd6abc4c8d",
+    "0006.json": "ab530c9df28a0ccb4101a92782dddeefba4df2b01543e80554b0472e68940a5f",
+    "0007.json": "c8bd5eb596efe3711634c2a874b502b9ff84432f183eeb5e2572c837a579aa80",
+    "0008.json": "53b9ae9cfcf44fb8a7c821e4637a6fd45d89a7886be21d3ffa23f59425bddbf8",
+    "0009.json": "fe5889d8ebeda79473b26fff6c04ef9a5f300b3a2aca34c921476c784624cb28",
+    "0010.json": "eafacc0aa2fdc31a99cde548a862d246fb6cdc7bb72dffda191a2a88565a0223",
+    "0011.json": "7590d0d24028327d665dc3b8f434b49d6d0708c2ab0bf499d119e50574b9701e",
+    "0012.json": "736e89e5dafb710098cd73831166b7c6c9f845fbe499730276cba7a40c0e9969",
+    "0013.json": "6c7c04a9bb4a2db1bedac68457f2e5e2b4888c71148fc72b80173d790c7b0690",
+    "0014.json": "9259e7a0adc6585f30acb7eeecbb350d23fb0c49a525a4e8df27320cd24d1963",
+    "0015.json": "05fa5429e760dea45ac7a2d92a6c259bdbdaae0d2bb01fe1610ed64cb4f4e5a3",
+    "0016.json": "3cb511e89ab5a664d03182170632ccac369e9f9e46e0525ad653aa7546d9869d",
+    "0017.json": "1ca04d95f5494c3a755218ed5dcfdae6f4d34f3f59ded63c18381bdfb91b3f67",
+    "0018.json": "ca78ebb971f72651bbbe3ea130f9d688ab212bd2aad44ec346a72b07dac1fc04",
+    "0019.json": "f51abfa860a4f3098cb08f35959af2ebfbbb280c5e1951c4445eb4feb50b82d8",
+    "0020.json": "54e660754e00c861263bbabf9a0a0e44b578b1710ebde6e55d2b210893029b29",
+    "0021.json": "7820a6f5d1cc81d7bb7b14749ab2a8101bb65c13f278e235bf769cc497aa33a6",
+    "0022.json": "e31fc9a78d30de4f83f308bc574473f586c4daa1233da304280abd5652f6808a",
+    "0023.json": "41948660982b36afd9dbf1d211798d129e8c3f075fa8335113ffda2f907bd6a1",
+    "0024.json": "d847a6b8f4d8eab8741fc24711a17b8456a611414097b0f4930f3a0af1240de0",
+    "0025.json": "a7c8bd35ba6efabbd7983e467c56a79b6e3318a12bd4e6e36b077e3d8147e3b0",
+    "0026.json": "cae4c29481fd652bdc53f6df4c7076aae3e24927fe83c258a138968db126fa2b",
+    "0027.json": "a50f19c389e3325d8705c137388fd58922a813d0311c7899f6b86cf0137090a9",
+    "0028.json": "454ba9adc40fb5ad857c61ef528c61f33a029ab29917f03b6d0862fa81571594",
+    "0029.json": "0b931104a74dd302cebf15fe57a3cc67b5b8fd1e8ea1ca20eb2283aa909cc4da"
+  },
+  "samples": [
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285601.7550201,
+      "observed_verdict": "verified_success",
+      "reasons": [],
+      "scheduled_at": 1790285600.4520605,
+      "slot": 0,
+      "started_at": 1790285600.464695,
+      "verdict": "verified_success"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285611.7205133,
+      "observed_verdict": "verified_success",
+      "reasons": [],
+      "scheduled_at": 1790285610.4520605,
+      "slot": 1,
+      "started_at": 1790285610.4663074,
+      "verdict": "verified_success"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285621.7250264,
+      "observed_verdict": "verified_success",
+      "reasons": [],
+      "scheduled_at": 1790285620.4520605,
+      "slot": 2,
+      "started_at": 1790285620.4688988,
+      "verdict": "verified_success"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285631.6730669,
+      "observed_verdict": "verified_failure",
+      "reasons": [
+        "service: protected targetPort differs (expected 8080)",
+        "quote available-single: HTTP 503 (expected 200)",
+        "quote available-multiple: HTTP 503 (expected 200)",
+        "quote insufficient-stock: HTTP 503 (expected 200)",
+        "quote out-of-stock: HTTP 503 (expected 200)",
+        "quote unknown-product: HTTP 503 (expected 404)"
+      ],
+      "scheduled_at": 1790285630.4520605,
+      "slot": 3,
+      "started_at": 1790285630.465305,
+      "verdict": "verified_failure"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285641.624119,
+      "observed_verdict": "verified_failure",
+      "reasons": [
+        "service: protected targetPort differs (expected 8080)",
+        "quote available-single: HTTP 503 (expected 200)",
+        "quote available-multiple: HTTP 503 (expected 200)",
+        "quote insufficient-stock: HTTP 503 (expected 200)",
+        "quote out-of-stock: HTTP 503 (expected 200)",
+        "quote unknown-product: HTTP 503 (expected 404)"
+      ],
+      "scheduled_at": 1790285640.4520605,
+      "slot": 4,
+      "started_at": 1790285640.4643211,
+      "verdict": "verified_failure"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285651.7223537,
+      "observed_verdict": "verified_success",
+      "reasons": [],
+      "scheduled_at": 1790285650.4520605,
+      "slot": 5,
+      "started_at": 1790285650.4650984,
+      "verdict": "verified_success"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285661.7151382,
+      "observed_verdict": "verified_success",
+      "reasons": [],
+      "scheduled_at": 1790285660.4520605,
+      "slot": 6,
+      "started_at": 1790285660.4645386,
+      "verdict": "verified_success"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285671.7140918,
+      "observed_verdict": "verified_success",
+      "reasons": [],
+      "scheduled_at": 1790285670.4520605,
+      "slot": 7,
+      "started_at": 1790285670.4656074,
+      "verdict": "verified_success"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285681.7172797,
+      "observed_verdict": "verified_success",
+      "reasons": [],
+      "scheduled_at": 1790285680.4520605,
+      "slot": 8,
+      "started_at": 1790285680.4656327,
+      "verdict": "verified_success"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285691.7221844,
+      "observed_verdict": "verified_success",
+      "reasons": [],
+      "scheduled_at": 1790285690.4520605,
+      "slot": 9,
+      "started_at": 1790285690.465468,
+      "verdict": "verified_success"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285701.7208726,
+      "observed_verdict": "verified_success",
+      "reasons": [],
+      "scheduled_at": 1790285700.4520605,
+      "slot": 10,
+      "started_at": 1790285700.463252,
+      "verdict": "verified_success"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285711.6255634,
+      "observed_verdict": "verified_failure",
+      "reasons": [
+        "service: protected targetPort differs (expected 8080)",
+        "quote available-single: HTTP 503 (expected 200)",
+        "quote available-multiple: HTTP 503 (expected 200)",
+        "quote insufficient-stock: HTTP 503 (expected 200)",
+        "quote out-of-stock: HTTP 503 (expected 200)",
+        "quote unknown-product: HTTP 503 (expected 404)"
+      ],
+      "scheduled_at": 1790285710.4520605,
+      "slot": 11,
+      "started_at": 1790285710.4639015,
+      "verdict": "verified_failure"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285721.637884,
+      "observed_verdict": "verified_failure",
+      "reasons": [
+        "service: protected targetPort differs (expected 8080)",
+        "quote available-single: HTTP 503 (expected 200)",
+        "quote available-multiple: HTTP 503 (expected 200)",
+        "quote insufficient-stock: HTTP 503 (expected 200)",
+        "quote out-of-stock: HTTP 503 (expected 200)",
+        "quote unknown-product: HTTP 503 (expected 404)"
+      ],
+      "scheduled_at": 1790285720.4520605,
+      "slot": 12,
+      "started_at": 1790285720.46586,
+      "verdict": "verified_failure"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285731.7179499,
+      "observed_verdict": "verified_success",
+      "reasons": [],
+      "scheduled_at": 1790285730.4520605,
+      "slot": 13,
+      "started_at": 1790285730.4650247,
+      "verdict": "verified_success"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285741.7121165,
+      "observed_verdict": "verified_success",
+      "reasons": [],
+      "scheduled_at": 1790285740.4520605,
+      "slot": 14,
+      "started_at": 1790285740.4666388,
+      "verdict": "verified_success"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285751.7136328,
+      "observed_verdict": "verified_success",
+      "reasons": [],
+      "scheduled_at": 1790285750.4520605,
+      "slot": 15,
+      "started_at": 1790285750.463843,
+      "verdict": "verified_success"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285761.7306604,
+      "observed_verdict": "verified_success",
+      "reasons": [],
+      "scheduled_at": 1790285760.4520605,
+      "slot": 16,
+      "started_at": 1790285760.4695828,
+      "verdict": "verified_success"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285771.7159672,
+      "observed_verdict": "verified_success",
+      "reasons": [],
+      "scheduled_at": 1790285770.4520605,
+      "slot": 17,
+      "started_at": 1790285770.4645197,
+      "verdict": "verified_success"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285781.7258837,
+      "observed_verdict": "verified_success",
+      "reasons": [],
+      "scheduled_at": 1790285780.4520605,
+      "slot": 18,
+      "started_at": 1790285780.4645069,
+      "verdict": "verified_success"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285791.623977,
+      "observed_verdict": "verified_failure",
+      "reasons": [
+        "service: protected targetPort differs (expected 8080)",
+        "quote available-single: HTTP 503 (expected 200)",
+        "quote available-multiple: HTTP 503 (expected 200)",
+        "quote insufficient-stock: HTTP 503 (expected 200)",
+        "quote out-of-stock: HTTP 503 (expected 200)",
+        "quote unknown-product: HTTP 503 (expected 404)"
+      ],
+      "scheduled_at": 1790285790.4520605,
+      "slot": 19,
+      "started_at": 1790285790.464445,
+      "verdict": "verified_failure"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285801.6259933,
+      "observed_verdict": "verified_failure",
+      "reasons": [
+        "service: protected targetPort differs (expected 8080)",
+        "quote available-single: HTTP 503 (expected 200)",
+        "quote available-multiple: HTTP 503 (expected 200)",
+        "quote insufficient-stock: HTTP 503 (expected 200)",
+        "quote out-of-stock: HTTP 503 (expected 200)",
+        "quote unknown-product: HTTP 503 (expected 404)"
+      ],
+      "scheduled_at": 1790285800.4520605,
+      "slot": 20,
+      "started_at": 1790285800.465068,
+      "verdict": "verified_failure"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285811.6238384,
+      "observed_verdict": "verified_failure",
+      "reasons": [
+        "service: protected targetPort differs (expected 8080)",
+        "quote available-single: HTTP 503 (expected 200)",
+        "quote available-multiple: HTTP 503 (expected 200)",
+        "quote insufficient-stock: HTTP 503 (expected 200)",
+        "quote out-of-stock: HTTP 503 (expected 200)",
+        "quote unknown-product: HTTP 503 (expected 404)"
+      ],
+      "scheduled_at": 1790285810.4520605,
+      "slot": 21,
+      "started_at": 1790285810.4629486,
+      "verdict": "verified_failure"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285821.6297705,
+      "observed_verdict": "verified_failure",
+      "reasons": [
+        "service: protected targetPort differs (expected 8080)",
+        "quote available-single: HTTP 503 (expected 200)",
+        "quote available-multiple: HTTP 503 (expected 200)",
+        "quote insufficient-stock: HTTP 503 (expected 200)",
+        "quote out-of-stock: HTTP 503 (expected 200)",
+        "quote unknown-product: HTTP 503 (expected 404)"
+      ],
+      "scheduled_at": 1790285820.4520605,
+      "slot": 22,
+      "started_at": 1790285820.4650476,
+      "verdict": "verified_failure"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285831.6330564,
+      "observed_verdict": "verified_failure",
+      "reasons": [
+        "service: protected targetPort differs (expected 8080)",
+        "quote available-single: HTTP 503 (expected 200)",
+        "quote available-multiple: HTTP 503 (expected 200)",
+        "quote insufficient-stock: HTTP 503 (expected 200)",
+        "quote out-of-stock: HTTP 503 (expected 200)",
+        "quote unknown-product: HTTP 503 (expected 404)"
+      ],
+      "scheduled_at": 1790285830.4520605,
+      "slot": 23,
+      "started_at": 1790285830.466557,
+      "verdict": "verified_failure"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285841.6278436,
+      "observed_verdict": "verified_failure",
+      "reasons": [
+        "service: protected targetPort differs (expected 8080)",
+        "quote available-single: HTTP 503 (expected 200)",
+        "quote available-multiple: HTTP 503 (expected 200)",
+        "quote insufficient-stock: HTTP 503 (expected 200)",
+        "quote out-of-stock: HTTP 503 (expected 200)",
+        "quote unknown-product: HTTP 503 (expected 404)"
+      ],
+      "scheduled_at": 1790285840.4520605,
+      "slot": 24,
+      "started_at": 1790285840.46472,
+      "verdict": "verified_failure"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285851.6280527,
+      "observed_verdict": "verified_failure",
+      "reasons": [
+        "service: protected targetPort differs (expected 8080)",
+        "quote available-single: HTTP 503 (expected 200)",
+        "quote available-multiple: HTTP 503 (expected 200)",
+        "quote insufficient-stock: HTTP 503 (expected 200)",
+        "quote out-of-stock: HTTP 503 (expected 200)",
+        "quote unknown-product: HTTP 503 (expected 404)"
+      ],
+      "scheduled_at": 1790285850.4520605,
+      "slot": 25,
+      "started_at": 1790285850.4631426,
+      "verdict": "verified_failure"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285861.6281435,
+      "observed_verdict": "verified_failure",
+      "reasons": [
+        "service: protected targetPort differs (expected 8080)",
+        "quote available-single: HTTP 503 (expected 200)",
+        "quote available-multiple: HTTP 503 (expected 200)",
+        "quote insufficient-stock: HTTP 503 (expected 200)",
+        "quote out-of-stock: HTTP 503 (expected 200)",
+        "quote unknown-product: HTTP 503 (expected 404)"
+      ],
+      "scheduled_at": 1790285860.4520605,
+      "slot": 26,
+      "started_at": 1790285860.4651773,
+      "verdict": "verified_failure"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285871.6384075,
+      "observed_verdict": "verified_failure",
+      "reasons": [
+        "service: protected targetPort differs (expected 8080)",
+        "quote available-single: HTTP 503 (expected 200)",
+        "quote available-multiple: HTTP 503 (expected 200)",
+        "quote insufficient-stock: HTTP 503 (expected 200)",
+        "quote out-of-stock: HTTP 503 (expected 200)",
+        "quote unknown-product: HTTP 503 (expected 404)"
+      ],
+      "scheduled_at": 1790285870.4520605,
+      "slot": 27,
+      "started_at": 1790285870.4641495,
+      "verdict": "verified_failure"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285881.6314604,
+      "observed_verdict": "verified_failure",
+      "reasons": [
+        "service: protected targetPort differs (expected 8080)",
+        "quote available-single: HTTP 503 (expected 200)",
+        "quote available-multiple: HTTP 503 (expected 200)",
+        "quote insufficient-stock: HTTP 503 (expected 200)",
+        "quote out-of-stock: HTTP 503 (expected 200)",
+        "quote unknown-product: HTTP 503 (expected 404)"
+      ],
+      "scheduled_at": 1790285880.4520605,
+      "slot": 28,
+      "started_at": 1790285880.4652255,
+      "verdict": "verified_failure"
+    },
+    {
+      "coverage": "on_time",
+      "finished_at": 1790285891.6228452,
+      "observed_verdict": "verified_failure",
+      "reasons": [
+        "service: protected targetPort differs (expected 8080)",
+        "quote available-single: HTTP 503 (expected 200)",
+        "quote available-multiple: HTTP 503 (expected 200)",
+        "quote insufficient-stock: HTTP 503 (expected 200)",
+        "quote out-of-stock: HTTP 503 (expected 200)",
+        "quote unknown-product: HTTP 503 (expected 404)"
+      ],
+      "scheduled_at": 1790285890.4520605,
+      "slot": 29,
+      "started_at": 1790285890.4653544,
+      "verdict": "verified_failure"
+    }
+  ],
+  "source_sha256": {
+    "fixtures/database.sql": "595e6bff667e696fb51a6cfa51a86d6f7e016f2c90187d43429cb1b36c6355d2",
+    "fixtures/expectations.json": "95c4b01a604ef152d536d7046aadee50d29003445081ffd68858b63103a06c1d",
+    "infra/toolchain.json": "0b4826e9ecc9f8c21ea1357b182f4dce2e53b9d8ac47c11a73e7add0d495c1fb",
+    "src/autonomy_lab/__init__.py": "e0e75b2f3231733dc848918b71c8f65d3d836009d920b6de6ba8b13946eaa933",
+    "src/autonomy_lab/agent.py": "0a9cde266d9a5c2a76d417155d1482d289e743872e45ad8a5ebc2e1d16859e2f",
+    "src/autonomy_lab/audit.py": "3a0fc211258421bdea43828d80c2673dc3e86f9c8b050a716407db36c6138cc5",
+    "src/autonomy_lab/authority_worker.py": "cc6cf51973c263ebb4b5e9dfee77e5b4cc9a5f7026312359ead35ce154804d82",
+    "src/autonomy_lab/ax_runtime.py": "7d1977025c41113e139e0f90e16dc967568fd319812ebb09e746d1e92c2dcebc",
+    "src/autonomy_lab/bounded_http.py": "907e5b2f22dc197a629f706a26c81ebdff17914db0deef4c391ac4177b096067",
+    "src/autonomy_lab/broker.py": "64b02b1e17171524fdc612aa8f520fec4c3eecda0782ef42a28f698ff4af812b",
+    "src/autonomy_lab/campaign.py": "ed0ec4d52375a5cc8b93de99000bb3af0f545eba18bfa372dd1fd72649fd4802",
+    "src/autonomy_lab/campaign_report.py": "97be3b05182fa48d280d6dce597e4ee4e6a4b18066df1dd58bbe4ea25f7241fc",
+    "src/autonomy_lab/cli.py": "517c32e89395b13d2acff8e0d86149e1247419666260401b178bb0bd2ecc8944",
+    "src/autonomy_lab/context.py": "b36eb6a628a7ec084a48d64e0d14cd37dd5e027e7825ec0d225cced57a01aaba",
+    "src/autonomy_lab/crash_worker.py": "64ac43f215d31b1c73c3fd27d7aed72bf513871912b20996b8d125c2b4455701",
+    "src/autonomy_lab/credentials.py": "889e7ae960883c16930bce85d710863275150abf550aa693dc3e1bdf4294a099",
+    "src/autonomy_lab/environment.py": "026fdb8aee08c6f04c9682d4986359a9f38b5ed87eab2d961cb0d09af51b67ce",
+    "src/autonomy_lab/experiments.py": "c2d790e44f98c986817d9d00f166d84584d306e872878315076d67d7885541d4",
+    "src/autonomy_lab/frozen_experiment.py": "932e476b298411d337dc673f5de489b180f00abc13b8bf8a21e2c9c918268cd0",
+    "src/autonomy_lab/gemini.py": "c259ef6eab36b5c955c2d01db4bb4c5002e9597552caf5c878820ba20fd6745b",
+    "src/autonomy_lab/harness.py": "66ee58dee1234c13bbea5411bc61af39afcb68132dd0df590a95a2f62db5896b",
+    "src/autonomy_lab/inventory.py": "f4e64c0858342474fa0cb5396b589d659e13585aa21910dd48702551e4800422",
+    "src/autonomy_lab/isolated_agent.py": "33146f8dfad4b450b62dc33738ec016c55896fe85417914ca2d759a3bbe9a0fd",
+    "src/autonomy_lab/isolated_runtime.py": "b2c0db0775aef66a67b3ea1fc7442cfcfda3e6ef90d7b8282f6339f47ab53b91",
+    "src/autonomy_lab/janitor.py": "5684c4cfa853b5623cec87fba62964b241eb1302380979e35f2316aaf97e2829",
+    "src/autonomy_lab/kubernetes.py": "1812c19cb4cc63a723b06e085efab881bb548742573d20f42113c42b677f7730",
+    "src/autonomy_lab/mailbox.py": "4e86574ec83080be70e2eb131a9c74a149f6e0dd7435ea4c4d7a0038b5a5af0b",
+    "src/autonomy_lab/quote.py": "f83b02b37071fb471e5d3861938b62af936f6781f1630a208d85777bb408cbbc",
+    "src/autonomy_lab/recurrence.py": "825cada7b234d1d7649b90d3d138093d97439919925299519a724c8ea54fe7b3",
+    "src/autonomy_lab/rpc.py": "cf3f3c8b843db87ea613d1f5552392dd0f38a668a194470f52b3f781ab28f617",
+    "src/autonomy_lab/runbook.py": "7be131c242eb440c000afcca1e2623b9cfa5310ee0fa3e5bb8907e19a172f973",
+    "src/autonomy_lab/scoring.py": "c61b0ec2cc1c633b38aa19edd8a589ba764296e3dc20abff78993b0d592ffc8e",
+    "src/autonomy_lab/supervisor.py": "333943faf548ed5e76f6b0392aec873b00eaae86cdd0a4d04ee91db3e1d658d5",
+    "src/autonomy_lab/toolbox.py": "8fbfa23b8a88432c105670eb989edc7b153d763a729ae21610633fdadc033a43",
+    "src/autonomy_lab/trial_worker.py": "d0983730b2c7059895938584b2adbdbcdb30362065e2ffb6f2725110f7648076",
+    "src/autonomy_lab/value_scenarios.py": "e2ef9e26ef3ea02550b05542df4663a71c23175e5d4fa4e9c6b8b67f457487df",
+    "src/autonomy_lab/verifier.py": "4f61c4e917aa297f4591a7594bef950de98ea3ed3ce0d040984092ac3d36a434"
+  },
+  "window": {
+    "end": 1790285900.4520605,
+    "start": 1790285600.4520605
+  },
+  "workers": [
+    {
+      "attempt": {
+        "role": "observer",
+        "started_at": 1790285597.3856895
+      },
+      "episodes": [],
+      "escalation": null,
+      "failure": null,
+      "finished": {
+        "at": 1790285891.6408505
+      },
+      "id": "observer-edfcf2151b114462b24c4bde9a37b835",
+      "ready": {
+        "at": 1790285598.3521473,
+        "pid": 23686
+      }
+    },
+    {
+      "attempt": {
+        "role": "operator",
+        "started_at": 1790285725.469458
+      },
+      "episodes": [
+        {
+          "attempt": {
+            "started_at": 1790285772.055058
+          },
+          "id": "episode-3ce6e9d6b588411685525bf296db6212",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "7661bc20-48ab-4384-9fd0-fb5002651be1",
+                "df459a07-97c7-400b-b897-06e6dc9d5107",
+                "9912099e-03c8-42e9-b425-07a0d7a764cf",
+                "168842ea-2c3f-4414-ae08-b1ca09fbdfcd"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285773.577905
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285758.9667153
+          },
+          "id": "episode-636335f95e804fb9b3c6ca1897f3b476",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "abda4e8e-2d84-433e-906c-9399ccfca111",
+                "17c6ad30-6112-404b-a34d-01009df55047",
+                "c20f84f9-d865-42d0-ba01-a3e50bc259d8",
+                "80650bde-d59a-4f89-b6a3-d619cea4e9a2"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285760.5031028
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285745.8869002
+          },
+          "id": "episode-6502de4d0f8a4b83be022e340d398c00",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "5a058311-14f7-4006-a9a4-1e8f49988681",
+                "06e0f956-e898-4a53-b936-24e7cad23f93",
+                "eebfdfa1-94cd-42b1-845d-0daa292912bd",
+                "c99ef975-8fd7-4a4c-809a-60d27bafd7b5"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285747.402167
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285732.814781
+          },
+          "id": "episode-7fcc570c66ee4b9da95284846f9e125a",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "579a46d8-01dd-4c6d-81dd-0602997ca4f1",
+                "92b10554-8b3b-45f0-aa39-e0f78f8cd7d1",
+                "8a6ef433-73fa-402d-ad44-e00319c4f174",
+                "dabb9781-0e0f-491e-9708-d9f0f3ebda24"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285734.3096614
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285739.3333602
+          },
+          "id": "episode-9c1a962a13314555b1be3004f6ccd4c8",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "75c1889f-41b2-41eb-bcf4-a869dcdd8278",
+                "16cd016a-daec-4478-8dd4-3c790a4f7516",
+                "20b25e6c-68de-4e06-a488-d484638f304c",
+                "1f675822-399a-470f-bde2-f5072d20538a"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285740.8679838
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285778.596263
+          },
+          "id": "episode-9e3376e572294196a0df21816cb6d3fa",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "85eeef9e-c8d6-4ce0-b16e-f05a2b582f27",
+                "73e66560-06dd-4f5d-8618-27524d996184",
+                "1fb8bc32-8c72-401d-aa6a-2541aa95bc52",
+                "e9b910d8-541b-4d94-a84e-fd50afa06779"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285780.1113186
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285752.4220564
+          },
+          "id": "episode-afceda17edba43aaa01fe9e30e891296",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "a560bfc9-7160-46f8-ad85-1000a62c5fa7",
+                "2b47482b-e6a3-459c-ad17-b11043b42542",
+                "879a221c-be23-4d74-8e15-de6d140d888e",
+                "dc275201-6286-4317-8d4c-d1a84e19f4a0"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285753.9497867
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285726.1499782
+          },
+          "id": "episode-d2d817f9ee644329bc6ff40e7612cb1f",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "8326cac0-0279-4f9b-9e13-a22397a7abb6",
+                "1800c471-973e-4632-957c-29eb35b6a76f",
+                "73fe3a3a-f1b0-4127-863e-575ac31ec965",
+                "00e22648-e71a-4230-ad27-5261b425b7c6",
+                "4b44f502-6786-4449-ab38-85ae3dfca997"
+              ],
+              "kind": "claim",
+              "outcome": "resolved",
+              "reason": "Application recovery was independently verified."
+            },
+            "finished_at": 1790285727.7971952
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285765.524907
+          },
+          "id": "episode-fc89d4cfce714a44b2b9fcdfdbe661d3",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "daa1a739-3394-4de7-80cf-5911f8a65da7",
+                "53619fd2-7c64-47a0-8808-0af4fa65a89e",
+                "1373fca1-4288-47b3-8181-3bc64ca1a48f",
+                "524725a9-1b9d-4387-af3a-cc02b3b7e4f3"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285767.0365407
+          }
+        }
+      ],
+      "escalation": null,
+      "failure": null,
+      "finished": null,
+      "id": "operator-167148b1b3b7462aa845204897a2449e",
+      "ready": {
+        "at": 1790285726.1269436,
+        "pid": 26592
+      }
+    },
+    {
+      "attempt": {
+        "role": "operator",
+        "started_at": 1790285805.472451
+      },
+      "episodes": [
+        {
+          "attempt": {
+            "started_at": 1790285806.1240418
+          },
+          "id": "episode-700fa0057b354e63b45757e415484dd4",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "7d4bf70b-1bc3-4ce2-a5ee-c040a7a572b1",
+                "704db4cc-c2b8-4689-811f-f8f90c5cc97b",
+                "71dd17e7-d7ca-4770-bb8f-a873c3f647a3",
+                "631fb166-d468-457b-b29c-7ba218cb61c8"
+              ],
+              "kind": "claim",
+              "outcome": "escalated",
+              "reason": "The operation is rejected, unsent, or unresolved. No mutation was repeated."
+            },
+            "finished_at": 1790285806.3932068
+          }
+        }
+      ],
+      "escalation": null,
+      "failure": null,
+      "finished": {
+        "at": 1790285806.4063928
+      },
+      "id": "operator-215fd17bb74642e9ae9fb59b3447d111",
+      "ready": {
+        "at": 1790285806.1030576,
+        "pid": 28457
+      }
+    },
+    {
+      "attempt": {
+        "role": "operator",
+        "started_at": 1790285597.4216173
+      },
+      "episodes": [
+        {
+          "attempt": {
+            "started_at": 1790285620.1399345
+          },
+          "id": "episode-1d769cf429444232b4c9ad303dbc76ad",
+          "outcome": null
+        },
+        {
+          "attempt": {
+            "started_at": 1790285607.0928729
+          },
+          "id": "episode-24b00254b362472697aac4fb3002aa92",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "47226d6e-7ef0-4fc4-b0a1-9496c372ad12",
+                "9044cfe3-5dbf-43c7-b060-ddfe6122cd92",
+                "af4e30cf-c502-467d-b4a4-08f7f6432c0b",
+                "00969507-0021-478b-a245-5b0729bed809"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285608.5995107
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285600.488496
+          },
+          "id": "episode-3dd7748a62fc47ecb79f2c6871b654e8",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "e9371507-234d-46e5-ad91-931cd3b23c95",
+                "a723ec76-7b6c-463d-a9be-6c73ad159528",
+                "4e2e83dd-a123-4ade-b1a4-aacbc152e9e1",
+                "74bbfcd8-02a5-469e-9b6c-f70341038123"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285602.0759473
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285613.6189013
+          },
+          "id": "episode-bda02bca4a7e4bbc8cb8e07f847f1f05",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "a381115a-0e04-46e8-9477-8ccd4a1e265d",
+                "1641bd80-2647-441f-81fc-692c8a94bd13",
+                "0a5815ce-5581-4176-80e0-afffebc020da",
+                "55fc3dfb-2f5a-4d97-9f4f-4f3a4522e4bb"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285615.1221106
+          }
+        }
+      ],
+      "escalation": null,
+      "failure": null,
+      "finished": null,
+      "id": "operator-753d9f38273745ceb05877fd3cd1863c",
+      "ready": {
+        "at": 1790285598.362283,
+        "pid": 23689
+      }
+    },
+    {
+      "attempt": {
+        "role": "operator",
+        "started_at": 1790285645.4669285
+      },
+      "episodes": [
+        {
+          "attempt": {
+            "started_at": 1790285692.1137195
+          },
+          "id": "episode-2482a490f44847368655976fce1d3c65",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "edf73f23-2576-4460-98ec-2ff6c5ac8f39",
+                "3b8d112b-0225-4240-9b71-48f2312e01a6",
+                "450c077f-89ad-406e-935e-a00f58116c88",
+                "9526ac89-6e42-4ab3-9611-c690e6b8d625"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285693.6288028
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285652.8843935
+          },
+          "id": "episode-43d41391f88145488d1d0f0c667f4694",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "1361d2d6-1982-4777-b294-cc725ab660f9",
+                "83165be4-435a-41f5-a8d0-1bd6456f4c56",
+                "e79f8cfd-8bd7-4eae-a5fc-bdb3aab933a6",
+                "271801a3-4544-4b8d-a66f-71a86c8bd6b5"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285654.39514
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285685.5746667
+          },
+          "id": "episode-54bb78c9458f4af0a0eb937c1ae50a19",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "3c965771-a41a-4cf0-ab3f-2280a69c9700",
+                "a8b3fcf1-96af-4137-a4f6-f6b509365846",
+                "3b99dce0-a5d9-437d-aad2-d61e9bf6f633",
+                "9a6ee12f-240d-4e56-9f57-cb431d486907"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285687.095339
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285698.6466804
+          },
+          "id": "episode-742bd798626740b094278011192bfa5a",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "c2013d10-f45a-4f80-a974-3484fab1a750",
+                "2e2f69d6-4fb6-4472-8c3b-439c8f422b51",
+                "c9fd4f0f-48ad-42aa-827c-ff7c425d39b5",
+                "41c10cae-6835-4440-b53d-a33009f83649"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285700.1835825
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285672.4925735
+          },
+          "id": "episode-82195e939dcc4921aee2e61020069c3c",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "1009b5d6-e960-47c0-bb13-c98f86fba95e",
+                "d0777d7a-0ef1-4ef2-a8ea-63e5a63cbfd2",
+                "eb1ac97d-7b19-4b2c-a969-f9c2b82de86f",
+                "a43162cc-ba0f-46b0-8e6c-c442b057f7c8"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285674.0118172
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285665.9473746
+          },
+          "id": "episode-895ee41a17e24719a8f7d8f0dbeca071",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "b73a586a-14b2-4e8f-a607-e7eb8ca5788a",
+                "9f74ff37-5a67-4426-a32e-64a4f4aca102",
+                "219e2e22-78df-4e9d-ad35-72bcd9b24141",
+                "fc52fe3f-b29d-4b6b-b031-f29c2b7490d7"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285667.471435
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285646.2202206
+          },
+          "id": "episode-b8d0014a70134f939930b6e02afe1077",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "b3e91c4c-ea2b-4916-8eb6-e92bb9680526",
+                "43d1fe8e-5516-4349-8967-ecc90576aebe",
+                "30a180c1-1f82-488e-b9fa-123edd95cb3d",
+                "5f88d443-63d3-4182-98df-0a24be94efd2",
+                "b8867504-8d9c-4353-a877-b03c143764bd"
+              ],
+              "kind": "claim",
+              "outcome": "resolved",
+              "reason": "Application recovery was independently verified."
+            },
+            "finished_at": 1790285647.8657138
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285659.4138472
+          },
+          "id": "episode-d5efca981f8542599f4482597550976a",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "7098ec0c-c7f0-4f3c-a97e-d67f87d39194",
+                "cac8ad59-1671-4ed6-aad8-f709e999f768",
+                "5e4ef0e8-bcb7-4c4e-945f-045d954e8424",
+                "35543db2-bb7e-46c6-b5a5-f6bb75f0792f"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285660.9302673
+          }
+        },
+        {
+          "attempt": {
+            "started_at": 1790285679.0303621
+          },
+          "id": "episode-f69bd2a9be5247bf8e26cfd4bfc1c47e",
+          "outcome": {
+            "claim": {
+              "evidence_ids": [
+                "ad1ce9f3-c6ca-4377-b4d4-b145c4c9cdbc",
+                "32a0970b-634d-4fa5-bd67-e0e9368625b2",
+                "facc5590-4fa4-4551-a00b-48bc8aa7ef72",
+                "18b01339-a535-4e09-9fec-0d894c8ebcf2"
+              ],
+              "kind": "claim",
+              "outcome": "healthy",
+              "reason": "Initial health was independently verified; no mutation was needed."
+            },
+            "finished_at": 1790285680.554557
+          }
+        }
+      ],
+      "escalation": null,
+      "failure": null,
+      "finished": null,
+      "id": "operator-e1e336efc46a419da243950297a1a669",
+      "ready": {
+        "at": 1790285646.1982772,
+        "pid": 24790
+      }
+    }
+  ]
+}

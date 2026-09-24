@@ -1,0 +1,222 @@
+{
+  "scope": "bounded deterministic recurring-incident campaign",
+  "reviews": [
+    {
+      "status": "failed",
+      "error": "Token preflight exceeds 14,999 input tokens or returned an invalid count",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T21:19:40.764383+00:00",
+      "finished_at": "2026-09-24T21:19:41.147673+00:00",
+      "generation_attempts": 0,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "snapshot": {
+        "files": [
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/recurrence.py",
+            "sha256": "a5f4d2c8dde09fa6d8f7b8a59c4e72ef5eb7fd5429c7a4c471866d963bece222"
+          },
+          {
+            "included": "full_source",
+            "path": "scripts/check_recurrence.py",
+            "sha256": "e6b7495915ed4bb226f1ce8811bea5274239fb102f99cd5ebe9f215440595232"
+          },
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/audit.py",
+            "sha256": "3a0fc211258421bdea43828d80c2673dc3e86f9c8b050a716407db36c6138cc5"
+          },
+          {
+            "included": "selected_functions: operation_rows,operator,stop_worker,wait_ready,worker",
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "ed0ec4d52375a5cc8b93de99000bb3af0f545eba18bfa372dd1fd72649fd4802"
+          },
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/campaign_report.py",
+            "sha256": "97be3b05182fa48d280d6dce597e4ee4e6a4b18066df1dd58bbe4ea25f7241fc"
+          },
+          {
+            "included": "full_source",
+            "path": "scenarios/campaign-recurrence.json",
+            "sha256": "ee290854221ed09b3f74b7d176eff5da047904f7afee96cd4278462e50720689"
+          },
+          {
+            "included": "full_source",
+            "path": "docs/RECURRENCE_EXPERIMENT.md",
+            "sha256": "575221d290a0e98d3c8704016d88b4bd0783525f75f1127ca089e0e8680509be"
+          },
+          {
+            "included": "test_names_only",
+            "path": "tests/test_recurrence.py",
+            "sha256": "5f6c80ce19a56eb6eb822f1f45d4afcc7a76ddad1c6407f78d5d47588c11999c"
+          }
+        ],
+        "prompt_sha256": "bff009b54e2709d4238ce4b182e49dd18445c12b1afd384c83692a7a37d2419c",
+        "review_kind": "recurring_campaign",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "275bf5ed3ef946d6396f34c5715156c4db34c20c834ea9592160521f7eb85487",
+        "source_bytes": 42523
+      },
+      "source_commit": "d2bb7581cda930233987c6f4de9025707f287b4c"
+    },
+    {
+      "status": "incomplete",
+      "error": "Review incomplete: stop_reason='max_tokens'; no continuation requested",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T21:19:57.282429+00:00",
+      "finished_at": "2026-09-24T21:22:33.676307+00:00",
+      "generation_attempts": 1,
+      "usage_cost_estimate_usd": 0.72237,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "http_status": 200,
+      "snapshot": {
+        "files": [
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/recurrence.py",
+            "sha256": "a5f4d2c8dde09fa6d8f7b8a59c4e72ef5eb7fd5429c7a4c471866d963bece222"
+          },
+          {
+            "included": "full_source",
+            "path": "scripts/check_recurrence.py",
+            "sha256": "e6b7495915ed4bb226f1ce8811bea5274239fb102f99cd5ebe9f215440595232"
+          },
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/audit.py",
+            "sha256": "3a0fc211258421bdea43828d80c2673dc3e86f9c8b050a716407db36c6138cc5"
+          },
+          {
+            "included": "selected_functions: operation_rows,operator",
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "ed0ec4d52375a5cc8b93de99000bb3af0f545eba18bfa372dd1fd72649fd4802"
+          },
+          {
+            "included": "full_source",
+            "path": "scenarios/campaign-recurrence.json",
+            "sha256": "ee290854221ed09b3f74b7d176eff5da047904f7afee96cd4278462e50720689"
+          },
+          {
+            "included": "full_source",
+            "path": "docs/RECURRENCE_EXPERIMENT.md",
+            "sha256": "575221d290a0e98d3c8704016d88b4bd0783525f75f1127ca089e0e8680509be"
+          },
+          {
+            "included": "test_names_only",
+            "path": "tests/test_recurrence.py",
+            "sha256": "5f6c80ce19a56eb6eb822f1f45d4afcc7a76ddad1c6407f78d5d47588c11999c"
+          }
+        ],
+        "prompt_sha256": "393aa61736615c3984acbfa9e0acd55e1a8d51de8c5481bc711139fbb9922be2",
+        "review_kind": "recurring_campaign",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "cb244ee3acb0b86e573073cacac9f8b10305da964e194b3386146d407d0c1206",
+        "source_bytes": 33401
+      },
+      "source_commit": "d2bb7581cda930233987c6f4de9025707f287b4c"
+    },
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T21:23:54.524887+00:00",
+      "finished_at": "2026-09-24T21:25:07.698564+00:00",
+      "generation_attempts": 1,
+      "findings_text": "**Findings (recurrence.py / audit.py)**\n\n**1. Scorer crashes (TypeError) instead of recording a failed verdict when an incident's worker is unregistered \u2014 escalation branch only**\n\nFile: `src/autonomy_lab/recurrence.py`, `evaluate`, `else:` branch (routing-3), line\n`... and operation['budget_reserved'] == 0 and worker['finished'] is not None`.\n\nTrace:\n- `worker = next((w for w in card['workers'] if w['id'] == record['worker']), None)` \u2192 `None` when the incident record names a worker id absent from `card['workers']` (e.g., owner registered the operator generation late, worker export truncated, or an adversarial `incidents/*.json` with a fabricated `worker`).\n- `claims` tolerates this via `(worker or {})`, so no early failure.\n- `valid` can still be `True` after the common checks (schedule, one fault write, one own op, fault samples, downtime) because none consult `worker`.\n- `operation` is a real rejected op with `reason == 'budget_exhausted'` and `budget_reserved == 0`, so `and` chain reaches `worker['finished']` \u2192 `TypeError: 'NoneType' object is not subscriptable`.\n- `evaluate` raises; no `{'status': 'failed', 'checks': ...}` is produced, `results`/`checks` for this run are lost, and the caller (check_campaign/finalize_gate) sees an exception rather than a scored failure, contrary to \"preserve failed receipt / entire calendar\".\n\nThe `repaired` branch is safe (only `claims` uses `worker`), so this is asymmetric and easy to miss in tests exercising the happy path.\n\nMinimal fix:\n```python\nvalid = (valid and worker is not None and operation['status'] == 'rejected' ...\n```\nor, before both branches:\n```python\nif worker is None:\n    valid = False\n```\n(and keep `claims` as is).\n\n**2. Window boundary comparison mixes `+00:00` and `Z` ISO forms (measurement edge, low severity)**\n\nFile: `src/autonomy_lab/recurrence.py` (`started_at=datetime.fromtimestamp(...).isoformat()`) and `src/autonomy_lab/audit.py` `assess` (`started_at <= e.get(\"requestReceivedTimestamp\", \"\") <= finished_at`, lexical string compare).\n\nTrace: `window['end']` with zero microseconds gives `\"\u2026T00:05:00+00:00\"`; an API-server event in that same second is `\"\u2026T00:05:00.734512Z\"`. Byte compare at position 19: `'.'` (0x2E) > `'+'` (0x2B) \u2192 event is excluded although it is inside the frozen window. Symmetric inclusion at start works only by accident of the same ordering. A successful Service write landing in the last second of the calendar would drop out of `audit['events']` and therefore out of `writes`, so `only_declared_service_writes`/`audit_complete` are evaluated on an incomplete set. Effect is bounded to one second at each edge, but the gate claims exact accounting of all successful Service writes.\n\nMinimal fix: compare numerically in `assess`:\n```python\ndef _ts(v): return datetime.fromisoformat(v.replace('Z', '+00:00')).timestamp()\nselected = [e for e in events if start_epoch <= _ts(e.get(\"requestReceivedTimestamp\", \"1970-01-01T00:00:00Z\")) <= end_epoch ...]\n```\nand pass `window['start']`/`window['end']` floats from `recurrence.py`.\n\n**Missing evidence (not defects):** `campaign.read`, `campaign_report.scorecard` (ordering of `card['samples']`, `created_at` format of operations), `harness.client_path_failed`, and `scripts/check_recurrence.py` are not supplied; the correctness of `healthy[0]` as the earliest recovery and of `epoch(op['created_at'])` depends on them. Test bodies were not provided, so whether the escalation path with a missing worker is exercised is unverified.\n\nSnapshot: 526f134a97fc5612f9d44e11745f58440ab2a106006b3c443072bb6d3ef2d475",
+      "usage_cost_estimate_usd": 0.36141,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "http_status": 200,
+      "snapshot": {
+        "files": [
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/recurrence.py",
+            "sha256": "a5f4d2c8dde09fa6d8f7b8a59c4e72ef5eb7fd5429c7a4c471866d963bece222"
+          },
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/audit.py",
+            "sha256": "3a0fc211258421bdea43828d80c2673dc3e86f9c8b050a716407db36c6138cc5"
+          },
+          {
+            "included": "full_source",
+            "path": "scenarios/campaign-recurrence.json",
+            "sha256": "ee290854221ed09b3f74b7d176eff5da047904f7afee96cd4278462e50720689"
+          },
+          {
+            "included": "full_source",
+            "path": "docs/RECURRENCE_EXPERIMENT.md",
+            "sha256": "575221d290a0e98d3c8704016d88b4bd0783525f75f1127ca089e0e8680509be"
+          },
+          {
+            "included": "test_names_only",
+            "path": "tests/test_recurrence.py",
+            "sha256": "5f6c80ce19a56eb6eb822f1f45d4afcc7a76ddad1c6407f78d5d47588c11999c"
+          }
+        ],
+        "prompt_sha256": "0b42c2d75c7c7580830628ca709e446ccbfcd3a4028cf4b8b8c809550797b4ff",
+        "review_kind": "recurring_campaign_scoring",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "526f134a97fc5612f9d44e11745f58440ab2a106006b3c443072bb6d3ef2d475",
+        "source_bytes": 23182
+      },
+      "source_commit": "d2bb7581cda930233987c6f4de9025707f287b4c"
+    },
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T21:23:55.336188+00:00",
+      "finished_at": "2026-09-24T21:25:08.754880+00:00",
+      "generation_attempts": 1,
+      "findings_text": "**Findings (scope: `scripts/check_recurrence.py` and the selected `campaign.py` functions)**\n\n**1. `stop_and_reap` cannot reap the initial operator and fails spuriously on a zombie \u2014 `scripts/check_recurrence.py`, lines 42\u201351 (`stop_and_reap`)**\n\nTrigger: incident `routing-1`. `current` is the owner-spawned `operator-*` workspace found via `glob` (line 71); it is a child of the *owner* process, not of this script, so it is not in `children`. The loop `for path, process in children: if path == workspace: process.wait(...)` matches nothing, and termination is then inferred solely from `process_identity(lease['pid']) == lease['identity']`.\n\nTrace:\n1. `stop_worker` \u2192 `os.killpg(pid, SIGKILL)` succeeds; the operator dies immediately.\n2. The kernel keeps the PID as a zombie until the owner calls `wait`. `/proc/<pid>/stat` (start time, the usual basis of `process_identity`) remains readable and unchanged for a zombie.\n3. Loop at line 47 sees identity unchanged for 10 s \u2192 `TimeoutError('Operator did not terminate')` \u2192 whole gate fails at t\u224830 s with `error_type=TimeoutError`, even though the fault-injection precondition (operator stopped) was actually satisfied.\n\nWhether this fires depends on when the owner reaps its initial workers; the supplied description says it does so but not that it does so within 10 s of an external SIGKILL. The gate silently depends on that unstated timing, and the failure mode is indistinguishable from a real stuck operator. Also, if the owner instead reaps promptly and the PID is recycled by an unrelated process, the identity check correctly diverges \u2014 but the code never records *why* the wait ended, so `stopped_at` is unverifiable either way.\n\nMinimal fix: treat a zombie as terminated, and record the evidence:\n```python\ndef stop_and_reap(workspace, children):\n    stop_worker(workspace)\n    for path, process in children:\n        if path == workspace:\n            process.wait(timeout=10)\n    lease = read(workspace / 'worker-lease.json')\n    deadline = time.monotonic() + 10\n    while True:\n        identity = process_identity(lease['pid'])\n        if identity != lease['identity'] or is_zombie(lease['pid']):  # e.g. /proc/<pid>/stat state 'Z'\n            break\n        if time.monotonic() >= deadline:\n            raise TimeoutError('Operator did not terminate')\n        time.sleep(0.1)\n    return time.time()\n```\n(`is_zombie` must live in `janitor` next to `process_identity`; alternatively have the owner expose a reaped-marker file the gate awaits.)\n\n**2. Silent budget consumption on a partially failed spawn \u2014 `campaign.py`, `spawn_worker`**\n\nTrigger: `process_identity(process.pid)` returns falsy (e.g., process exits before `/proc` read). The `except` kills/waits/raises, but the already-created `workspace` directory with `attempt.json` remains. `existing = glob(role + '-*')` counts it on the next call, so with `max_operator_starts: 4` a single transient identity failure during incident 2 makes incident 3's `spawn_worker` raise `RuntimeError('Worker start budget exhausted')` \u2014 a failure attributed to the campaign rather than to the harness. No lease is written, so `stop_worker` on that path is a no-op and the workspace is never marked failed.\n\nMinimal fix: on the failure path write `save(workspace / 'failed.json', {...,'reason':'identity'})` and exclude workspaces lacking `worker-lease.json` *and* having `failed.json` from the budget count, or remove the workspace before re-raising.\n\n**Missing evidence (not defects claimed):**\n- `process_identity` semantics (zombie behavior) and `is_zombie` availability are not in the snapshot.\n- `scorecard`/`evaluate` reproducibility (a/b byte-equality) cannot be verified without those sources; if `evaluate` globs `gate/*.json`, run `b` sees `evaluation-a.json` and run `a` does not.\n- `client_path_failed`, `finalize_gate`, `await_file`, `reconcile_pending` not supplied.\n\nSnapshot 6954c93852f8ee39d4a76d0026a72017fff704a02f1fb73f77c8440805a0291b",
+      "usage_cost_estimate_usd": 0.33515,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "http_status": 200,
+      "snapshot": {
+        "files": [
+          {
+            "included": "full_source",
+            "path": "scripts/check_recurrence.py",
+            "sha256": "e6b7495915ed4bb226f1ce8811bea5274239fb102f99cd5ebe9f215440595232"
+          },
+          {
+            "included": "selected_functions: operation_rows,operator,spawn_worker,stop_worker,wait_ready,worker",
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "ed0ec4d52375a5cc8b93de99000bb3af0f545eba18bfa372dd1fd72649fd4802"
+          },
+          {
+            "included": "full_source",
+            "path": "scenarios/campaign-recurrence.json",
+            "sha256": "ee290854221ed09b3f74b7d176eff5da047904f7afee96cd4278462e50720689"
+          }
+        ],
+        "prompt_sha256": "aba2dba36de295a469a85c6763b7ca906c5e9a8044e466467e15fa71da404e4d",
+        "review_kind": "recurring_campaign_runtime",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "6954c93852f8ee39d4a76d0026a72017fff704a02f1fb73f77c8440805a0291b",
+        "source_bytes": 16402
+      },
+      "source_commit": "d2bb7581cda930233987c6f4de9025707f287b4c"
+    }
+  ],
+  "dispositions": [
+    {
+      "finding": "Scorer can dereference missing worker metadata on budget escalation",
+      "disposition": "Added explicit worker presence to the incident predicate; inconsistent exported worker metadata now produces a failed assessment. Normal scorecard production from the same retained worker directory was not shown to produce this inconsistency. Authored missing-worker test retains proposal evidence while dropping its worker row."
+    },
+    {
+      "finding": "Mixed UTC timestamp formats at audit boundaries",
+      "disposition": "Canonicalized recurrence audit bounds to the API server microsecond/Z format. The review example with an event 0.734 seconds after an integer end is actually outside the window; the reproducible edge is an event exactly at the inclusive end. Added an authored unexpected-write-at-end regression. Historical audit implementation is unchanged."
+    },
+    {
+      "finding": "Initial operator zombie can cause a spurious termination timeout",
+      "disposition": "Not reproduced in the supplied lifecycle. The omitted owner loop polls its child processes every 250 ms; the checker waits ten seconds for identity disappearance and fails conservatively if host/owner progress stalls. Keep actual reaping rather than treat a zombie as complete cleanup."
+    },
+    {
+      "finding": "Failed worker registration consumes start budget",
+      "disposition": "Intentional attempt accounting. Four is a bound on start attempts, including failed starts. spawn_worker raises on registration failure and the checker aborts/cleans instead of retrying into the next incident. Excluding or deleting failed attempts would erase evidence and expand authority. No budget refund added."
+    }
+  ],
+  "followup_validation": "Two small scorer predicates were self-reviewed and tested after the Fable snapshots; no claim that Fable approved later source. The complete suite passed 876 tests plus lint. Real integration results are published separately.",
+  "scope_limits": "The API scope name mixed_state_gate supplies existing cost bounds only. Each actual review_kind, included files/functions and omissions are recorded above. One preflight refusal and one output-truncated review are retained and are not treated as completed reviews."
+}

@@ -194,6 +194,11 @@ def operator(directory, workspace, contract, kube, verification):
 
         def patch_service(self, namespace, name, patch):
             active(directory)  # Recheck immediately before the bounded API write.
+            dispatching = [row for row in operation_rows(directory)
+                           if row['status'] == 'dispatching' and row['owner'] == broker.owner]
+            if len(dispatching) != 1:
+                raise RuntimeError('Cannot attribute campaign dispatch to one operation')
+            broker_kube.audit_operation_id = dispatching[0]['operation_id']
             return broker_kube.patch_service(namespace, name, patch)
 
     policy = BrokerPolicy(read(directory / 'owner.json')['run_id'], kube.namespace, 'inventory',

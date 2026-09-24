@@ -17,7 +17,8 @@ refused. Operator episode directories preserve incomplete attempts as unknown.
 The broker keeps the campaign identity and dispatch budget across operator starts.
 Restart reconciles prepared/dispatching/uncertain operations and escalates instead
 of replaying them. This gate runs on a healthy workload and requires zero repairs;
-recurrence, budget exhaustion and response-loss integration gates remain pending.
+a separate [recurrence and budget gate](RECURRENCE_RESULTS.md) now passes on GCP
+and in CI. Response-loss integration on the persistent workload remains pending.
 The runbook and its authority are trusted host code in this slice; process separation
 does not isolate an untrusted actor from the host's credentials or files.
 
