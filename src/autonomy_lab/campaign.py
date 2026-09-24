@@ -358,6 +358,9 @@ def own(manifest, directory):
     save(directory / 'source.json', {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sources})
     (directory / 'workers').mkdir()
     (directory / 'samples').mkdir()
+    # A privileged fault injector may write first; retain the campaign owner's
+    # append access instead of letting that writer create a root-owned 0600 log.
+    (directory / 'api-mutations.jsonl').touch(mode=0o600, exist_ok=False)
     processes = []
     try:
         kube = provision(directory, run_id, lease_seconds=contract.lease_seconds)

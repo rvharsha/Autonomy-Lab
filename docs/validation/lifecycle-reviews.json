@@ -165,5 +165,12 @@
     "scripts/check_campaign_stop.py": "b184bc590ffa97c04a04f6bce3ed3cd29636002f8aba44c20969f0d014706242",
     "tests/test_audit.py": "0da0e1db3a56f40dccb2f94e77bc12c766dd60cf64e444d5d4c5ffaa92e7528b",
     "tests/test_lifecycle.py": "822644b50c4f90cda0a08d9f636a7fba7702c15b1b4d694a61c44c159dc35d7d"
+  },
+  "live_followup": {
+    "original_source": "6d09d1542c34781f36239d1c5956ce9a85c8d58a",
+    "finding": "Both GCP owner attempts missed the real-effect barrier because the privileged injector created api-mutations.jsonl as root/0600. The unprivileged broker could not append before dispatch. Both attempts retained uncertainty and cleaned up; neither passed its intended termination gate.",
+    "correction": "Create the empty 0600 audit log as the campaign owner before provisioning; retain failed attempts and use a separate frozen source.",
+    "protocol_changed": false,
+    "test": "test_campaign_owns_private_mutation_log_before_any_external_writer"
   }
 }

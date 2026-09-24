@@ -14,6 +14,23 @@ from autonomy_lab.harness import save
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_campaign_owns_private_mutation_log_before_any_external_writer(tmp_path):
+    from autonomy_lab.campaign import own
+
+    directory = tmp_path / 'new-campaign'
+
+    def before_provision(*args, **kwargs):
+        log = directory / 'api-mutations.jsonl'
+        assert log.read_bytes() == b''
+        assert log.stat().st_uid == directory.stat().st_uid
+        assert log.stat().st_mode & 0o777 == 0o600
+        raise RuntimeError('authored provisioning stop')
+
+    with patch('autonomy_lab.campaign.provision', side_effect=before_provision), \
+            patch('autonomy_lab.campaign.finalize_owner'), pytest.raises(RuntimeError, match='authored provisioning stop'):
+        own(ROOT / 'scenarios/campaign-restart.json', directory)
+
+
 @pytest.fixture
 def campaign(tmp_path):
     contract = json.loads((ROOT / 'scenarios/campaign-restart.json').read_text())
