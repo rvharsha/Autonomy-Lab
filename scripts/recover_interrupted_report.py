@@ -45,13 +45,20 @@ def recover(run, service_journal, cleanup_receipt, unit):
         raise ValueError("Expected an unassessed running trial")
     if any(partial.get(key) != plan[index - 1][key] for key in ("scenario", "variant")):
         raise ValueError("Partial trial does not match the plan")
+    # Worker records normally omit repetition; the controller adds it to the
+    # results list. Reject a contradictory supplied value instead of replacing it.
+    if "repetition" in partial and (type(partial["repetition"]) is not int
+                                   or partial["repetition"] != plan[index - 1]["repetition"]):
+        raise ValueError("Partial repetition does not match the plan")
     expected_directories = {f"trial-{i:03d}" for i in range(1, index + 1)}
     if {p.name for p in run.glob("trial-*") if p.is_dir()} != expected_directories:
         raise ValueError("Trial directories do not match the accounted prefix")
 
-    journal = [json.loads(line) for line in service_journal.read_text().splitlines()]
+    journal = [json.loads(line) for line in service_journal.read_text().splitlines() if line.strip()]
+    if any(not isinstance(record, dict) for record in journal):
+        raise ValueError("Invalid journal record")
     stops = [r for r in journal if r.get("SYSLOG_IDENTIFIER") == "systemd"
-             and r.get("MESSAGE", "").startswith(f"Stopping {unit} - ")]
+             and isinstance(r.get("MESSAGE"), str) and r["MESSAGE"].startswith(f"Stopping {unit} - ")]
     if len(stops) != 1:
         raise ValueError("Expected one explicit service-stop record")
     stopped = datetime.fromtimestamp(int(stops[0]["__REALTIME_TIMESTAMP"]) / 1_000_000, timezone.utc)
@@ -72,7 +79,7 @@ def recover(run, service_journal, cleanup_receipt, unit):
 
     # The temporary copy contains only files used by the selected exporter.
     # Original trial bytes, provider records and credentials are never rewritten.
-    recovered = {**partial, **plan[index - 1], "status": "interrupted"}
+    recovered = {**partial, "repetition": plan[index - 1]["repetition"], "status": "interrupted"}
     combined = results + [recovered]
     with tempfile.TemporaryDirectory(prefix="autolab-interrupted-report-") as temp:
         target = Path(temp)
@@ -103,6 +110,7 @@ def recover(run, service_journal, cleanup_receipt, unit):
         "kind": "operator_reconstructed_accounting",
         "controller_final_accounting_available": False,
         "controller_finalized_trials": len(results), "interrupted_trial_index": index,
+        "partial_repetition_source": "original_worker_record" if "repetition" in partial else "ordered_manifest_position",
         "original_partial_trial_sha256": digest(directory / "trial.json"),
         "service_unit": unit, "service_stopped_at": stopped.isoformat(),
         "service_journal_sha256": digest(service_journal),

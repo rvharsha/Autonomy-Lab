@@ -66,6 +66,12 @@ COMPONENT_SCOPES = {
 }
 SCOPES = ("foundation", "agents", "all", *COMPONENT_SCOPES)
 REMEDIATION_FINDINGS = {
+    "interrupted_reporting": (
+        "Recovery overwrote a supplied conflicting repetition from the ordered plan and failed "
+        "on unrelated binary journald MESSAGE fields. Worker partial records normally omit "
+        "repetition; check the explicit missing-field provenance and rejection of conflicting "
+        "supplied repetitions, without requiring a field the worker does not write."
+    ),
     "broker": (
         "Pre-dispatch rejection previously retained a reserved budget slot; actual dispatched API "
         "rejections must still consume the dispatch budget. Malformed patch acknowledgments could "

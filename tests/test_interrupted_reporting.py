@@ -57,15 +57,16 @@ def test_interrupted_trial_is_retained_unknown_without_modifying_sources(interru
     assert before == {str(p): p.read_bytes() for p in run.rglob("*") if p.is_file()}
 
 
-@pytest.mark.parametrize("case", ["finalized", "wrong_plan", "scored_partial", "later_trial", "wrong_service", "early_stop", "wrong_cleanup", "early_cleanup"])
+@pytest.mark.parametrize("case", ["finalized", "wrong_plan", "wrong_repetition", "boolean_repetition", "scored_partial", "later_trial", "wrong_service", "early_stop", "wrong_cleanup", "early_cleanup"])
 def test_recovery_rejects_ambiguous_or_contradictory_evidence(interrupted, case):
     run, journal, cleanup, unit = interrupted
     partial = run / "trial-004/trial.json"
     if case == "finalized":
         write(run / "accounting.json", {})
-    elif case in {"wrong_plan", "scored_partial"}:
+    elif case in {"wrong_plan", "wrong_repetition", "boolean_repetition", "scored_partial"}:
         row = json.loads(partial.read_text())
-        row.update({"scenario": "healthy"} if case == "wrong_plan" else {"score": {"task_success": True}})
+        row.update({"wrong_plan": {"scenario": "healthy"}, "wrong_repetition": {"repetition": 0},
+                    "boolean_repetition": {"repetition": True}, "scored_partial": {"score": {"task_success": True}}}[case])
         write(partial, row)
     elif case == "later_trial":
         (run / "trial-005").mkdir()
@@ -81,3 +82,33 @@ def test_recovery_rejects_ambiguous_or_contradictory_evidence(interrupted, case)
         write(cleanup, row)
     with pytest.raises(ValueError):
         recovery.recover(run, journal, cleanup, unit)
+
+
+def test_worker_missing_repetition_is_explicitly_bound_to_ordered_plan(interrupted):
+    run, *_ = interrupted
+    path = run / "trial-004/trial.json"
+    row = json.loads(path.read_text())
+    del row["repetition"]
+    write(path, row)
+    manifest = json.loads((run / "manifest.json").read_text())
+    manifest["planned_trials"][3]["score"] = {"task_success": True}
+    write(run / "manifest.json", manifest)
+    report = recovery.recover(*interrupted)
+    assert report["trials"][-1]["repetition"] == 1
+    assert report["trials"][-1]["task_success"] is None
+    assert report["recovery"]["partial_repetition_source"] == "ordered_manifest_position"
+
+
+def test_unrelated_binary_journal_messages_and_blank_lines_do_not_hide_stop(interrupted):
+    _, journal, *_ = interrupted
+    with journal.open("a") as stream:
+        stream.write('\n' + json.dumps({"SYSLOG_IDENTIFIER": "systemd", "MESSAGE": [255, 0, 1]}) + '\n')
+    assert recovery.recover(*interrupted)["trials"][-1]["status"] == "interrupted"
+
+
+def test_nonobject_journal_record_fails_closed(interrupted):
+    _, journal, *_ = interrupted
+    with journal.open("a") as stream:
+        stream.write('[]\n')
+    with pytest.raises(ValueError, match="Invalid journal record"):
+        recovery.recover(*interrupted)
