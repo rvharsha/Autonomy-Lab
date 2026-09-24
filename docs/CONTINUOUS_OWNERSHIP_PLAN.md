@@ -1,5 +1,10 @@
 # Continuous service ownership: next implementation milestone
 
+The [purpose and alignment check](GOAL_ALIGNMENT.md) connects each milestone to the
+evidence needed for an autonomy or investment decision. The next implementation
+priority is recurring incidents on one persistent workload, followed by one
+independently gated procedure improvement and a fair sustained comparison.
+
 This is the next phase after the bounded experiments in [the findings](FINDINGS.md).
 The objective is to keep one real service within an explicit operating contract
 while its operator stops, restarts and faces recurring incidents. Continuous
