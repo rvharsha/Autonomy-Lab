@@ -49,6 +49,8 @@ class Contract(BaseModel):
     max_restart_downtime_seconds: Seconds
     # Lease includes provisioning and bounds this first local-process campaign.
     lease_seconds: Annotated[int, Field(strict=True, ge=1200, le=3600)]
+    # Trusted test controller only: freeze before provisioning, never actor input.
+    test_pause_after_dispatch: bool = False
 
     @model_validator(mode='after')
     def valid_schedule(self):
@@ -185,6 +187,24 @@ def reconcile_pending(broker, directory):
     return unresolved
 
 
+def dispatch_barrier(stage, directory, workspace, broker):
+    """Pause after a real API response but before its durable acknowledgement.
+
+    The test controller kills this registered process group. There is no release
+    command: owner loss or window expiry raises without recording an outcome.
+    """
+    if stage != 'after_dispatch':
+        return
+    rows = [row for row in operation_rows(directory)
+            if row['status'] == 'dispatching' and row['owner'] == broker.owner]
+    if len(rows) != 1:
+        raise RuntimeError('Cannot identify interrupted dispatch')
+    save(workspace / 'dispatch-barrier.json', {'at': time.time(), 'operation_id': rows[0]['operation_id']})
+    while True:
+        active(directory)
+        time.sleep(0.1)
+
+
 def operator(directory, workspace, contract, kube, verification):
     broker_kube = Kubernetes(directory / 'broker-kubeconfig', kube.cluster_name)
 
@@ -205,6 +225,8 @@ def operator(directory, workspace, contract, kube, verification):
                           read(directory / 'identities-before.json')['Service/inventory'],
                           max_dispatches=contract.max_dispatches)
     broker = ActionBroker(directory / 'operations.sqlite', policy, Adapter())
+    if contract.test_pause_after_dispatch:
+        broker.hook = lambda stage: dispatch_barrier(stage, directory, workspace, broker)
     unresolved = reconcile_pending(broker, directory)
     if unresolved:
         save(workspace / 'escalation.json', {'reason': 'unresolved_prior_operations', 'operation_ids': unresolved})
