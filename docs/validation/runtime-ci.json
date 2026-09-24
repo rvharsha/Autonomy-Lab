@@ -1,17 +1,17 @@
 {
   "head": "9dcc8efabecd2cd563a73aad8560acdb0ac58b55",
-  "url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35889797036",
+  "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/35889797036",
   "conclusion": "success",
   "checks": [
     {
       "name": "kubernetes-acceptance",
       "conclusion": "success",
-      "url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35889797036/job/107279080835"
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/35889797036/job/107279080835"
     },
     {
       "name": "tests",
       "conclusion": "success",
-      "url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35889797036/job/107279081186"
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/35889797036/job/107279081186"
     }
   ],
   "acceptance": {

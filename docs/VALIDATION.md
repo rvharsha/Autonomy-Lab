@@ -60,7 +60,7 @@ The final agent fixes preserve compatible terminal checkpoints before any resume
 
 Copies of completed basic and structured checkpoints from this pilot were tested with an invalid interruption-tool name, model mismatch, variant mismatch, and a missing resume counter. All eight checks left original and copied bytes/mtime unchanged and made zero token-count, generation, tool-declaration, or tool-dispatch calls. Valid completed states returned unchanged; configuration and shape errors were blocked with separate error records. The [selected regression evidence](validation/terminal-checkpoint-regression.json) records checkpoint and final code hashes without provider content. All 78 original pilot responses omitted `toolUsePromptTokenCount`, so none exercised the newly rejected metadata case. These focused checks do not constitute another live pilot.
 
-The GitHub workflow's public upstream pins were verified. The setup-uv pin was corrected from the v6 annotated tag object to its underlying commit. The repository is now connected and [PR #1](https://github.com/rvharsha/Autonomy-Lab-/pull/1) runs tests, lint, and real Kubernetes acceptance. The [correctness follow-up](CORRECTNESS_FIXES.md) records the newer code, regressions, CI evidence and review status separately from the original pilot.
+The GitHub workflow's public upstream pins were verified. The setup-uv pin was corrected from the v6 annotated tag object to its underlying commit. The repository is now connected and [PR #1](https://github.com/rvharsha/Autonomy-Lab/pull/1) runs tests, lint, and real Kubernetes acceptance. The [correctness follow-up](CORRECTNESS_FIXES.md) records the newer code, regressions, CI evidence and review status separately from the original pilot.
 
 ## Completion experiment
 

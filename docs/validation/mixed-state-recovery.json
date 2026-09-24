@@ -1,0 +1,354 @@
+{
+  "schema_version": 1,
+  "source_commit": "f905412fa09f4c26e04bad6e4d153579274c4d0b",
+  "source_archive_sha256": "c8cd1b5cf3db29bf9bfe45aaab3b130fbce919871f015f27306e76112b92a2eb",
+  "source_files_rechecked": 234,
+  "status": "passed",
+  "gates": [
+    {
+      "mode": "restart",
+      "status": "passed",
+      "started_at": "2026-09-24T19:55:45.673299+00:00",
+      "finished_at": "2026-09-24T19:58:33.396186+00:00",
+      "trigger_at": "2026-09-24T19:58:30.312743+00:00",
+      "trigger_trial": "trial-002",
+      "experiment": "experiment-c35f7e2f",
+      "acknowledged_repairs_before_stop": 1,
+      "committed_evidence_before_stop": {
+        "results.json": "885e8a680ee292f3239da05c12a0fbeb2cb6e4b5a2a07f49d2af0dc8bdc8fd0a",
+        "trial-001/trial.json": "c21943c88055916751b122f45123e88e9eb2c8bd3a76c8ba78e2ae9d620ed7d4"
+      },
+      "committed_evidence_unchanged": true,
+      "original_janitor_terminated": true,
+      "original_evidence_unchanged": true,
+      "launch_claim_unchanged": true,
+      "restart_refused": true,
+      "error_type": null,
+      "final_stop_exit_code": 0,
+      "gate_directory": "service-gate-11178031",
+      "same_control_group_verified": true,
+      "accounting": {
+        "attempted": 2,
+        "controller_final_accounting_available": false,
+        "controller_recorded": 1,
+        "kind": "post_stop_accounting",
+        "original_evidence_sha256": {
+          "manifest.json": "5ea12f11f3e6d287924ecfdfc800876130fd3959d7adab0039dd4c83d8421f55",
+          "release.json": "6c62ce0f17abcb16ecbafbfe28249f1fdf89d86e07c4e2e06b83c21eabae190e",
+          "results.json": "885e8a680ee292f3239da05c12a0fbeb2cb6e4b5a2a07f49d2af0dc8bdc8fd0a",
+          "trial-001/trial.json": "c21943c88055916751b122f45123e88e9eb2c8bd3a76c8ba78e2ae9d620ed7d4",
+          "trial-002/trial.json": "cdb13d4116eb5b738e8e5f291ea62e0f72cee874e711c470f39bd3da6665149e"
+        },
+        "planned": 4,
+        "trials": [
+          {
+            "audit_assessed": true,
+            "disposition": "controller_recorded",
+            "index": 1,
+            "repetition": 0,
+            "scenario": "healthy",
+            "status": "recorded",
+            "task_success": true,
+            "variant": "runbook_fallback"
+          },
+          {
+            "audit_assessed": null,
+            "disposition": "attempted_unassessed",
+            "index": 2,
+            "repetition": 0,
+            "scenario": "routing",
+            "status": "interrupted",
+            "task_success": null,
+            "variant": "runbook_fallback"
+          },
+          {
+            "audit_assessed": null,
+            "disposition": "unrun",
+            "index": 3,
+            "repetition": 1,
+            "scenario": "healthy",
+            "status": "unrun",
+            "task_success": null,
+            "variant": "runbook_fallback"
+          },
+          {
+            "audit_assessed": null,
+            "disposition": "unrun",
+            "index": 4,
+            "repetition": 1,
+            "scenario": "routing",
+            "status": "unrun",
+            "task_success": null,
+            "variant": "runbook_fallback"
+          }
+        ],
+        "unassessed_attempts": 1,
+        "unrun": 2
+      },
+      "post_stop": {
+        "accounting": "recorded",
+        "cleanup": "deleted",
+        "credential_removed": true,
+        "errors": [],
+        "finished_at": "2026-09-24T19:58:32.177521+00:00",
+        "kind": "systemd_post_stop",
+        "remaining": {
+          "cluster_nodes": [],
+          "registered_agents": []
+        },
+        "run_id": "c35f7e2f",
+        "service_result": "success",
+        "started_at": "2026-09-24T19:58:30.781591+00:00",
+        "status": "finished"
+      },
+      "raw_result_sha256": "532ec5358b222680928759c41b25ae4ee9ca37ce5a82159977ce4c4923874bd9"
+    },
+    {
+      "mode": "stop",
+      "status": "passed",
+      "started_at": "2026-09-24T19:52:47.251203+00:00",
+      "finished_at": "2026-09-24T19:55:45.100483+00:00",
+      "trigger_at": "2026-09-24T19:55:43.050221+00:00",
+      "trigger_trial": "trial-002",
+      "experiment": "experiment-cd5fd8ad",
+      "acknowledged_repairs_before_stop": 1,
+      "committed_evidence_before_stop": {
+        "results.json": "96fc99b6375e245b0933863902e88590aaf6d7ce0e58c82cf54d5504b51a6390",
+        "trial-001/trial.json": "a5e90a7e3b4d0d0fcd4556508944f23e561d5f4e6467f0d9d5449d31c25402bd"
+      },
+      "committed_evidence_unchanged": true,
+      "original_janitor_terminated": true,
+      "original_evidence_unchanged": true,
+      "launch_claim_unchanged": true,
+      "restart_refused": null,
+      "error_type": null,
+      "final_stop_exit_code": 5,
+      "gate_directory": "service-gate-666a219c",
+      "same_control_group_verified": true,
+      "accounting": {
+        "attempted": 2,
+        "controller_final_accounting_available": false,
+        "controller_recorded": 1,
+        "kind": "post_stop_accounting",
+        "original_evidence_sha256": {
+          "manifest.json": "dcf0bb350155cfef1e6863b26e770e5bc0ee5744cdb9ce5a70553d6f7f13e0c7",
+          "release.json": "6c62ce0f17abcb16ecbafbfe28249f1fdf89d86e07c4e2e06b83c21eabae190e",
+          "results.json": "96fc99b6375e245b0933863902e88590aaf6d7ce0e58c82cf54d5504b51a6390",
+          "trial-001/trial.json": "a5e90a7e3b4d0d0fcd4556508944f23e561d5f4e6467f0d9d5449d31c25402bd",
+          "trial-002/trial.json": "d01844aafb947547df3aebe9b9324068566f98eb9ebc725981721b4ab089a01b"
+        },
+        "planned": 4,
+        "trials": [
+          {
+            "audit_assessed": true,
+            "disposition": "controller_recorded",
+            "index": 1,
+            "repetition": 0,
+            "scenario": "healthy",
+            "status": "recorded",
+            "task_success": true,
+            "variant": "runbook_fallback"
+          },
+          {
+            "audit_assessed": null,
+            "disposition": "attempted_unassessed",
+            "index": 2,
+            "repetition": 0,
+            "scenario": "routing",
+            "status": "interrupted",
+            "task_success": null,
+            "variant": "runbook_fallback"
+          },
+          {
+            "audit_assessed": null,
+            "disposition": "unrun",
+            "index": 3,
+            "repetition": 1,
+            "scenario": "healthy",
+            "status": "unrun",
+            "task_success": null,
+            "variant": "runbook_fallback"
+          },
+          {
+            "audit_assessed": null,
+            "disposition": "unrun",
+            "index": 4,
+            "repetition": 1,
+            "scenario": "routing",
+            "status": "unrun",
+            "task_success": null,
+            "variant": "runbook_fallback"
+          }
+        ],
+        "unassessed_attempts": 1,
+        "unrun": 2
+      },
+      "post_stop": {
+        "accounting": "recorded",
+        "cleanup": "deleted",
+        "credential_removed": true,
+        "errors": [],
+        "finished_at": "2026-09-24T19:55:44.919459+00:00",
+        "kind": "systemd_post_stop",
+        "remaining": {
+          "cluster_nodes": [],
+          "registered_agents": []
+        },
+        "run_id": "cd5fd8ad",
+        "service_result": "success",
+        "started_at": "2026-09-24T19:55:43.522577+00:00",
+        "status": "finished"
+      },
+      "raw_result_sha256": "3ce024916537e419651a1613c52b36575d8eff8922f9d5ffe5238fe31e7e75fd"
+    },
+    {
+      "mode": "kill",
+      "status": "passed",
+      "started_at": "2026-09-24T19:58:33.932123+00:00",
+      "finished_at": "2026-09-24T20:01:21.138757+00:00",
+      "trigger_at": "2026-09-24T20:01:18.529882+00:00",
+      "trigger_trial": "trial-002",
+      "experiment": "experiment-0fb9c2c1",
+      "acknowledged_repairs_before_stop": 1,
+      "committed_evidence_before_stop": {
+        "results.json": "e59ace65695584930f43dffac87c8d328f1276d845ba60dac45a62a10e092ec9",
+        "trial-001/trial.json": "a5c7c85e48f394583cdbf7b7a49409b4550e3b64920d146cefd9ce60b70389d4"
+      },
+      "committed_evidence_unchanged": true,
+      "original_janitor_terminated": true,
+      "original_evidence_unchanged": true,
+      "launch_claim_unchanged": true,
+      "restart_refused": null,
+      "error_type": null,
+      "final_stop_exit_code": 0,
+      "gate_directory": "service-gate-f7c61bdc",
+      "same_control_group_verified": true,
+      "accounting": {
+        "attempted": 2,
+        "controller_final_accounting_available": false,
+        "controller_recorded": 1,
+        "kind": "post_stop_accounting",
+        "original_evidence_sha256": {
+          "manifest.json": "9d6fd61f392887a8d80714d5c6765ab90e7ac2da2ea6a8d6da3d0a7ebb45487d",
+          "release.json": "6c62ce0f17abcb16ecbafbfe28249f1fdf89d86e07c4e2e06b83c21eabae190e",
+          "results.json": "e59ace65695584930f43dffac87c8d328f1276d845ba60dac45a62a10e092ec9",
+          "trial-001/trial.json": "a5c7c85e48f394583cdbf7b7a49409b4550e3b64920d146cefd9ce60b70389d4",
+          "trial-002/trial.json": "f373c7289ac44a2cdbc697f664721f7639156c0766bab6d810f0ab89e3d8b031"
+        },
+        "planned": 4,
+        "trials": [
+          {
+            "audit_assessed": true,
+            "disposition": "controller_recorded",
+            "index": 1,
+            "repetition": 0,
+            "scenario": "healthy",
+            "status": "recorded",
+            "task_success": true,
+            "variant": "runbook_fallback"
+          },
+          {
+            "audit_assessed": null,
+            "disposition": "attempted_unassessed",
+            "index": 2,
+            "repetition": 0,
+            "scenario": "routing",
+            "status": "interrupted",
+            "task_success": null,
+            "variant": "runbook_fallback"
+          },
+          {
+            "audit_assessed": null,
+            "disposition": "unrun",
+            "index": 3,
+            "repetition": 1,
+            "scenario": "healthy",
+            "status": "unrun",
+            "task_success": null,
+            "variant": "runbook_fallback"
+          },
+          {
+            "audit_assessed": null,
+            "disposition": "unrun",
+            "index": 4,
+            "repetition": 1,
+            "scenario": "routing",
+            "status": "unrun",
+            "task_success": null,
+            "variant": "runbook_fallback"
+          }
+        ],
+        "unassessed_attempts": 1,
+        "unrun": 2
+      },
+      "post_stop": {
+        "accounting": "recorded",
+        "cleanup": "deleted",
+        "credential_removed": true,
+        "errors": [],
+        "finished_at": "2026-09-24T20:01:20.478703+00:00",
+        "kind": "systemd_post_stop",
+        "remaining": {
+          "cluster_nodes": [],
+          "registered_agents": []
+        },
+        "run_id": "0fb9c2c1",
+        "service_result": "signal",
+        "started_at": "2026-09-24T20:01:19.031890+00:00",
+        "status": "finished"
+      },
+      "raw_result_sha256": "1f72ed95ffa2700dec622344e5ba0d8c4beded8f75f76dd50ebc678266250dc8"
+    }
+  ],
+  "provider_credential_supplied": false,
+  "model_generation_calls": 0,
+  "remaining_containers": [],
+  "limits": "One gate per mode on the same trusted host. Trial resets remain. No continuous-workload, power-loss or production-reliability claim.",
+  "private_evidence_archive_sha256": "17bfffbe854713d0a46aa6a2c0a4e5a17054e26a0b6b58eec24d5d4a0f707fc1",
+  "gcp": {
+    "lastStopTimestamp": "2026-09-24T13:04:43.426-07:00",
+    "name": "autonomy-lab",
+    "status": "TERMINATED",
+    "project": "autonomy-lab-509518",
+    "zone": "us-central1-a"
+  },
+  "local_archive_hash_verified": true,
+  "local_original_evidence_hashes_verified": true,
+  "unchanged_runtime_components": {
+    "compared_to": "74f2520c601056d08973a23474716c3246de8521",
+    "files": {
+      "scripts/service_experiment.py": "3e2240927594fc3e9f75c8218b4f118174b6d1d9bbbc4c68de62136c91919bfa",
+      "src/autonomy_lab/__init__.py": "e0e75b2f3231733dc848918b71c8f65d3d836009d920b6de6ba8b13946eaa933",
+      "src/autonomy_lab/agent.py": "0a9cde266d9a5c2a76d417155d1482d289e743872e45ad8a5ebc2e1d16859e2f",
+      "src/autonomy_lab/audit.py": "3a0fc211258421bdea43828d80c2673dc3e86f9c8b050a716407db36c6138cc5",
+      "src/autonomy_lab/authority_worker.py": "cc6cf51973c263ebb4b5e9dfee77e5b4cc9a5f7026312359ead35ce154804d82",
+      "src/autonomy_lab/ax_runtime.py": "7d1977025c41113e139e0f90e16dc967568fd319812ebb09e746d1e92c2dcebc",
+      "src/autonomy_lab/bounded_http.py": "907e5b2f22dc197a629f706a26c81ebdff17914db0deef4c391ac4177b096067",
+      "src/autonomy_lab/broker.py": "64b02b1e17171524fdc612aa8f520fec4c3eecda0782ef42a28f698ff4af812b",
+      "src/autonomy_lab/cli.py": "517c32e89395b13d2acff8e0d86149e1247419666260401b178bb0bd2ecc8944",
+      "src/autonomy_lab/context.py": "b36eb6a628a7ec084a48d64e0d14cd37dd5e027e7825ec0d225cced57a01aaba",
+      "src/autonomy_lab/crash_worker.py": "64ac43f215d31b1c73c3fd27d7aed72bf513871912b20996b8d125c2b4455701",
+      "src/autonomy_lab/credentials.py": "889e7ae960883c16930bce85d710863275150abf550aa693dc3e1bdf4294a099",
+      "src/autonomy_lab/environment.py": "026fdb8aee08c6f04c9682d4986359a9f38b5ed87eab2d961cb0d09af51b67ce",
+      "src/autonomy_lab/experiments.py": "c2d790e44f98c986817d9d00f166d84584d306e872878315076d67d7885541d4",
+      "src/autonomy_lab/frozen_experiment.py": "932e476b298411d337dc673f5de489b180f00abc13b8bf8a21e2c9c918268cd0",
+      "src/autonomy_lab/gemini.py": "c259ef6eab36b5c955c2d01db4bb4c5002e9597552caf5c878820ba20fd6745b",
+      "src/autonomy_lab/harness.py": "66ee58dee1234c13bbea5411bc61af39afcb68132dd0df590a95a2f62db5896b",
+      "src/autonomy_lab/inventory.py": "f4e64c0858342474fa0cb5396b589d659e13585aa21910dd48702551e4800422",
+      "src/autonomy_lab/isolated_agent.py": "33146f8dfad4b450b62dc33738ec016c55896fe85417914ca2d759a3bbe9a0fd",
+      "src/autonomy_lab/isolated_runtime.py": "b2c0db0775aef66a67b3ea1fc7442cfcfda3e6ef90d7b8282f6339f47ab53b91",
+      "src/autonomy_lab/janitor.py": "8fa208543b245e632f1a07cb00e236c856c2570aca42e79ac2d1dd88f5c25966",
+      "src/autonomy_lab/kubernetes.py": "1812c19cb4cc63a723b06e085efab881bb548742573d20f42113c42b677f7730",
+      "src/autonomy_lab/mailbox.py": "4e86574ec83080be70e2eb131a9c74a149f6e0dd7435ea4c4d7a0038b5a5af0b",
+      "src/autonomy_lab/quote.py": "f83b02b37071fb471e5d3861938b62af936f6781f1630a208d85777bb408cbbc",
+      "src/autonomy_lab/rpc.py": "cf3f3c8b843db87ea613d1f5552392dd0f38a668a194470f52b3f781ab28f617",
+      "src/autonomy_lab/runbook.py": "7be131c242eb440c000afcca1e2623b9cfa5310ee0fa3e5bb8907e19a172f973",
+      "src/autonomy_lab/scoring.py": "c61b0ec2cc1c633b38aa19edd8a589ba764296e3dc20abff78993b0d592ffc8e",
+      "src/autonomy_lab/supervisor.py": "333943faf548ed5e76f6b0392aec873b00eaae86cdd0a4d04ee91db3e1d658d5",
+      "src/autonomy_lab/toolbox.py": "8fbfa23b8a88432c105670eb989edc7b153d763a729ae21610633fdadc033a43",
+      "src/autonomy_lab/trial_worker.py": "d0983730b2c7059895938584b2adbdbcdb30362065e2ffb6f2725110f7648076",
+      "src/autonomy_lab/value_scenarios.py": "e2ef9e26ef3ea02550b05542df4663a71c23175e5d4fa4e9c6b8b67f457487df",
+      "src/autonomy_lab/verifier.py": "4f61c4e917aa297f4591a7594bef950de98ea3ed3ce0d040984092ac3d36a434"
+    }
+  }
+}

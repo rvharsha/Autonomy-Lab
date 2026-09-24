@@ -300,7 +300,7 @@
   },
   "github_acceptance": {
     "source_commit": "a18c434b7eeb8debd9a412f56a972b0c2bbba721",
-    "workflow_run_url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35820406987",
+    "workflow_run_url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/35820406987",
     "original_result_sha256": "657e3db6be750484cb2a76d3a01b0d4cea473bb24faeae153fd9922649eb1d28",
     "run_id": "dee8b821",
     "status": "passed",
@@ -1064,7 +1064,7 @@
   },
   "github_acceptance_failure": {
     "source_commit": "bfbd7a058e0d6cee2e45f8e1e7dd08a17a7581cf",
-    "workflow_run_url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35820688545",
+    "workflow_run_url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/35820688545",
     "status": "failed",
     "phases": [
       {
@@ -1866,7 +1866,7 @@
   },
   "diagnostic_ci": {
     "source_commit": "d65b2d1a3014008c373f4ffa6bc2985fa53fac36",
-    "url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35821144763",
+    "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/35821144763",
     "tests": "passed",
     "kubernetes_acceptance": "passed",
     "note": "This run adds diagnostics but precedes the readiness gate; the earlier failure is retained separately."

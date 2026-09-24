@@ -35,6 +35,7 @@ MAX_BUDGET_USD = 1.0
 COMPONENT_SCOPES = {
     "service_lifecycle": ({"experiments", "frozen_experiment"}, {"service_experiment"}),
     "service_gate": ({"janitor"}, {"service_experiment"}),
+    "mixed_state_gate": (set(), {"service_experiment", "service_stop_gate"}),
     "fallback_validation": ({"value_scenarios"}, {"value_reporting"}),
     "handoff": ({"credentials", "frozen_experiment"}, {"handoff"}),
     "value_scenarios": ({"value_scenarios"}, {"value_scenarios"}),
@@ -69,6 +70,17 @@ COMPONENT_SCOPES = {
 }
 SCOPES = ("foundation", "agents", "all", *COMPONENT_SCOPES)
 REMEDIATION_FINDINGS = {
+    "mixed_state_gate": (
+        "A verified root evidence-path finding now uses descriptor-relative traversal with "
+        "O_NOFOLLOW on every directory and file, rejects parent traversal and nonregular files, "
+        "and validates the janitor PID. Check the change for actual unresolved escapes. "
+        "The proposal to accept a controller-committed interrupted second trial was rejected: "
+        "the unchanged runtime has no SIGTERM handler, catches KeyboardInterrupt only, and "
+        "its default SIGTERM/SIGKILL exits without Python finally accounting. This deliberately "
+        "tests one committed result plus one uncommitted attempt; a changed lifecycle would "
+        "need a new declaration, not a relaxed gate. Existing zero-prefix stop/restart/kill "
+        "gates passed on that runtime. Controller source is not included in this scoped review."
+    ),
     "service_lifecycle": (
         "A service SIGTERM intentionally need not produce controller-final accounting: the "
         "post-stop sidecar owns crash accounting and keeps the uncommitted attempt unassessed. "
@@ -231,9 +243,12 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
         paths |= {"scripts/run_evaluation.py", "scripts/export_report.py", "scenarios/handoff-acceptance.yaml"}
     if scope == "service_lifecycle":
         paths |= {"scripts/service_experiment.py"}
-    if scope == "service_gate":
+    if scope in {"service_gate", "mixed_state_gate"}:
         paths |= {"scripts/service_experiment.py", "scripts/check_service_stop.py",
                   "scenarios/service-stop-gate.yaml"}
+    if scope == "mixed_state_gate":
+        paths |= {"scenarios/service-mixed-state-gate.yaml",
+                  "docs/MIXED_STATE_RECOVERY_EXPERIMENT.md"}
     if scope == "fallback_validation":
         paths |= {"scripts/report_agent_value.py", "scripts/export_report.py",
                   "scenarios/runbook-fallback-validation.yaml", "docs/SERVICE_RECOVERY_EXPERIMENT.md"}
@@ -269,7 +284,7 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
         test_index = relative.startswith("tests/") and relative != "tests/test_harness.py"
         trial_excerpt = scope == "fallback_scenarios" and relative == "src/autonomy_lab/experiments.py"
         orchestration_excerpt = scope == "service_lifecycle" and relative == "src/autonomy_lab/experiments.py"
-        service_gate_excerpt = scope == "service_gate" and relative == "scripts/service_experiment.py"
+        service_gate_excerpt = scope in {"service_gate", "mixed_state_gate"} and relative == "scripts/service_experiment.py"
         manifest.append(
             {
                 "path": relative,
@@ -296,7 +311,7 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
             # excluding unchanged orchestration helpers from this bounded review.
             lines = contents.splitlines()
             selected_functions = ({"run_trial"} if trial_excerpt else
-                {"read", "digest", "credential_path", "load_job", "remaining_resources", "finalize", "launch_command"}
+                {"read", "digest", "credential_path", "load_job", "accounting", "remaining_resources", "finalize", "launch_command"}
                 if service_gate_excerpt else {"release_manifest", "planned_trials", "run_experiment"})
             nodes = [node for node in ast.parse(contents).body
                      if isinstance(node, (ast.Import, ast.ImportFrom, ast.Assign))

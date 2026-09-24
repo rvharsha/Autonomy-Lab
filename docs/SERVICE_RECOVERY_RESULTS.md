@@ -30,7 +30,7 @@ An initial administrative SSH command could not enter the private staged directo
 
 ## Review and validation
 
-The [exact-source CI run](https://github.com/rvharsha/Autonomy-Lab-/actions/runs/36017718526) passed **797 tests, lint, 17 real Kubernetes acceptance checks and four model-free handoff trials**. The downloaded acceptance artifacts were inspected; duplicate handoff exports were byte-identical. The same 797 tests and lint passed on the GCP host.
+The [exact-source CI run](https://github.com/rvharsha/Autonomy-Lab/actions/runs/36017718526) passed **797 tests, lint, 17 real Kubernetes acceptance checks and four model-free handoff trials**. The downloaded acceptance artifacts were inspected; duplicate handoff exports were byte-identical. The same 797 tests and lint passed on the GCP host.
 
 Nine additional [Fable source reviews and checked dispositions](validation/service-recovery-reviews.json) cover lifecycle, termination gates and the separate validation/reporting contract. Four preflights exceeded the existing input ceiling and made no generation request; narrowed snapshots retained the same review cost limits. Verified findings corrected credential revocation ordering, liveness-error receipts, stop-phase deadlines, failed-receipt preservation and a restart-state race. Conditional findings contradicted by the implementation are retained with their rationale. Model review does not authenticate the measured observations.
 

@@ -80,7 +80,7 @@
   },
   "planned_trials": 48,
   "pre_run_ci": {
-    "ci_url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35940380137",
+    "ci_url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/35940380137",
     "duplicate_exports": "identical",
     "handoff_trials": 4,
     "lint": "passed",

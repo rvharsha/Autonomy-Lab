@@ -95,8 +95,8 @@ future executions are separate runs and must not replace its evidence.
 
 ## Install the release and validate
 
-Transfer a `git archive` of the exact reviewed commit over IAP. This repository
-is private: do not put GitHub tokens or personal Git credentials on the host.
+Transfer a `git archive` of the exact reviewed commit over IAP. Do not put
+GitHub tokens or personal Git credentials on the host.
 Check the archive SHA-256 at both ends, extract into a new directory owned by
 `autolab`, and record the commit and digest. Do not overlay a previous run's
 evidence. Run `make setup`, then `make test lint` as `autolab` in that checkout.

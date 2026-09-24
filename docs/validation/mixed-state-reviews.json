@@ -1,0 +1,273 @@
+{
+  "scope": "mixed-state service gate",
+  "preflight_attempt": {
+    "status": "rejected_by_token_ceiling",
+    "input_tokens": 15933,
+    "generation_attempts": 0
+  },
+  "reviews": [
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T19:38:02.652690+00:00",
+      "finished_at": "2026-09-24T19:39:16.754247+00:00",
+      "generation_attempts": 1,
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 3490,
+            "included": "full_source",
+            "lines": 55,
+            "path": "docs/MIXED_STATE_RECOVERY_EXPERIMENT.md",
+            "sha256": "91d472d55e0a56f642d2491702f0a9b85eb5845599a38422293400517498bf57"
+          },
+          {
+            "bytes": 318,
+            "included": "full_source",
+            "lines": 17,
+            "path": "scenarios/service-mixed-state-gate.yaml",
+            "sha256": "449e9cbad4bf867ac0ea19e2d6d19c42e05a8d9924181306871a1a4e65b0dc53"
+          },
+          {
+            "bytes": 311,
+            "included": "full_source",
+            "lines": 17,
+            "path": "scenarios/service-stop-gate.yaml",
+            "sha256": "47ae4dcf450e2646da2854c58bc88a7cf7af0cf0f0755be94bb894da0b6ab2db"
+          },
+          {
+            "bytes": 11620,
+            "included": "full_source",
+            "lines": 202,
+            "path": "scripts/check_service_stop.py",
+            "sha256": "3db9e2f0b0507b8b3ece9b487e5c98035cb1babb0daa26ff1134e85d0c93ed7c"
+          },
+          {
+            "bytes": 15425,
+            "included": "post_stop_and_launch_declarations",
+            "lines": 313,
+            "path": "scripts/service_experiment.py",
+            "sha256": "3e2240927594fc3e9f75c8218b4f118174b6d1d9bbbc4c68de62136c91919bfa"
+          },
+          {
+            "bytes": 10416,
+            "included": "test_index",
+            "lines": 229,
+            "path": "tests/test_service_experiment.py",
+            "sha256": "1a486a4cacda7b77f80515a5486c7726f9bf21382e406525a4eefa167ddd1eb2"
+          },
+          {
+            "bytes": 4838,
+            "included": "test_index",
+            "lines": 121,
+            "path": "tests/test_service_stop_gate.py",
+            "sha256": "aa4676ac374ea75ac054ea684997d347c06cf3290a00154261673f17376fb6d0"
+          }
+        ],
+        "prompt_sha256": "4e836112da897bc7f97b755dde1f32ae2d00052296f18b13359eb40f8e910ad0",
+        "review_kind": "initial",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "96284d587f6060328c9e0ad582d778b786f4e5b42e074b8a6df8147b4ce327ac",
+        "source_bytes": 46418
+      },
+      "findings_text": "**Finding 1 \u2014 root trusts unprivileged-writable relative paths (security)**\n`scripts/check_service_stop.py:158-160` (also `:123-126`)\n\n`accounting['original_evidence_sha256']` comes from `post-stop-accounting.json`, written by `finalize` running as the unit's uid (`autolab`, `launch_command:275`). The gate runs as root (`:74`) and does `digest(run_dir / name)` for every key without validation. `run_dir`, `janitor-process.json` and `trial-*` are likewise `autolab`-owned and read by root with no `resolve()` containment check (contrast `load_job:78`, which does check the job dir).\n\nTrigger: a compromised experiment process (the agent/janitor run as `autolab`) rewrites `post-stop-accounting.json` with `{\"../../../../etc/shadow\": \"<guess>\"}` (or drops a symlink `trial-001/trial.json -> /etc/shadow`). Root then hashes the target; pass/fail (`'Recovery rewrote original evidence'`) is a per-run equality oracle on root-only files. `janitor_pid` (`:123`) is an unvalidated JSON value interpolated into `/proc/{pid}/cgroup` and passed to `process_identity`, so the \"shared control group\" check (`:127`) can be pointed at any PID (e.g. `1`) the attacker chooses to satisfy it.\n\nMinimal fix:\n```python\ndef owned(run_dir, name):\n    p = (run_dir / name)\n    if '..' in Path(name).parts or Path(name).is_absolute() or not p.resolve().is_relative_to(run_dir.resolve()) or p.is_symlink():\n        raise ValueError('Evidence path escapes run directory')\n    return p\n# :156, :159 -> digest(owned(run_dir, name))\n# :123 -> pid = read(...)['pid']; if type(pid) is not int or pid <= 1: raise ValueError\n```\nand require `run_dir.resolve() == run_dir` after `load_job` at `:91`.\n\n**Finding 2 \u2014 gate hard-codes \"1 unassessed\" but accounting accepts controller-committed interruptions (measurement/durability)**\n`scripts/check_service_stop.py:55` vs `scripts/service_experiment.py:147,152`\n\n`accounting()` explicitly accepts a terminal `results.json` row with `status='interrupted'` and counts it in `controller_recorded`. The scope statement requires the journal to \"survive agent restart and preserve ambiguous execution outcomes\", so on `stop`/`restart` (SIGTERM with a 300s budget) a controller that durably appends `{... status:'interrupted', score:null}` for trial 2 is the intended behaviour. That yields `controller_recorded=2, attempted=2, unassessed_attempts=0`.\n\nTrace: `check_accounting` computes `expected=(4,1,2,1,2)`, sees `(4,2,2,0,2)`, raises `'Interruption accounting differs from the declared gate'` \u2192 gate `failed`, finalizer stops the unit. Only the `kill` mode (no chance to journal) can pass, so the doc's \"all three gates must pass\" (`docs/\u2026:51`) is unsatisfiable unless the controller is *forbidden* from journaling the interruption \u2014 which contradicts the durability requirement and silently biases the gate toward the least informative termination mode. If instead the controller does not journal, `:69` still passes an `interrupted` row with `task_success=None`, so the gate cannot tell the two designs apart.\n\nMinimal fix: accept either legitimate shape for the trigger trial, while still forbidding invented assessments:\n```python\nrow = accounting['trials'][committed]\nif row['disposition'] not in {'attempted_unassessed', 'controller_recorded'} \\\n   or row['status'] not in {'interrupted', 'timed_out'} \\\n   or row['task_success'] is not None or row['audit_assessed'] is not False and row['audit_assessed'] is not None:\n    raise RuntimeError(...)\nexpected_recorded = {committed, committed + 1}   # replace exact tuple compare at :55\n```\nand record which shape occurred in `result` so the receipt distinguishes \"journaled interruption\" from \"no commit\" rather than relabeling.\n\nNo other defects substantiated from the supplied source; test bodies and the controller/janitor were not inspected.\n\n96284d587f6060328c9e0ad582d778b786f4e5b42e074b8a6df8147b4ce327ac",
+      "usage_cost_estimate_usd": 0.39419,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 12844,
+        "output_tokens": 5315,
+        "output_tokens_details": {
+          "thinking_tokens": 3795
+        },
+        "service_tier": "standard"
+      },
+      "source_commit": "d6fdf2071e6dbe653316a564794af7747eeecfc7"
+    },
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T19:41:42.085702+00:00",
+      "finished_at": "2026-09-24T19:42:58.911532+00:00",
+      "generation_attempts": 1,
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 3490,
+            "included": "full_source",
+            "lines": 55,
+            "path": "docs/MIXED_STATE_RECOVERY_EXPERIMENT.md",
+            "sha256": "91d472d55e0a56f642d2491702f0a9b85eb5845599a38422293400517498bf57"
+          },
+          {
+            "bytes": 318,
+            "included": "full_source",
+            "lines": 17,
+            "path": "scenarios/service-mixed-state-gate.yaml",
+            "sha256": "449e9cbad4bf867ac0ea19e2d6d19c42e05a8d9924181306871a1a4e65b0dc53"
+          },
+          {
+            "bytes": 311,
+            "included": "full_source",
+            "lines": 17,
+            "path": "scenarios/service-stop-gate.yaml",
+            "sha256": "47ae4dcf450e2646da2854c58bc88a7cf7af0cf0f0755be94bb894da0b6ab2db"
+          },
+          {
+            "bytes": 13283,
+            "included": "full_source",
+            "lines": 241,
+            "path": "scripts/check_service_stop.py",
+            "sha256": "0b618e743c4c9cf953728280c64690cf2b0ffe1a21bf5916ace02f1f4a4737bd"
+          },
+          {
+            "bytes": 15425,
+            "included": "post_stop_and_launch_declarations",
+            "lines": 313,
+            "path": "scripts/service_experiment.py",
+            "sha256": "3e2240927594fc3e9f75c8218b4f118174b6d1d9bbbc4c68de62136c91919bfa"
+          },
+          {
+            "bytes": 10416,
+            "included": "test_index",
+            "lines": 229,
+            "path": "tests/test_service_experiment.py",
+            "sha256": "1a486a4cacda7b77f80515a5486c7726f9bf21382e406525a4eefa167ddd1eb2"
+          },
+          {
+            "bytes": 6261,
+            "included": "test_index",
+            "lines": 157,
+            "path": "tests/test_service_stop_gate.py",
+            "sha256": "79c97ae0725600be91e3ceba0ac322b8ec296332679a858e83d08800c4d01ea6"
+          }
+        ],
+        "prompt_sha256": "370851b1353e7150e42ca124c098757ee9f68ec01912c237c41356267ab46747",
+        "review_kind": "remediation",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "a393b165fe7ca5c29f6da2e10f1865052358687c6bc1229631b3573a4db9d8fd",
+        "source_bytes": 49504
+      },
+      "findings_text": "**Scope reviewed:** `scripts/check_service_stop.py`, the supplied `service_experiment.py` excerpt, both gate manifests, and the declaration. Prior findings were treated as claims and re-checked against this snapshot.\n\n## Prior finding: descriptor-relative evidence reads (`check_service_stop.py:21-42`)\n\nIndependently traced. `root` must be absolute; `relative` must be non-empty, relative, and free of `..`; the combined component list is rechecked for `..` (line 27). Every intermediate component is opened with `O_RDONLY|O_DIRECTORY|O_NOFOLLOW` relative to the previous descriptor (line 33), so a lab-owned symlinked directory fails with `ELOOP`/`ENOTDIR` rather than being traversed. The leaf is opened `O_NOFOLLOW|O_NONBLOCK` and rejected unless `S_ISREG` (lines 36-39), so FIFOs/devices cannot block or be read. The descriptor is closed exactly once on all paths (the loop closes the parent only after the child open succeeds; `finally` closes the last one). The root itself is anchored by `run_dir.resolve() == run_dir` (line 127) and `load_job`'s `directory.resolve() == directory` (excerpt line 78), so a symlinked ancestor of `ROOT` would cause a fail-closed error rather than an escape. Remaining `Path.exists()`/`glob()` pre-checks (lines 69, 82, 84, 142) do follow symlinks, but every actual read goes through `evidence_bytes`, so the worst case is an uncaught `OSError` that fails the gate \u2014 fail-closed, not an escape. **No unresolved escape found.**\n\n## Prior finding: interrupted-trial gate remains strict\n\nConfirmed against this snapshot: `check_accounting` (lines 89-105) requires exactly `committed` controller-recorded rows with `status == 'recorded'`, `task_success is True`, `audit_assessed is True`, and requires `task_success`/`audit_assessed` to be `None` for the interrupted and unrun rows. `accounting()` (excerpt 141-159) never populates those fields for `attempted_unassessed` rows even if a worker wrote success. The gate matches the declaration's \"four planned, one committed, two attempted, one unassessed, two unrun\" via `expected` at line 90. No relaxation is present. Controller SIGTERM behaviour is outside the supplied source and was not assessed.\n\n## Other items checked, not substantiated as defects\n\n- Restart refusal check (lines 204-207) depends on `FileExistsError` appearing in the journal and `ExecMainStatus == '1'`; both are consistent with `finalize`'s early return on an existing `post-stop.json` (excerpt 195-196) and `Restart=no`. No defect substantiated from the supplied code.\n- `accounting()` hashes `run_dir/cleanup.json` and `accounting.json` (excerpt 165-167) *before* `cleanup()` runs (excerpt 246). If the janitor rewrote one of those pre-existing files, lines 197-199 of the gate would report a false *failure*, never a false pass. The janitor's write set is not in scope, so this is noted only as a possible false-negative source, not an actionable defect.\n- Poll loop (lines 142-146) discards all parsed evidence on any torn line, then retries 250 ms later; this can only delay, not miss, the trigger within the 900 s deadline.\n\n## Conclusion\n\nNo actionable durability, correctness, security, or measurement defect is substantiated in the supplied snapshot; the two prior findings check out as resolved/upheld. No test bodies were inspected and nothing was executed.\n\nSource snapshot ID: a393b165fe7ca5c29f6da2e10f1865052358687c6bc1229631b3573a4db9d8fd",
+      "usage_cost_estimate_usd": 0.4232,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 14105,
+        "output_tokens": 5643,
+        "output_tokens_details": {
+          "thinking_tokens": 4337
+        },
+        "service_tier": "standard"
+      },
+      "source_commit": "f905412fa09f4c26e04bad6e4d153579274c4d0b"
+    },
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T20:14:23.762240+00:00",
+      "finished_at": "2026-09-24T20:15:21.071640+00:00",
+      "generation_attempts": 1,
+      "snapshot": {
+        "files": [
+          {
+            "included": "full_source",
+            "path": "scripts/check_service_stop.py",
+            "sha256": "0b618e743c4c9cf953728280c64690cf2b0ffe1a21bf5916ace02f1f4a4737bd"
+          },
+          {
+            "included": "test_name_index; bodies omitted",
+            "path": "tests/test_service_stop_gate.py",
+            "sha256": "79c97ae0725600be91e3ceba0ac322b8ec296332679a858e83d08800c4d01ea6"
+          },
+          {
+            "included": "full_source",
+            "path": "scenarios/service-mixed-state-gate.yaml",
+            "sha256": "449e9cbad4bf867ac0ea19e2d6d19c42e05a8d9924181306871a1a4e65b0dc53"
+          },
+          {
+            "included": "full_source",
+            "path": "docs/MIXED_STATE_RECOVERY_EXPERIMENT.md",
+            "sha256": "91d472d55e0a56f642d2491702f0a9b85eb5845599a38422293400517498bf57"
+          },
+          {
+            "included": "full_source",
+            "path": "docs/MIXED_STATE_RECOVERY_RESULTS.md",
+            "sha256": "658db2e8c637d40820b45a30536748a1cc35c15d0a276cfebc60c0880cd5c443"
+          },
+          {
+            "included": "selected_functions:accounting,run",
+            "path": "scripts/service_experiment.py",
+            "sha256": "3e2240927594fc3e9f75c8218b4f118174b6d1d9bbbc4c68de62136c91919bfa"
+          },
+          {
+            "included": "projection_without_runtime_hashes_or_repeated_evidence_hash_maps",
+            "path": "docs/validation/mixed-state-recovery.json",
+            "sha256": "c67d09689482d9ef0b48998bca97af4b2f61b02c4d7cce50250eda47d2be9c5b"
+          }
+        ],
+        "prompt_sha256": "dd5cac5ef7c69dd0893712210dbe1e8ce04a88978871b11b783d73ac1d9c4655",
+        "review_kind": "initial",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "4107d0b1218e7d83fe1d2cd496e80f14fbc86b7d4d90f7e85c8c63939c5eafa9",
+        "source_bytes": 35662
+      },
+      "findings_text": "**Findings (2 items; one demonstrated defect, one conditional gap)**\n\n**1. Demonstrated defect \u2014 root writes gate receipts through a lab-user-controlled parent (TOCTOU symlink write)**\n`scripts/check_service_stop.py`, `run()`: lines\n```\nsubprocess.run(['sudo', '-u', user, 'mkdir', '-p', str(ROOT / 'artifacts')], ...)\noutput = ROOT / 'artifacts' / ('service-gate-' + uuid.uuid4().hex[:8])\noutput.mkdir(parents=True, mode=0o700)\nsave(output / 'result.json', result)\n...\n(output / 'service-journal.jsonl').write_bytes(journal.stdout)\n```\nThe gate runs as root (`geteuid()==0` enforced) but deliberately creates `ROOT/artifacts` **owned by the lab user**, then creates `output` inside it and writes `result.json` repeatedly (five `save` calls spread over ~3 minutes) plus `service-journal.jsonl` in `finally`. Because the parent is user-writable, the lab user (or the study workload it runs, which the doc says is untrusted enough to warrant symlink-safe reads) can, after the first `save`, do `mv service-gate-XXXX away && ln -s /etc/cron.d service-gate-XXXX` (or `ln -s <target>` for the file name). The next `save`/`write_bytes` as root follows the symlink and overwrites an arbitrary path. The prior fix hardened only the *read* side (`evidence_bytes`); the privileged *write* side is the same class of bug and is exercised on every gate run, including the published stop/restart/kill receipts.\n\nTrace: `run()` \u2192 `output.mkdir()` \u2192 `save(result.json)` [window] \u2192 attacker swaps `output` for symlink \u2192 `save(output/'result.json')` uses `Path.open('w')`, which follows symlinks \u2192 root write outside `artifacts`. Also the receipt the docs cite (`mixed-state-recovery.json`) is derived from a file the lab user could alter between root writes.\n\nMinimal fix: write gate output to a root-owned, non-user-writable directory (e.g. `/var/lib/autolab/gates`, mode 0700, created by root, no `sudo -u user mkdir`), and open files with `os.open(name, O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW, dir_fd=<root-owned dir fd>)`. Drop the `sudo -u user mkdir` line entirely.\n\n**2. Conditional gap \u2014 restart receipt provenance is ambiguous**\n`scripts/check_service_stop.py`, after `subprocess.run(command ...)` for `mode == 'restart'`:\n```\nwhile not (directory / 'post-stop.json').exists() or unit_state(unit)['ActiveState'] in {...}:\nreceipt = evidence_json(directory, 'post-stop.json')\naccounting = evidence_json(directory, 'post-stop-accounting.json')\n```\n`systemctl restart` produces two invocations: the original (stopped, ExecStopPost writes `post-stop.json`) and the refused replay (exits 1, ExecStopPost runs again). The controller/ExecStopPost is omitted from this PR, so whether the second ExecStopPost overwrites `post-stop.json`/`post-stop-accounting.json` cannot be confirmed here. If it does, the \"restart\" row in `MIXED_STATE_RECOVERY_RESULTS.md` (cleanup passed, accounting 4/1/1/2) reflects the replay's post-stop, not the interrupted run's, and the hash checks (`prefix_hashes`, `original_evidence_sha256`) would still pass trivially because the replay refused before touching `run_dir`. The receipt's `post_stop.started_at` (19:58:30.78) is ~0.5 s after `trigger_at`, which is consistent with either invocation. Not demonstrated; flagged because the published \"replay refused\" claim is only checked by `'FileExistsError' in journal` over the unit's *entire* journal plus `ExecMainStatus=='1'`, with no invocation-ID binding.\n\nMinimal fix: have the gate record the first invocation's `INVOCATION_ID` (already stored in `launch-claim.json`) and require `post-stop.json` to carry a matching invocation id; filter `journalctl` with `_SYSTEMD_INVOCATION_ID=<new id>` for the refusal check.\n\nNo other substantiated defects within the supplied scope. Test bodies are omitted, so `test_administrator_evidence_reads_reject_escape_and_nonregular_files` cannot be confirmed to cover writes (it does not by name).\n\nSnapshot ID: 4107d0b1218e7d83fe1d2cd496e80f14fbc86b7d4d90f7e85c8c63939c5eafa9",
+      "usage_cost_estimate_usd": 0.34444,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "source_commit": "91807f9ea04cf44ba76e279fe47d1b54be2cade9",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 13759,
+        "output_tokens": 4137,
+        "output_tokens_details": {
+          "thinking_tokens": 2480
+        },
+        "service_tier": "standard"
+      }
+    }
+  ],
+  "dispositions": [
+    {
+      "finding": "Privileged gate evidence reads can follow untrusted paths",
+      "decision": "fixed",
+      "evidence": "Descriptor-relative O_NOFOLLOW traversal on every component; regular-file validation; PID validation; seven authored path/digest checks. Follow-up review found no unresolved escape."
+    },
+    {
+      "finding": "Accept a controller-committed interruption under SIGTERM",
+      "decision": "rejected",
+      "evidence": "Unchanged runtime has no SIGTERM handler and catches only KeyboardInterrupt. This separately declared gate intentionally requires one committed result and an uncommitted attempt. No pass criterion was weakened; real cloud outcomes are separate evidence."
+    },
+    {
+      "finding": "Privileged receipt writes under lab-user-owned checkout",
+      "decision": "fixed_after_evaluated_run",
+      "evidence": "Move new gate outputs to /var/lib/autonomy-lab/service-gates; traverse without symlinks and require root ownership/no group or other write on every ancestor. Historical receipts remain unchanged and are not authenticated against a malicious lab user."
+    },
+    {
+      "finding": "Restart might overwrite the first post-stop receipt",
+      "decision": "not_substantiated",
+      "evidence": "scripts/service_experiment.py finalize holds finalization.lock and returns an existing post-stop.json before recovery or writes. This omitted function was present unchanged in the evaluated candidate. Invocation-specific journal binding remains an optional strengthening; no overwritten receipt was demonstrated."
+    }
+  ],
+  "limits": "Source review is not execution, independent authentication or approval. Test bodies and controller SIGTERM implementation were not included in the narrow review. Cloud execution results are recorded separately.",
+  "final_reviewed_source_commit": "f905412fa09f4c26e04bad6e4d153579274c4d0b",
+  "latest_results_review_commit": "91807f9ea04cf44ba76e279fe47d1b54be2cade9"
+}
