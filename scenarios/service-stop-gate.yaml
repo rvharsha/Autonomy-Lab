@@ -1,0 +1,17 @@
+schema_version: 1
+name: service-stop-gate
+status: development
+preregistered: true
+repetitions: 1
+run_order_seed: 2026092402
+scenarios:
+- routing
+- healthy
+variants:
+- runbook_fallback
+expected_behavior:
+  routing: repair
+  healthy: healthy
+window_seconds: 30
+trial_timeout_seconds: 900
+runtime: isolated-docker
