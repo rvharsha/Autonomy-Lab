@@ -114,3 +114,56 @@ def test_restart_reconciles_all_unresolved_states_without_dispatch(campaign):
     assert [call.args[0] for call in broker.reconcile.call_args_list] == ['authored-prepared', 'authored-dispatching', 'authored-uncertain']
     broker.propose.assert_not_called()
     broker.resume_prepared.assert_not_called()
+
+
+def test_operator_cli_readiness_surfaces_failed_child(tmp_path):
+    from unittest.mock import Mock
+
+    from autonomy_lab.campaign import wait_ready
+    child = Mock()
+    child.poll.return_value = 1
+    with pytest.raises(RuntimeError, match='refused'):
+        wait_ready(tmp_path, child)
+
+
+def test_gate_preserves_original_failure_even_when_cleanup_and_reaping_fail(tmp_path):
+    import importlib.util
+    import subprocess
+    from unittest.mock import Mock
+    spec = importlib.util.spec_from_file_location('check_campaign', ROOT / 'scripts/check_campaign.py')
+    checker = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(checker)
+    directory = tmp_path / 'campaign'
+    directory.mkdir()
+    save(directory / 'environment.json', {'cluster': 'autolab-12345678', 'status': 'running'})
+    owner = Mock()
+    owner.poll.return_value = 0
+    child = Mock()
+    child.wait.side_effect = subprocess.TimeoutExpired('authored-child', 10)
+    result = {'status': 'failed', 'error_type': 'OriginalAssertionError'}
+    with patch.object(checker, 'stop_worker'), patch.object(checker, 'cleanup', side_effect=OSError):
+        with pytest.raises(RuntimeError, match='finalization'):
+            checker.finalize_gate(owner, [(tmp_path / 'worker', child)], directory, tmp_path, result)
+    recorded = json.loads((tmp_path / 'result.json').read_text())
+    assert recorded['error_type'] == 'OriginalAssertionError'
+    assert {row['stage'] for row in recorded['cleanup_errors']} == {'reap_worker', 'cleanup'}
+    assert 'finished_at' in recorded
+
+
+def test_broker_journal_budget_survives_new_operator_instance(tmp_path):
+    from test_broker import MemoryAdapter
+
+    from autonomy_lab.broker import ActionBroker, BrokerPolicy
+    from autonomy_lab.campaign import operation_rows
+    adapter = MemoryAdapter()
+    policy = BrokerPolicy('authored-campaign', 'lab-test', 'inventory', 'service-uid', max_dispatches=1)
+    proposal = {'run_id': policy.run_id, 'operation_id': 'authored-first', 'namespace': policy.namespace,
+                'service_name': 'inventory', 'service_uid': 'service-uid', 'resource_version': '10',
+                'expected_target_port': 9999, 'target_port': 8080, 'evidence_ids': ['authored-evidence']}
+    first = ActionBroker(tmp_path / 'operations.sqlite', policy, adapter)
+    assert first.propose(proposal)['status'] == 'acknowledged'
+    restarted = ActionBroker(tmp_path / 'operations.sqlite', policy, adapter)
+    result = restarted.propose({**proposal, 'operation_id': 'authored-recurrence', 'resource_version': '11'})
+    assert result['reason'] == 'budget_exhausted'
+    assert len(adapter.patch_calls) == 1
+    assert sum(row['budget_reserved'] for row in operation_rows(tmp_path)) == 1

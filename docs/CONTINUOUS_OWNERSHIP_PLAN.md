@@ -8,7 +8,8 @@ operation and learned improvement remain proposed, not demonstrated capabilities
 ## First claim and implementation boundary
 
 The evaluator's [mixed-state termination gate](MIXED_STATE_RECOVERY_RESULTS.md)
-passed all three declared modes. Next implement a separate campaign entry point;
+passed all three declared modes. The [first persistent campaign implementation](PERSISTENT_CAMPAIGN.md) provides
+a separate campaign entry point;
 do not reuse trial resets as a
 claim of continuous operation or merely disable experiment cleanup.
 

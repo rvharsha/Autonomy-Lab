@@ -22,7 +22,7 @@ does not isolate an untrusted actor from the host's credentials or files.
 ## Frozen first gate
 
 [The contract](../scenarios/campaign-restart.json) fixes 120 seconds of measurement,
-12 scheduled slots 10 seconds apart, a one-second verifier window per slot,
+12 scheduled slots 10 seconds apart, a one-second minimum verifier window per slot (including a terminal probe),
 two-second request timeouts and maximum start lateness, two cumulative dispatches,
 three operator start attempts (initial, refused duplicate, resumed) and at most
 45 seconds of operator downtime. The cleanup lease is 1,800 seconds including
@@ -32,11 +32,16 @@ real HTTP requests, a read-only database connection and scoped Service reads.
 [The checker](../scripts/check_campaign.py) declares before launch: stop the first
 operator at offset 30 seconds, start the replacement at offset 60, require at least
 two complete independent measurements wholly inside that downtime, and require a
-completed healthy episode from each successful operator generation. Every scheduled
-slot must pass; missing, late or indeterminate measurements fail this gate. All
+completed healthy episode from each successful operator generation. Collection must finish before the next scheduled slot; the minimum verifier
+window is not a one-second collection deadline. Actual start/end times and request
+latencies remain explicit. Every scheduled slot must pass; missing, late or indeterminate measurements fail this gate. All
 11 initial workload resource UIDs must remain unchanged, no repair may occur,
 normal owner cleanup must complete and two scorecard exports must be byte-identical.
-A failure stays recorded under its original campaign identity.
+A failure stays recorded under its original campaign identity, including failures
+in final cleanup. The owner completion record means its window ended; only the
+external checker evaluates the restart contract and issues a gate pass. Start
+budgets count attempts, including a refused duplicate, and the operator CLI waits
+for readiness before returning success.
 
 Measured request latency and HTTP outcomes are exported alongside coverage, raw
 sample hashes, worker attempts and operation accounting. Request counts include

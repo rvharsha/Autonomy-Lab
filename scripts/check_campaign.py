@@ -2,6 +2,7 @@
 
 import hashlib
 import os
+import signal
 import subprocess
 import sys
 import time
@@ -11,7 +12,7 @@ from pathlib import Path
 from autonomy_lab.campaign import read, spawn_worker, stop_worker
 from autonomy_lab.campaign_report import scorecard
 from autonomy_lab.harness import save
-from autonomy_lab.janitor import cleanup
+from autonomy_lab.janitor import cleanup, process_identity
 from autonomy_lab.kubernetes import ROOT
 
 
@@ -26,6 +27,41 @@ def await_file(path, deadline):
 def wait_until(epoch):
     while time.time() < epoch:
         time.sleep(min(0.25, epoch - time.time()))
+
+
+def finalize_gate(owner, children, directory, gate, result):
+    """Cleanup failures must not discard the original failed experiment receipt."""
+    errors = []
+
+    def attempt(stage, action):
+        try:
+            action()
+        except Exception as error:
+            errors.append({'stage': stage, 'error_type': type(error).__name__})
+
+    def stop_owner():
+        if owner.poll() is None:
+            os.killpg(owner.pid, signal.SIGKILL)
+        owner.wait(timeout=10)
+
+    attempt('stop_owner', stop_owner)
+    for workspace, process in children:
+        attempt('stop_worker', lambda: stop_worker(workspace))
+        attempt('reap_worker', lambda: process.wait(timeout=10))
+
+    def clean_cluster():
+        path = directory / 'environment.json'
+        if path.exists() and read(path)['status'] != 'deleted':
+            result['emergency_cleanup'] = cleanup(directory, {'cluster': read(path)['cluster']})
+
+    attempt('cleanup', clean_cluster)
+    if errors:
+        result.update(status='failed', cleanup_errors=errors)
+    result['finished_at'] = time.time()
+    save(gate / 'result.json', result)
+    print(gate, flush=True)
+    if errors:
+        raise RuntimeError('Gate finalization failed; original result and cleanup errors retained')
 
 
 def run():
@@ -51,7 +87,7 @@ def run():
         window = await_file(directory / 'window.json', time.monotonic() + 900)
         initial = next((directory / 'workers').glob('operator-*'))
         duplicate, process = spawn_worker(directory, 'operator')
-        children.append(process)
+        children.append((duplicate, process))
         if process.wait(timeout=30) != 1 or read(duplicate / 'failed.json')['error_type'] != 'BlockingIOError':
             raise AssertionError('Concurrent operator was not refused by the ownership lock')
         if (duplicate / 'ready.json').exists():
@@ -59,11 +95,17 @@ def run():
         wait_until(window['start'] + declaration['stop_offset_seconds'])
         # The owner remains alive; only this registered operator group is killed.
         stop_worker(initial)
+        lease = read(initial / 'worker-lease.json')
+        deadline = time.monotonic() + 10
+        while process_identity(lease['pid']) == lease['identity']:
+            if time.monotonic() >= deadline:
+                raise TimeoutError('Original operator did not terminate')
+            time.sleep(0.1)
         stopped = time.time()
         save(gate / 'operator-stopped.json', {'at': stopped, 'worker': initial.name})
         wait_until(window['start'] + declaration['restart_offset_seconds'])
         resumed, process = spawn_worker(directory, 'operator')
-        children.append(process)
+        children.append((resumed, process))
         ready = await_file(resumed / 'ready.json', time.monotonic() + 45)
         downtime = ready['at'] - stopped
         result.update(operator_stopped_at=stopped, operator_resumed_at=ready['at'], downtime_seconds=downtime,
@@ -106,16 +148,7 @@ def run():
         raise
     finally:
         # Also clean after a checker failure; preserve the original failed receipt.
-        if owner.poll() is None:
-            owner.kill()
-            owner.wait(timeout=10)
-        if (directory / 'environment.json').exists() and read(directory / 'environment.json')['status'] != 'deleted':
-            cleanup(directory, {'cluster': read(directory / 'environment.json')['cluster']})
-        for process in children:
-            process.wait(timeout=10)
-        result['finished_at'] = time.time()
-        save(gate / 'result.json', result)
-        print(gate, flush=True)
+        finalize_gate(owner, children, directory, gate, result)
     return gate
 
 

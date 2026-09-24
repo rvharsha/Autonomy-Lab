@@ -18,7 +18,7 @@ import subprocess
 import sys
 import time
 import uuid
-from contextlib import ExitStack, contextmanager
+from contextlib import ExitStack, closing, contextmanager
 from pathlib import Path
 from typing import Annotated
 
@@ -133,6 +133,18 @@ def stop_worker(workspace):
         pass
 
 
+def wait_ready(workspace, process, *, timeout=100):
+    deadline = time.monotonic() + timeout
+    while not (workspace / 'ready.json').exists():
+        if process.poll() is not None or (workspace / 'failed.json').exists():
+            raise RuntimeError('Worker refused or failed before readiness')
+        if time.monotonic() >= deadline:
+            stop_worker(workspace)
+            raise TimeoutError('Worker readiness timed out')
+        time.sleep(0.1)
+    return read(workspace / 'ready.json')
+
+
 @contextmanager
 def connections(directory):
     environment = read(directory / 'environment.json')
@@ -154,7 +166,7 @@ def operation_rows(directory):
     path = directory / 'operations.sqlite'
     if not path.exists():
         return []
-    with sqlite3.connect(path.as_uri() + '?mode=ro', uri=True) as db:
+    with closing(sqlite3.connect(path.as_uri() + '?mode=ro', uri=True)) as db:
         db.row_factory = sqlite3.Row
         return [dict(row) for row in db.execute('SELECT * FROM operations ORDER BY created_at,operation_id')]
 
@@ -306,17 +318,21 @@ def own(manifest, directory):
         save(directory / 'window.json', {'start': start, 'end': start + contract.duration_seconds})
         while time.time() < start + contract.duration_seconds:
             owner_alive(directory)
+            for _, process in processes:
+                process.poll()  # Reap a killed initial operator; it does not own the workload.
             time.sleep(0.25)
         save(directory / 'ending.json', {'at': time.time()})
         for workspace in (directory / 'workers').glob('*'):
             stop_worker(workspace)
         save(directory / 'identities-after.json', identities(kube))
-        save(directory / 'finished.json', {'at': time.time()})
+        save(directory / 'finished.json', {'at': time.time(), 'meaning': 'owner_window_completed',
+                                           'contract_pass': None})
     except BaseException as error:
         save(directory / 'failed.json', {'at': time.time(), 'error_type': type(error).__name__})
         raise
     finally:
-        save(directory / 'ending.json', {'at': time.time()})
+        if not (directory / 'ending.json').exists():
+            save(directory / 'ending.json', {'at': time.time()})
         if (directory / 'environment.json').exists():
             save(directory / 'cleanup.json', cleanup(directory, {'cluster': 'autolab-' + run_id}))
         for _, process in processes:
@@ -340,7 +356,9 @@ def main():
     if args.command == 'own':
         own(args.manifest, directory)
     elif args.command == 'start-operator':
-        print(spawn_worker(directory, 'operator')[0], flush=True)
+        workspace, process = spawn_worker(directory, 'operator')
+        wait_ready(workspace, process)
+        print(workspace, flush=True)
     else:
         worker(directory, args.workspace.resolve(), args.role)
 
