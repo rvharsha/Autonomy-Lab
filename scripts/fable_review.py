@@ -70,6 +70,17 @@ COMPONENT_SCOPES = {
 }
 SCOPES = ("foundation", "agents", "all", *COMPONENT_SCOPES)
 REMEDIATION_FINDINGS = {
+    "mixed_state_gate": (
+        "A verified root evidence-path finding now uses descriptor-relative traversal with "
+        "O_NOFOLLOW on every directory and file, rejects parent traversal and nonregular files, "
+        "and validates the janitor PID. Check the change for actual unresolved escapes. "
+        "The proposal to accept a controller-committed interrupted second trial was rejected: "
+        "the unchanged runtime has no SIGTERM handler, catches KeyboardInterrupt only, and "
+        "its default SIGTERM/SIGKILL exits without Python finally accounting. This deliberately "
+        "tests one committed result plus one uncommitted attempt; a changed lifecycle would "
+        "need a new declaration, not a relaxed gate. Existing zero-prefix stop/restart/kill "
+        "gates passed on that runtime. Controller source is not included in this scoped review."
+    ),
     "service_lifecycle": (
         "A service SIGTERM intentionally need not produce controller-final accounting: the "
         "post-stop sidecar owns crash accounting and keeps the uncommitted attempt unassessed. "

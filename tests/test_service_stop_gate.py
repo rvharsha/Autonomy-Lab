@@ -3,6 +3,7 @@
 import copy
 import importlib.util
 import json
+import os
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -119,3 +120,38 @@ def test_original_zero_committed_gate_still_checks_unknown_and_unrun(tmp_path):
     save(tmp_path / 'trial-001/trial.json', {**plan[0], 'status': 'running'})
     assert gate.committed_evidence(tmp_path, plan, 0) == {}
     gate.check_accounting(service.accounting({'plan': plan}, tmp_path), plan, 0)
+
+
+@pytest.mark.parametrize('kind', ['absolute', 'traversal', 'file_symlink', 'directory_symlink',
+                                 'root_symlink', 'fifo'])
+def test_administrator_evidence_reads_reject_escape_and_nonregular_files(tmp_path, kind):
+    outside = tmp_path / 'outside'
+    outside.mkdir()
+    (outside / 'secret').write_text('AUTHORED_PRIVATE_FIXTURE')
+    root = tmp_path / 'run'
+    root.mkdir()
+    name = 'secret'
+    if kind == 'absolute':
+        name = str(outside / 'secret')
+    elif kind == 'traversal':
+        name = '../outside/secret'
+    elif kind == 'file_symlink':
+        (root / name).symlink_to(outside / 'secret')
+    elif kind == 'directory_symlink':
+        (root / 'alias').symlink_to(outside, target_is_directory=True)
+        name = 'alias/secret'
+    elif kind == 'root_symlink':
+        (root / 'alias').symlink_to(outside, target_is_directory=True)
+        root = root / 'alias'
+    else:
+        os.mkfifo(root / name)
+    with pytest.raises((ValueError, OSError)):
+        gate.evidence_bytes(root, name)
+
+
+def test_regular_nested_evidence_has_exact_content_digest(tmp_path):
+    path = tmp_path / 'trial-001/trial.json'
+    path.parent.mkdir()
+    path.write_bytes(b'{"status":"recorded"}\n')
+    assert gate.evidence_bytes(tmp_path, 'trial-001/trial.json') == path.read_bytes()
+    assert gate.evidence_digest(tmp_path, 'trial-001/trial.json') == service.digest(path)

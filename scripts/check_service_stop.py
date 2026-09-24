@@ -1,19 +1,53 @@
 """Real GCP/Linux service-stop gate. Run as the host administrator; no model calls."""
 
 import argparse
+import hashlib
 import json
 import os
+import stat
 import subprocess
 import sys
 import time
 import uuid
 from pathlib import Path
 
-from service_experiment import digest, load_job, read
+from service_experiment import load_job
 
 from autonomy_lab.harness import save, timestamp
 from autonomy_lab.janitor import process_identity
 from autonomy_lab.kubernetes import ROOT
+
+
+def evidence_bytes(root, name):
+    """Read only regular evidence files, without root following lab-owned symlinks."""
+    relative = Path(name)
+    if not root.is_absolute() or relative.is_absolute() or not relative.parts or '..' in relative.parts:
+        raise ValueError('Invalid evidence path')
+    parts = (*root.parts[1:], *relative.parts)
+    if '..' in parts:
+        raise ValueError('Invalid evidence root')
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    directory = os.open('/', flags)
+    try:
+        for part in parts[:-1]:
+            child = os.open(part, flags, dir_fd=directory)
+            os.close(directory)
+            directory = child
+        descriptor = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
+        with os.fdopen(descriptor, 'rb') as stream:
+            if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+                raise ValueError('Evidence must be a regular file')
+            return stream.read()
+    finally:
+        os.close(directory)
+
+
+def evidence_digest(root, name):
+    return hashlib.sha256(evidence_bytes(root, name)).hexdigest()
+
+
+def evidence_json(root, name):
+    return json.loads(evidence_bytes(root, name))
 
 
 def unit_state(unit):
@@ -32,7 +66,7 @@ def gate_plan(committed_prefix):
 def committed_evidence(run_dir, plan, count):
     """Require a successful controller-committed prefix before the stop trigger."""
     path = run_dir / 'results.json'
-    results = read(path) if path.exists() else []
+    results = evidence_json(run_dir, 'results.json') if path.exists() else []
     if not isinstance(results, list) or len(results) != count:
         raise RuntimeError('Missed the declared committed-prefix boundary')
     paths = [path] if path.exists() else []
@@ -48,7 +82,8 @@ def committed_evidence(run_dir, plan, count):
         if not (trial / 'trial.json').is_file():
             raise RuntimeError('Committed trial evidence is missing')
         paths.extend(sorted(trial.glob('trial*.json')))
-    return {str(path.relative_to(run_dir)): digest(path) for path in paths}
+    return {str(path.relative_to(run_dir)): evidence_digest(run_dir, str(path.relative_to(run_dir)))
+            for path in paths}
 
 
 def check_accounting(accounting, plan, committed):
@@ -89,6 +124,8 @@ def run(mode, user, *, committed_prefix=False):
             python, script, 'prepare', str(ROOT / 'scenarios' / manifest)], text=True, timeout=30)
         directory = Path(prepared.strip())
         job, run_dir = load_job(directory)
+        if run_dir.resolve() != run_dir:
+            raise ValueError('Run directory must not be a symlink')
         plan = gate_plan(committed_prefix)
         committed = 1 if committed_prefix else 0
         trigger_trial = f'trial-{committed + 1:03d}'
@@ -102,7 +139,7 @@ def run(mode, user, *, committed_prefix=False):
         deadline = time.monotonic() + 900
         while True:
             path = run_dir / trigger_trial / 'evidence.jsonl'
-            lines = path.read_bytes().splitlines() if path.exists() else []
+            lines = evidence_bytes(run_dir, trigger_trial + '/evidence.jsonl').splitlines() if path.exists() else []
             try:
                 evidence = [json.loads(line) for line in lines]
             except ValueError:
@@ -110,7 +147,7 @@ def run(mode, user, *, committed_prefix=False):
             dispatches = [e for e in evidence if e.get('source') == 'propose_repair'
                           and e.get('payload', {}).get('status') == 'acknowledged']
             if dispatches:
-                if read(run_dir / trigger_trial / 'trial.json')['status'] != 'running':
+                if evidence_json(run_dir, trigger_trial + '/trial.json')['status'] != 'running':
                     raise RuntimeError('Missed the running trial termination boundary')
                 break
             if (directory / 'post-stop.json').exists():
@@ -120,7 +157,9 @@ def run(mode, user, *, committed_prefix=False):
             time.sleep(0.25)
         prefix_hashes = committed_evidence(run_dir, plan, committed)
         state = unit_state(unit)
-        janitor_pid = read(run_dir / 'janitor-process.json')['pid']
+        janitor_pid = evidence_json(run_dir, 'janitor-process.json')['pid']
+        if type(janitor_pid) is not int or janitor_pid <= 1:
+            raise ValueError('Invalid janitor process identity')
         janitor_identity = process_identity(janitor_pid)
         controller_cgroup = Path(f"/proc/{state['MainPID']}/cgroup").read_text()
         janitor_cgroup = Path(f'/proc/{janitor_pid}/cgroup').read_text()
@@ -128,7 +167,7 @@ def run(mode, user, *, committed_prefix=False):
             raise RuntimeError('Gate did not establish the original shared control group')
         if state['KillMode'] != 'control-group' or state['Restart'] != 'no' or not state['ExecStopPost']:
             raise RuntimeError('Unexpected service termination policy')
-        claim_hash = digest(directory / 'launch-claim.json')
+        claim_hash = evidence_digest(directory, 'launch-claim.json')
         result.update(before=state, controller_cgroup=controller_cgroup, janitor_cgroup=janitor_cgroup,
                       trigger_trial=trigger_trial, committed_evidence_before_stop=prefix_hashes,
                       acknowledged_repairs_before_stop=len(dispatches), trigger_at=timestamp())
@@ -146,19 +185,19 @@ def run(mode, user, *, committed_prefix=False):
             if time.monotonic() >= deadline:
                 raise TimeoutError('Post-stop phase did not finish')
             time.sleep(0.5)
-        receipt = read(directory / 'post-stop.json')
+        receipt = evidence_json(directory, 'post-stop.json')
         result['post_stop'] = receipt
         if receipt['status'] != 'finished' or receipt['cleanup'] != 'deleted' or any(receipt['remaining'].values()):
             raise RuntimeError('Post-stop cleanup failed')
-        accounting = read(directory / 'post-stop-accounting.json')
+        accounting = evidence_json(directory, 'post-stop-accounting.json')
         check_accounting(accounting, plan, committed)
         for name, sha in prefix_hashes.items():
-            if digest(run_dir / name) != sha:
+            if evidence_digest(run_dir, name) != sha:
                 raise RuntimeError('Recovery changed previously committed evidence')
         for name, sha in accounting['original_evidence_sha256'].items():
-            if digest(run_dir / name) != sha:
+            if evidence_digest(run_dir, name) != sha:
                 raise RuntimeError('Recovery rewrote original evidence')
-        if digest(directory / 'launch-claim.json') != claim_hash:
+        if evidence_digest(directory, 'launch-claim.json') != claim_hash:
             raise RuntimeError('Launch claim changed during restart')
         if process_identity(janitor_pid) == janitor_identity:
             raise RuntimeError('Original detached janitor is still alive')
