@@ -108,7 +108,7 @@ def test_broker_profile_enforces_smaller_input_and_low_effort():
         review.cost_gate(15_000, "broker")
 
 
-@pytest.mark.parametrize("scope", [scope for scope in review.COMPONENT_SCOPES if scope not in {"handoff", "interrupted_reporting"}])
+@pytest.mark.parametrize("scope", [scope for scope in review.COMPONENT_SCOPES if scope not in {"handoff", "interrupted_reporting", "mixed_state_gate"}])
 def test_named_components_enforce_explicit_source_allowlists_and_budget(tmp_path, scope):
     modules = review.FOUNDATION | review.AGENTS | set().union(*(m for m, _ in review.COMPONENT_SCOPES.values()))
     for module in modules:
@@ -140,6 +140,26 @@ def test_interrupted_reporting_scope_contains_only_explicit_public_sources(tmp_p
     assert review.cost_gate(14_999, "interrupted_reporting")["estimated_maximum_usd"] < 0.8
     with pytest.raises(review.ReviewError):
         review.cost_gate(15_000, "interrupted_reporting")
+
+
+def test_mixed_state_review_covers_gate_and_accounting_without_private_artifacts(tmp_path):
+    expected = {"scripts/service_experiment.py", "scripts/check_service_stop.py",
+                "scenarios/service-stop-gate.yaml", "scenarios/service-mixed-state-gate.yaml",
+                "docs/MIXED_STATE_RECOVERY_EXPERIMENT.md"}
+    for name in expected:
+        put(tmp_path, name, "public_source = True\n")
+    put(tmp_path, "scripts/service_experiment.py",
+        "def accounting(job, run_dir):\n    return 'ACCOUNTING_INCLUDED'\n")
+    put(tmp_path, ".state/private.json", "PRIVATE_PROVIDER_CONTENT")
+    put(tmp_path, "src/autonomy_lab/janitor.py", "UNRELATED_UNCHANGED_SOURCE")
+    snapshot = review.build_snapshot(tmp_path, "mixed_state_gate")
+    assert {item["path"] for item in snapshot["files"]} == expected
+    assert "ACCOUNTING_INCLUDED" in snapshot["prompt"]
+    assert "PRIVATE_PROVIDER_CONTENT" not in snapshot["prompt"]
+    assert "UNRELATED_UNCHANGED_SOURCE" not in snapshot["prompt"]
+    assert review.cost_gate(14_999, "mixed_state_gate")["estimated_maximum_usd"] < 0.8
+    with pytest.raises(review.ReviewError):
+        review.cost_gate(15_000, "mixed_state_gate")
 
 
 def test_remediation_context_is_scoped_untrusted_and_hash_bound(tmp_path):

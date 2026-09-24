@@ -23,25 +23,76 @@ def unit_state(unit):
     return dict(line.split('=', 1) for line in output.splitlines() if '=' in line)
 
 
-def run(mode, user):
+def gate_plan(committed_prefix):
+    scenarios = ('healthy', 'routing') if committed_prefix else ('routing', 'healthy')
+    return [{'scenario': scenario, 'variant': 'runbook_fallback', 'repetition': repetition}
+            for repetition in range(2 if committed_prefix else 1) for scenario in scenarios]
+
+
+def committed_evidence(run_dir, plan, count):
+    """Require a successful controller-committed prefix before the stop trigger."""
+    path = run_dir / 'results.json'
+    results = read(path) if path.exists() else []
+    if not isinstance(results, list) or len(results) != count:
+        raise RuntimeError('Missed the declared committed-prefix boundary')
+    paths = [path] if path.exists() else []
+    for index, result in enumerate(results, 1):
+        if (any(result.get(k) != v for k, v in plan[index - 1].items())
+                or result.get('status') != 'recorded'
+                or result.get('score', {}).get('task_success') is not True
+                or result.get('execution_audit', {}).get('status') != 'assessed'
+                or result.get('protected_state_damage')
+                or result.get('execution_audit', {}).get('successful_unmatched_mutations') != 0):
+            raise RuntimeError('Committed prefix is not the declared successful assessed trial')
+        trial = run_dir / f'trial-{index:03d}'
+        if not (trial / 'trial.json').is_file():
+            raise RuntimeError('Committed trial evidence is missing')
+        paths.extend(sorted(trial.glob('trial*.json')))
+    return {str(path.relative_to(run_dir)): digest(path) for path in paths}
+
+
+def check_accounting(accounting, plan, committed):
+    expected = (len(plan), committed, committed + 1, 1, len(plan) - committed - 1)
+    if tuple(accounting[k] for k in ('planned', 'controller_recorded', 'attempted',
+                                    'unassessed_attempts', 'unrun')) != expected:
+        raise RuntimeError('Interruption accounting differs from the declared gate')
+    if len(accounting['trials']) != len(plan):
+        raise RuntimeError('Incomplete per-trial accounting')
+    for index, (row, identity) in enumerate(zip(accounting['trials'], plan)):
+        disposition = ('controller_recorded' if index < committed else
+                       'attempted_unassessed' if index == committed else 'unrun')
+        if any(row.get(k) != v for k, v in identity.items()) or row['disposition'] != disposition:
+            raise RuntimeError('Recovery changed a trial identity or disposition')
+        if index < committed:
+            if row['status'] != 'recorded' or row['task_success'] is not True or row['audit_assessed'] is not True:
+                raise RuntimeError('Recovery lost a committed assessment')
+        elif row['task_success'] is not None or row['audit_assessed'] is not None:
+            raise RuntimeError('Interrupted or unrun trial received an invented assessment')
+
+
+def run(mode, user, *, committed_prefix=False):
     if os.geteuid() != 0:
         raise PermissionError('System service gate requires host administrator access')
     subprocess.run(['sudo', '-u', user, 'mkdir', '-p', str(ROOT / 'artifacts')], check=True, timeout=15)
     output = ROOT / 'artifacts' / ('service-gate-' + uuid.uuid4().hex[:8])
     output.mkdir(parents=True, mode=0o700)
-    result = {'mode': mode, 'status': 'running', 'started_at': timestamp()}
+    result = {'mode': mode, 'committed_prefix': committed_prefix,
+              'status': 'running', 'started_at': timestamp()}
     save(output / 'result.json', result)
     directory = None
     unit = None
     try:
         script = str(ROOT / 'scripts/service_experiment.py')
         python = str(Path(sys.executable).absolute())
+        manifest = 'service-mixed-state-gate.yaml' if committed_prefix else 'service-stop-gate.yaml'
         prepared = subprocess.check_output(['sudo', '-u', user, 'env', 'PYTHONPATH=' + str(ROOT / 'src'),
-            python, script, 'prepare', str(ROOT / 'scenarios/service-stop-gate.yaml')], text=True, timeout=30)
+            python, script, 'prepare', str(ROOT / 'scenarios' / manifest)], text=True, timeout=30)
         directory = Path(prepared.strip())
         job, run_dir = load_job(directory)
-        if job['plan'] != [{'scenario': scenario, 'variant': 'runbook_fallback', 'repetition': 0}
-                           for scenario in ('routing', 'healthy')]:
+        plan = gate_plan(committed_prefix)
+        committed = 1 if committed_prefix else 0
+        trigger_trial = f'trial-{committed + 1:03d}'
+        if job['plan'] != plan:
             raise ValueError('Gate manifest differs from its declared ordered plan')
         unit = 'autolab-study-' + job['run_id'] + '.service'
         result.update(job=directory.name, experiment=run_dir.name, unit=unit)
@@ -50,7 +101,7 @@ def run(mode, user):
                        check=True, timeout=30)
         deadline = time.monotonic() + 900
         while True:
-            path = run_dir / 'trial-001/evidence.jsonl'
+            path = run_dir / trigger_trial / 'evidence.jsonl'
             lines = path.read_bytes().splitlines() if path.exists() else []
             try:
                 evidence = [json.loads(line) for line in lines]
@@ -59,7 +110,7 @@ def run(mode, user):
             dispatches = [e for e in evidence if e.get('source') == 'propose_repair'
                           and e.get('payload', {}).get('status') == 'acknowledged']
             if dispatches:
-                if read(run_dir / 'trial-001/trial.json')['status'] != 'running':
+                if read(run_dir / trigger_trial / 'trial.json')['status'] != 'running':
                     raise RuntimeError('Missed the running trial termination boundary')
                 break
             if (directory / 'post-stop.json').exists():
@@ -67,6 +118,7 @@ def run(mode, user):
             if time.monotonic() >= deadline:
                 raise TimeoutError('No real routing repair before readiness deadline')
             time.sleep(0.25)
+        prefix_hashes = committed_evidence(run_dir, plan, committed)
         state = unit_state(unit)
         janitor_pid = read(run_dir / 'janitor-process.json')['pid']
         janitor_identity = process_identity(janitor_pid)
@@ -78,6 +130,7 @@ def run(mode, user):
             raise RuntimeError('Unexpected service termination policy')
         claim_hash = digest(directory / 'launch-claim.json')
         result.update(before=state, controller_cgroup=controller_cgroup, janitor_cgroup=janitor_cgroup,
+                      trigger_trial=trigger_trial, committed_evidence_before_stop=prefix_hashes,
                       acknowledged_repairs_before_stop=len(dispatches), trigger_at=timestamp())
         save(output / 'result.json', result)
         if mode == 'kill':
@@ -98,11 +151,10 @@ def run(mode, user):
         if receipt['status'] != 'finished' or receipt['cleanup'] != 'deleted' or any(receipt['remaining'].values()):
             raise RuntimeError('Post-stop cleanup failed')
         accounting = read(directory / 'post-stop-accounting.json')
-        if (accounting['planned'], accounting['controller_recorded'], accounting['attempted'],
-                accounting['unassessed_attempts'], accounting['unrun']) != (2, 0, 1, 1, 1):
-            raise RuntimeError('Interruption accounting differs from the declared gate')
-        if any(row['task_success'] is not None or row['audit_assessed'] is not None for row in accounting['trials']):
-            raise RuntimeError('Interrupted trial received an invented assessment')
+        check_accounting(accounting, plan, committed)
+        for name, sha in prefix_hashes.items():
+            if digest(run_dir / name) != sha:
+                raise RuntimeError('Recovery changed previously committed evidence')
         for name, sha in accounting['original_evidence_sha256'].items():
             if digest(run_dir / name) != sha:
                 raise RuntimeError('Recovery rewrote original evidence')
@@ -117,6 +169,7 @@ def run(mode, user):
         result.update(status='passed', after=unit_state(unit), post_stop=receipt,
                       accounting=accounting, original_janitor_terminated=True,
                       launch_claim_unchanged=True, original_evidence_unchanged=True,
+                      committed_evidence_unchanged=True,
                       restart_refused=True if mode == 'restart' else None)
     except BaseException as error:
         result.update(status='failed', error_type=type(error).__name__)
@@ -143,5 +196,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mode', choices=['stop', 'restart', 'kill'])
     parser.add_argument('--user', default='autolab')
+    parser.add_argument('--committed-prefix', action='store_true',
+                        help='Interrupt trial 2 after trial 1 commits; retain two unrun trials')
     arguments = parser.parse_args()
-    run(arguments.mode, arguments.user)
+    run(arguments.mode, arguments.user, committed_prefix=arguments.committed_prefix)

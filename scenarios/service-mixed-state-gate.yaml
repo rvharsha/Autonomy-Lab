@@ -1,0 +1,17 @@
+schema_version: 1
+name: service-mixed-state-gate
+status: development
+preregistered: true
+repetitions: 2
+run_order_seed: 2026092404
+scenarios:
+- healthy
+- routing
+variants:
+- runbook_fallback
+expected_behavior:
+  healthy: healthy
+  routing: repair
+window_seconds: 30
+trial_timeout_seconds: 900
+runtime: isolated-docker
