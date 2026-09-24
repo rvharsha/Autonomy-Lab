@@ -60,6 +60,11 @@ operator. Unit tests can validate accounting and state transitions; only real
 workload observations can pass these gates. Predeclare fault schedules and stopping
 rules. Preserve every failed run and record the source/policy/checker hashes.
 
+The [first healthy-workload restart gate](PERSISTENT_CAMPAIGN_RESULTS.md) now passes
+on GCP and in CI, including concurrent-owner refusal and normal cleanup. Gates 2–5
+still require their full fault/uncertainty/owner-termination campaigns; this first
+pass does not close them.
+
 ## Subsequent milestones
 
 After persistent ownership passes, introduce proposed procedure versions with

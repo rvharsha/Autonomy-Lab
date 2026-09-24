@@ -1,5 +1,7 @@
 # Persistent workload: operator restart gate
 
+The [first real results](PERSISTENT_CAMPAIGN_RESULTS.md) passed on GCP and in CI.
+
 This is the first implementation slice of [continuous ownership](CONTINUOUS_OWNERSHIP_PLAN.md),
 not a completed autonomous-cloud or improvement loop. It uses the existing trusted
 deterministic runbook. No model request is made by the campaign.
