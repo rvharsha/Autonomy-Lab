@@ -8,6 +8,8 @@ The lab asks what evidence should justify trusting an agent with a cloud operati
 
 **Conclusion: the execution boundary and independent verifier work for the tested scope. Structured-state superiority is not established.** The evidence supports continued bounded experiments and a technical demonstration. It does not justify expanding authority to unfamiliar operations or production workloads.
 
+The completed [automation and agent comparison](AGENT_VALUE_RESULTS.md) restores the deterministic and no-agent baselines: runbook 10/12, basic 12/12 and structured 12/12, with 12 unscored controls. The entire agent advantage was a known missing observer-failure fallback in this runbook. Structured used about 15% more reported tokens than basic with no additional completions. The next useful test is a stronger deterministic verification fallback under a separately frozen plan; that improvement is not yet implemented or validated.
+
 ## Evidence and interpretation
 
 | Experiment | Observed result | What it supports |
@@ -18,8 +20,9 @@ The lab asks what evidence should justify trusting an agent with a cloud operati
 | [Selected reliability candidate](RELIABILITY_RESULTS.md) | 36/38; basic 17/19, structured 19/19 | Descriptive evidence on known families; two basic combined-fault budget failures remain |
 | [Reconciliation follow-up](RECONCILIATION_RESULTS.md) | Targets 6/6, regressions 17/18; promotion failed | Improving the target did not satisfy the complete declared gate; candidate withheld |
 | [GCP deployment](../infra/gcp/README.md#executed-deployment-checks) | Initial four cases had infrastructure errors; separately declared correction 4/4 | Linux deployment defect diagnosed and fixed; cloud smoke evidence only |
+| [Automation and agent comparison](AGENT_VALUE_RESULTS.md) | Runbook 10/12; basic 12/12; structured 12/12; 12 unscored controls | Models handled observer outage; runbook matched completion elsewhere; structured used more tokens without additional completion |
 
-These rows involve different releases and conditions. Do not pool their denominators or interpret the sequence as one controlled experiment. Reserved cases are fresh executions of known scenario families, not evidence of broad generalization. The structured treatment changes an internal tool and prompt as well as representation. The runbook and no-agent control were included in the pilot; they were not repeated in the latest 38-trial agent comparison.
+These rows involve different releases and conditions. Do not pool their denominators or interpret the sequence as one controlled experiment. Reserved cases are fresh executions of known scenario families, not evidence of broad generalization. The structured treatment changes an internal tool and prompt as well as representation. The runbook and no-agent control were included in the pilot and the new 48-trial comparison; they were not repeated in the earlier 38-trial agent comparison.
 
 The selected 38-trial candidate reported 546,910 tokens and 143 retained responses from 143 generation requests. All 38 scoped audits were assessed, with no recorded unmatched successful mutations or false completion claims. This scope covers the trial namespace and named identities, not all external effects or a hostile host. Earlier provider failures and output-limit overruns remain separate, retained limitations.
 
@@ -30,6 +33,7 @@ The selected 38-trial candidate reported 546,910 tokens and 143 retained respons
 3. Context and bookkeeping consume the same budget needed to finish. Grouping observations improved a development comparison, but neither more state nor a context policy guarantees a benefit.
 4. Promotion needs the full declared regression gate. The 23/24 follow-up remains unselected even though its six targeted cases passed. The preflight failure's underlying cause is unestablished.
 5. Real deployment adds evidence that local tests cannot supply. Native Linux audit-log ownership differed from Docker Desktop and initially prevented scoring; all original failures remain recorded.
+6. Compare against a capable deterministic baseline before attributing value to agent complexity. A model completing a branch absent from one runbook does not show that deterministic automation cannot complete it.
 
 Read the [three annotated trajectories](TRAJECTORIES.md), then use the [reproduction and demonstration guide](REPRODUCING.md).
 

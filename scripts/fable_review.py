@@ -34,6 +34,8 @@ MAX_OUTPUT_TOKENS = 6_000
 MAX_BUDGET_USD = 1.0
 COMPONENT_SCOPES = {
     "handoff": ({"credentials", "frozen_experiment"}, {"handoff"}),
+    "value_scenarios": ({"value_scenarios"}, {"value_scenarios"}),
+    "value_reporting": ({"value_scenarios"}, {"value_reporting"}),
     "isolation": ({"isolated_runtime", "isolated_agent", "rpc", "authority_worker"}, {"isolated_runtime"}),
     "context": ({"agent", "context"}, set()),
     "context_logic": ({"context"}, {"context"}),
@@ -181,6 +183,8 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
     paths = {f"src/autonomy_lab/{name}.py" for name in modules}
     if scope == "handoff":
         paths |= {"scripts/run_evaluation.py", "scripts/export_report.py", "scenarios/handoff-acceptance.yaml"}
+    if scope == "value_reporting":
+        paths |= {"scripts/report_agent_value.py", "scripts/export_report.py", "scenarios/agent-value.yaml", "scenarios/agent-value-gates.yaml", "docs/AGENT_VALUE_EXPERIMENT.md"}
     if scope == "ax_boundary":
         paths |= {"infra/ax/privilege-drop.patch", "infra/ax/privilege_drop_test.go", "infra/ax/durable-cleanup.patch", "infra/ax/README.md"}
     if scope not in COMPONENT_SCOPES:

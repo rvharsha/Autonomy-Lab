@@ -1,0 +1,295 @@
+{
+  "completed_reviews": 4,
+  "limitations": [
+    "Source review is not execution evidence or automatic approval.",
+    "Legacy AX preflight and custom local audit gaps remain outside the isolated-Docker comparison."
+  ],
+  "provider": "Anthropic direct",
+  "reviewed_runtime_hashes_match_staged_source": true,
+  "reviews": [
+    {
+      "dispositions": [],
+      "finished_at": "2026-09-24T00:23:54.335950+00:00",
+      "raw_record_sha256": "6fc6c65d14aa7fb21508c8d4e552099e95df9e873bfd0e743367d72f671c1d35",
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 2053,
+            "included": "full_source",
+            "lines": 48,
+            "path": "src/autonomy_lab/value_scenarios.py",
+            "sha256": "203fafeaca837d9399f9d404027a6bc6d2ff910f3a6ac0b5f83db5cb04db7718"
+          },
+          {
+            "bytes": 2278,
+            "included": "test_index",
+            "lines": 58,
+            "path": "tests/test_value_scenarios.py",
+            "sha256": "268fb7558d37c4d130de1bca6baea9dbd82d51897c19a31b7d3a952c336a2658"
+          }
+        ],
+        "prompt_sha256": "6bee82abb4d68a9ab86123cd55616b4f9356575f12aceea0190b0d0c07a7426d",
+        "review_kind": "initial",
+        "scope": "value_scenarios",
+        "snapshot_id": "791596333687041c2dc1c7cef347fd6b45135d604382c85851ab12c9cbb309ae",
+        "source_bytes": 4331
+      },
+      "started_at": "2026-09-24T00:23:51.700334+00:00",
+      "status": "incomplete",
+      "stop_reason": "refusal",
+      "usage": {
+        "input_tokens": 1554,
+        "output_tokens": 0
+      },
+      "usage_cost_estimate_usd": 0.01554
+    },
+    {
+      "dispositions": [
+        {
+          "basis": "Kubernetes.forward terminates and waits for its subprocess (or kills and waits). All verifier forwards are opened before the outage. A competing bind fails closed and is retained as an infrastructure_error; it cannot fabricate outage success. No passing replacements or retries added.",
+          "decision": "not substantiated as a measurement defect",
+          "finding": "Observer port reuse or asynchronous teardown"
+        },
+        {
+          "basis": "run_trial calls semantic_fault_established only for quote_arithmetic. quote_upstream separately uses establish_fault and requires real HTTP 503. All six real GCP gates passed; malformed evidence raises and fails closed.",
+          "decision": "rejected after checking caller",
+          "finding": "Semantic check incorrectly used for upstream fault"
+        }
+      ],
+      "finished_at": "2026-09-24T00:47:31.608111+00:00",
+      "raw_record_sha256": "96c5f3eeeb7e4dadc79ff55170fa24fc32128ca1f45ffeeb89dd080e2aec8ea5",
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 2101,
+            "included": "full_source",
+            "lines": 48,
+            "path": "src/autonomy_lab/value_scenarios.py",
+            "sha256": "f2b77dbdadb58877234aa9eab5534c963c716f115270f351feb285d882cce721"
+          },
+          {
+            "bytes": 2389,
+            "included": "test_index",
+            "lines": 59,
+            "path": "tests/test_value_scenarios.py",
+            "sha256": "70914a03b57b6f1ddbb274626ebcfd906c12b97fe0c00aa6135a957e80a0fbb9"
+          }
+        ],
+        "prompt_sha256": "3b9f086e7a35b4d6103cd808845b842ee042ad4e7ee34600fb84e287b584cd8b",
+        "review_kind": "initial",
+        "scope": "value_scenarios",
+        "snapshot_id": "cdb59efc3a7e7b9b6a8f57ccabb7646757e2799e117fbc4457f41ae035091e94",
+        "source_bytes": 4490
+      },
+      "started_at": "2026-09-24T00:46:42.353719+00:00",
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 1571,
+        "output_tokens": 3476
+      },
+      "usage_cost_estimate_usd": 0.18951
+    },
+    {
+      "dispositions": [
+        {
+          "basis": "An AX manifest without ax_config reaches a retained setup error after provisioning. The declared and hashed comparison requires isolated-docker and never uses AX. AX is not validated on GCP; its early configuration validation remains follow-up work.",
+          "decision": "valid pre-existing limitation outside this comparison",
+          "finding": "Missing AX configuration admitted by generic manifest validation"
+        },
+        {
+          "basis": "Normal provisioning always configures audit logging. The selected isolated-docker path rejects missing or unassessed audit; the comparison exporter reports unassessed audit explicitly. No audited-clean claim is made for local custom configurations without evidence.",
+          "decision": "conditional legacy-path limitation; no study impact",
+          "finding": "Local runtime can omit audit when directory is missing"
+        }
+      ],
+      "finished_at": "2026-09-24T00:47:58.019988+00:00",
+      "raw_record_sha256": "8b9ea6c3e408f76d367c17a9654f997fadb5435b36f19f0a53d025e735303f2f",
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 34108,
+            "included": "full_source",
+            "lines": 683,
+            "path": "src/autonomy_lab/experiments.py",
+            "sha256": "689f589f1c2ac832ba3cda8d519cfd00204faff796747f3c0dfd95d137ad1b2f"
+          }
+        ],
+        "prompt_sha256": "61c112148ade5d1ee368376c566a500759cc27d4ee23c5917bd4a9a914f04a35",
+        "review_kind": "initial",
+        "scope": "experiment_logic",
+        "snapshot_id": "162507e756036e4230b2e5c1a4c6a0b5a033eb51b1620f0b1f07b913e80e615a",
+        "source_bytes": 34108
+      },
+      "started_at": "2026-09-24T00:46:45.194063+00:00",
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 14412,
+        "output_tokens": 5300
+      },
+      "usage_cost_estimate_usd": 0.40912
+    },
+    {
+      "dispositions": [
+        {
+          "basis": "Renderer now labels missing usage or unknown provider outcomes as a partial lower bound. Two regression cases cover absent accounting and an unmatched generation request.",
+          "decision": "fixed before live execution",
+          "finding": "Known token subtotal can look complete when accounting is missing"
+        }
+      ],
+      "finished_at": "2026-09-24T00:48:05.829140+00:00",
+      "raw_record_sha256": "944d9d3328c70f44be7e0a4da9817163a9f101985659d27435a465795b21ef1f",
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 9167,
+            "included": "full_source",
+            "lines": 53,
+            "path": "docs/AGENT_VALUE_EXPERIMENT.md",
+            "sha256": "bbac888cd11f7f551e1fe424263f8ae30b279938f5d30ea4875004269ac23454"
+          },
+          {
+            "bytes": 403,
+            "included": "full_source",
+            "lines": 20,
+            "path": "scenarios/agent-value-gates.yaml",
+            "sha256": "c49f1387e7e70ff7da5ac5247a99d3eeff19add83e24ea4a9ab8f5b795c60f4c"
+          },
+          {
+            "bytes": 619,
+            "included": "full_source",
+            "lines": 33,
+            "path": "scenarios/agent-value.yaml",
+            "sha256": "6df33391b393f5064d70b1bf3836ebc7b2bf86b3ca93bc69fc7a1794378b1b4d"
+          },
+          {
+            "bytes": 7909,
+            "included": "full_source",
+            "lines": 158,
+            "path": "scripts/export_report.py",
+            "sha256": "7d639eeb712531400e2f4784d10d41ff9dd8d4f17bd91b3c1f7b1a726ed7a787"
+          },
+          {
+            "bytes": 8549,
+            "included": "full_source",
+            "lines": 144,
+            "path": "scripts/report_agent_value.py",
+            "sha256": "2bf380d8b0c6c89537f58a47aec841211a76f5446255785307a89642e6afdfa5"
+          },
+          {
+            "bytes": 2101,
+            "included": "full_source",
+            "lines": 48,
+            "path": "src/autonomy_lab/value_scenarios.py",
+            "sha256": "f2b77dbdadb58877234aa9eab5534c963c716f115270f351feb285d882cce721"
+          },
+          {
+            "bytes": 4195,
+            "included": "test_index",
+            "lines": 95,
+            "path": "tests/test_value_reporting.py",
+            "sha256": "084db1cfd0875c02bffeec4b0845c3e3e49b7a57e7e3a4791ea0105de38508fd"
+          }
+        ],
+        "prompt_sha256": "727d6f1cb75dc73d8c023fce1eb105a79081ae258255c2f87c9e1c2543225e2c",
+        "review_kind": "initial",
+        "scope": "value_reporting",
+        "snapshot_id": "8679146afb9bca433c37ef137d39f9a049dc747e3fa43b3ce7c5cd2642c2b8f9",
+        "source_bytes": 32943
+      },
+      "started_at": "2026-09-24T00:46:45.132889+00:00",
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 12620,
+        "output_tokens": 5983
+      },
+      "usage_cost_estimate_usd": 0.42535
+    },
+    {
+      "dispositions": [
+        {
+          "basis": "Completed follow-up review accepted partial-token handling and found no substantiated high-severity defect. Its low-confidence port teardown question is resolved by the subprocess wait and fail-closed behavior described above.",
+          "decision": "no substantiated new defect",
+          "finding": "Corrected report and remaining observer bind question"
+        }
+      ],
+      "finished_at": "2026-09-24T00:50:49.823346+00:00",
+      "raw_record_sha256": "8b44fe746d7626677aef6a3a438681d870208fec79450d57f8884fc97418daab",
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "bytes": 9167,
+            "included": "full_source",
+            "lines": 53,
+            "path": "docs/AGENT_VALUE_EXPERIMENT.md",
+            "sha256": "bbac888cd11f7f551e1fe424263f8ae30b279938f5d30ea4875004269ac23454"
+          },
+          {
+            "bytes": 403,
+            "included": "full_source",
+            "lines": 20,
+            "path": "scenarios/agent-value-gates.yaml",
+            "sha256": "c49f1387e7e70ff7da5ac5247a99d3eeff19add83e24ea4a9ab8f5b795c60f4c"
+          },
+          {
+            "bytes": 619,
+            "included": "full_source",
+            "lines": 33,
+            "path": "scenarios/agent-value.yaml",
+            "sha256": "6df33391b393f5064d70b1bf3836ebc7b2bf86b3ca93bc69fc7a1794378b1b4d"
+          },
+          {
+            "bytes": 7909,
+            "included": "full_source",
+            "lines": 158,
+            "path": "scripts/export_report.py",
+            "sha256": "7d639eeb712531400e2f4784d10d41ff9dd8d4f17bd91b3c1f7b1a726ed7a787"
+          },
+          {
+            "bytes": 8789,
+            "included": "full_source",
+            "lines": 147,
+            "path": "scripts/report_agent_value.py",
+            "sha256": "4785d1e26e0ef6e73993b87a1a4ccc26cad357856ed4298240d81b5869024089"
+          },
+          {
+            "bytes": 2101,
+            "included": "full_source",
+            "lines": 48,
+            "path": "src/autonomy_lab/value_scenarios.py",
+            "sha256": "f2b77dbdadb58877234aa9eab5534c963c716f115270f351feb285d882cce721"
+          },
+          {
+            "bytes": 4668,
+            "included": "test_index",
+            "lines": 104,
+            "path": "tests/test_value_reporting.py",
+            "sha256": "79b954d66c087612ad586170d0fe2bcce3fb9ea3a8e248619168b9d2cea18fee"
+          }
+        ],
+        "prompt_sha256": "5d9ae76c0e14b18c4c12f71e88189137cfb683450de277a88b5fc7cd5070a952",
+        "review_kind": "initial",
+        "scope": "value_reporting",
+        "snapshot_id": "229def50cf1a1baf975b25f541c19415a49af8e8479d089de92fbe1a0180cd26",
+        "source_bytes": 33656
+      },
+      "started_at": "2026-09-24T00:49:49.223473+00:00",
+      "status": "completed",
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 12738,
+        "output_tokens": 4284
+      },
+      "usage_cost_estimate_usd": 0.34158
+    }
+  ],
+  "source_transfer_approval": "Explicit user approval received before the four completed source-only reviews. Credentials and raw experiment records were excluded.",
+  "study_runtime_source_commit": "5c14303ef54bc46a0fb56616bbaa5e46868d0296"
+}
