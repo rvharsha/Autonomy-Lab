@@ -83,8 +83,10 @@ def run(mode, user):
         if mode == 'kill':
             command = ['systemctl', 'kill', '--kill-whom=all', '--signal=SIGKILL', unit]
         else:
-            command = ['systemctl', '--no-block', mode, unit]
-        subprocess.run(command, check=True, timeout=30)
+            command = ['systemctl', mode, unit]
+        # Wait for the restart job's new start phase, not the transient inactive
+        # state between its stop and start. Both stop phases have a 300s budget.
+        subprocess.run(command, check=True, timeout=630)
         # TimeoutStopSec bounds process termination and ExecStopPost separately.
         deadline = time.monotonic() + 630
         while not (directory / 'post-stop.json').exists() or unit_state(unit)['ActiveState'] in {'active', 'activating', 'deactivating'}:
