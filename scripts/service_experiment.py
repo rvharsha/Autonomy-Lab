@@ -196,14 +196,6 @@ def finalize(directory):
             return read(output)  # Do not overwrite original interruption on a refused restart.
         if not os.environ.get('SERVICE_RESULT'):
             raise RuntimeError('Recovery must run in the systemd post-stop phase')
-        claim = directory / 'launch-claim.json'
-        if claim.exists():
-            try:
-                owner = read(claim)
-            except ValueError:
-                owner = {}  # Torn claim blocks launch; systemd has already stopped the unit.
-            if owner.get('identity') and process_identity(owner['pid']) == owner['identity']:
-                raise RuntimeError('Controller is still alive; recovery refused')
         result = {'kind': 'systemd_post_stop', 'run_id': job['run_id'], 'started_at': timestamp(),
                   'status': 'failed', 'cleanup': 'unknown', 'accounting': 'unknown',
                   'service_result': os.environ.get('SERVICE_RESULT', 'unknown')}
@@ -219,7 +211,22 @@ def finalize(directory):
             result['credential_removed'] = False
             errors.append({'stage': 'credential', 'error_type': type(error).__name__})
         save(directory / 'post-stop-started.json', result)
+        stage = 'liveness'
         try:
+            claim = directory / 'launch-claim.json'
+            if claim.exists():
+                try:
+                    owner = read(claim)
+                except ValueError:
+                    owner = {}  # Torn claim prohibits launch; systemd stopped the unit.
+                if owner.get('identity'):
+                    if type(owner.get('pid')) is not int or owner['pid'] <= 1:
+                        raise ValueError('Invalid controller identity in claim')
+                    if process_identity(owner['pid']) == owner['identity']:
+                        raise RuntimeError('Controller is still alive; recovery refused')
+            # Unknown liveness must refuse cleanup, with a durable failure receipt
+            # and credential revocation already recorded.
+            stage = 'ownership'
             if run_dir.exists() and (not (run_dir / 'service-owner.json').is_file()
                     or read(run_dir / 'service-owner.json') != {'owner_token': job['owner_token']}):
                 raise ValueError('Refusing recovery of an unowned experiment directory')
@@ -248,7 +255,7 @@ def finalize(directory):
                 result['cleanup'] = 'failed'
                 errors.append({'stage': 'cleanup', 'error_type': type(error).__name__})
         except Exception as error:
-            errors.append({'stage': 'ownership', 'error_type': type(error).__name__})
+            errors.append({'stage': stage, 'error_type': type(error).__name__})
         finally:
             result.update(status='finished' if not errors else 'failed', errors=errors, finished_at=timestamp())
             save(output, result)

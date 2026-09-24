@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -132,8 +133,27 @@ def test_alive_controller_blocks_cleanup(job, monkeypatch):
     save(directory / 'launch-claim.json', {'pid': 123, 'identity': 'original'})
     monkeypatch.setattr(service, 'process_identity', lambda pid: 'original')
     monkeypatch.setattr(service, 'cleanup', lambda *a: pytest.fail('Killed live job'))
-    with pytest.raises(RuntimeError, match='still alive'):
-        service.finalize(directory)
+    result = service.finalize(directory)
+    assert result['status'] == 'failed' and result['cleanup'] == 'unknown'
+    assert result['errors'][0]['stage'] == 'liveness'
+
+
+def test_unknown_liveness_revokes_credential_and_records_failure(job, monkeypatch, tmp_path):
+    directory, _, _ = job
+    save(directory / 'launch-claim.json', {'pid': 123, 'identity': 'original'})
+    credential = tmp_path / 'authored-provider-file'
+    credential.write_text('authored fixture')
+    monkeypatch.setattr(service, 'credential_path', lambda value: credential)
+    def timeout(pid):
+        assert not credential.exists()
+        raise subprocess.TimeoutExpired('ps', 5)
+    monkeypatch.setattr(service, 'process_identity', timeout)
+    monkeypatch.setattr(service, 'cleanup', lambda *a: pytest.fail('Cleaned up on unknown liveness'))
+    result = service.finalize(directory)
+    assert result['status'] == 'failed' and result['cleanup'] == 'unknown'
+    assert result['credential_removed']
+    assert result['errors'] == [{'stage': 'liveness', 'error_type': 'TimeoutExpired'}]
+    assert (directory / 'post-stop.json').exists()
 
 
 def test_finalize_requires_host_post_stop_phase(job, monkeypatch):

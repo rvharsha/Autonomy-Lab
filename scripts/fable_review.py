@@ -35,6 +35,7 @@ MAX_BUDGET_USD = 1.0
 COMPONENT_SCOPES = {
     "service_lifecycle": ({"experiments", "frozen_experiment"}, {"service_experiment"}),
     "service_gate": ({"janitor"}, {"service_experiment"}),
+    "fallback_validation": ({"value_scenarios"}, {"value_reporting"}),
     "handoff": ({"credentials", "frozen_experiment"}, {"handoff"}),
     "value_scenarios": ({"value_scenarios"}, {"value_scenarios"}),
     "value_reporting": ({"value_scenarios"}, {"value_reporting"}),
@@ -76,7 +77,9 @@ REMEDIATION_FINDINGS = {
         "not absence of a controller receipt alone. A verified finding moved transient "
         "credential deletion before Docker cleanup, with a distinct durable progress receipt. "
         "Self-review added an ownership token before provisioning and wrapper-source freezing; "
-        "check collision handling, interruption windows and preservation of original outcomes."
+        "check collision handling, interruption windows and preservation of original outcomes. "
+        "Liveness-probe errors now revoke credentials and persist a failure receipt before "
+        "refusing cleanup; unknown process state is not silently treated as controller death."
     ),
     "service_gate": (
         "The plan preserves scenario order and shuffles only variants; the gate now explicitly "
@@ -85,7 +88,13 @@ REMEDIATION_FINDINGS = {
         "calls. Prior conditional findings about shuffled scenarios and torn trial.json "
         "were therefore not reproduced. Check actual stop/restart/kill execution and "
         "assertion paths. Credentials now precede potentially slow cleanup; ownership-token "
-        "checking prevents adoption of an unrelated existing experiment directory."
+        "checking prevents adoption of an unrelated existing experiment directory. "
+        "Stop/restart trigger asynchronously with 630 seconds for both 300-second phases. "
+        "Failed recovery receipts are saved in gate evidence before reading accounting. "
+        "Liveness exceptions now produce a durable failure after credential revocation. "
+        "The claim that a second finalize can hit that guard despite an existing completed "
+        "receipt was rejected: the existing receipt returns before the guard. The restart "
+        "gate checks failed-unit state before its finally/stop; it never resets failed units."
     ),
     "interrupted_reporting": (
         "Recovery overwrote a supplied conflicting repetition from the ordered plan and failed "
@@ -224,6 +233,9 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
     if scope == "service_gate":
         paths |= {"scripts/service_experiment.py", "scripts/check_service_stop.py",
                   "scenarios/service-stop-gate.yaml"}
+    if scope == "fallback_validation":
+        paths |= {"scripts/report_agent_value.py", "scripts/export_report.py",
+                  "scenarios/runbook-fallback-validation.yaml", "docs/SERVICE_RECOVERY_EXPERIMENT.md"}
     if scope == "value_reporting":
         paths |= {"scripts/report_agent_value.py", "scripts/export_report.py", "scenarios/agent-value.yaml", "scenarios/agent-value-gates.yaml", "docs/AGENT_VALUE_EXPERIMENT.md"}
     if scope.startswith("fallback_"):
