@@ -238,7 +238,7 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
                   "scenarios/runbook-fallback-validation.yaml", "docs/SERVICE_RECOVERY_EXPERIMENT.md"}
     if scope == "value_reporting":
         paths |= {"scripts/report_agent_value.py", "scripts/export_report.py", "scenarios/agent-value.yaml", "scenarios/agent-value-gates.yaml", "docs/AGENT_VALUE_EXPERIMENT.md"}
-    if scope.startswith("fallback_"):
+    if scope.startswith("fallback_") and scope != "fallback_validation":
         paths |= {"scenarios/runbook-fallback.yaml", "scenarios/runbook-fallback-gates.yaml"}
         if scope != "fallback_scenarios":
             paths.add("docs/RUNBOOK_FALLBACK_EXPERIMENT.md")
