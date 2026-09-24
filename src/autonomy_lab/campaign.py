@@ -283,6 +283,39 @@ def worker(directory, workspace, role):
         raise
 
 
+def finalize_owner(directory, run_id, processes):
+    errors = []
+
+    def attempt(stage, action):
+        try:
+            action()
+        except Exception as error:
+            errors.append({'stage': stage, 'error_type': type(error).__name__})
+
+    if not (directory / 'ending.json').exists():
+        attempt('ending', lambda: save(directory / 'ending.json', {'at': time.time()}))
+    for workspace in (directory / 'workers').glob('*'):
+        attempt('stop_worker', lambda: stop_worker(workspace))
+    for _, process in processes:
+        attempt('reap_worker', lambda: process.wait(timeout=10))
+    if (directory / 'environment.json').exists():
+        try:
+            result = cleanup(directory, {'cluster': 'autolab-' + run_id})
+            if result['status'] != 'deleted':
+                errors.append({'stage': 'cleanup', 'error_type': 'IncompleteCleanup'})
+        except Exception as error:
+            result = {'status': 'failed', 'error_type': type(error).__name__, 'finished_at': time.time()}
+            errors.append({'stage': 'cleanup', 'error_type': type(error).__name__})
+        save(directory / 'cleanup.json', result)
+    receipt = {'at': time.time(), 'status': 'failed' if errors else 'finished', 'errors': errors}
+    save(directory / 'finalization.json', receipt)
+    if errors:
+        if not (directory / 'failed.json').exists():
+            save(directory / 'failed.json', {'at': time.time(), 'stage': 'finalization',
+                                             'error_type': 'OwnerFinalizationFailed', 'errors': errors})
+        raise RuntimeError('Owner finalization failed; original and cleanup failures retained')
+
+
 def own(manifest, directory):
     contract = Contract.model_validate(read(manifest))
     directory.mkdir(mode=0o700)  # Existing campaigns cannot be resumed as owners.
@@ -331,12 +364,7 @@ def own(manifest, directory):
         save(directory / 'failed.json', {'at': time.time(), 'error_type': type(error).__name__})
         raise
     finally:
-        if not (directory / 'ending.json').exists():
-            save(directory / 'ending.json', {'at': time.time()})
-        if (directory / 'environment.json').exists():
-            save(directory / 'cleanup.json', cleanup(directory, {'cluster': 'autolab-' + run_id}))
-        for _, process in processes:
-            process.wait(timeout=10)
+        finalize_owner(directory, run_id, processes)
 
 
 def main():

@@ -40,7 +40,10 @@ def scorecard(directory):
                 for quote in probe.get('observations', {}).get('quotes', []):
                     requests[quote.get('kind', 'unknown')] += 1
                     if quote.get('kind') == 'response':
-                        requests[f"http_{quote['status_code']}"] += 1
+                        requests[f"http_{quote.get('status_code', 'unknown')}"] += 1
+                        if type(quote.get('status_code')) is not int:
+                            row['verdict'] = 'unknown'
+                            row['reasons'] = [*row['reasons'], 'malformed_http_observation']
                     if isinstance(quote.get('elapsed_seconds'), (int, float)):
                         latencies.append(quote['elapsed_seconds'])
         rows.append(row)
@@ -52,9 +55,10 @@ def scorecard(directory):
         attempts = []
         for episode in sorted(workspace.glob('episode-*')):
             outcome = episode / 'outcome.json'
-            attempts.append({'id': episode.name, **read(episode / 'attempt.json'),
-                             'outcome': read(outcome) if outcome.exists() else None})
-        workers.append({'id': workspace.name, 'attempt': read(workspace / 'attempt.json'),
+            attempt = read(episode / 'attempt.json') if (episode / 'attempt.json').exists() else None
+            attempts.append({'id': episode.name, 'attempt': attempt,
+                             'outcome': read(outcome) if outcome.exists() and attempt is not None else None})
+        workers.append({'id': workspace.name, 'attempt': read(workspace / 'attempt.json') if (workspace / 'attempt.json').exists() else None,
                         'ready': read(workspace / 'ready.json') if (workspace / 'ready.json').exists() else None,
                         'failure': read(workspace / 'failed.json') if (workspace / 'failed.json').exists() else None,
                         'episodes': attempts})
@@ -66,6 +70,7 @@ def scorecard(directory):
         'contract': contract.model_dump(), 'window': window, 'source_sha256': read(directory / 'source.json'),
         'owner_finished': (directory / 'finished.json').exists(),
         'owner_failure': read(directory / 'failed.json') if (directory / 'failed.json').exists() else None,
+        'owner_finalization': read(directory / 'finalization.json') if (directory / 'finalization.json').exists() else None,
         'cleanup': read(directory / 'cleanup.json') if (directory / 'cleanup.json').exists() else None,
         'identities_before': before, 'identities_after': after,
         'identities_unchanged': None if after is None else before == after,

@@ -167,3 +167,46 @@ def test_broker_journal_budget_survives_new_operator_instance(tmp_path):
     assert result['reason'] == 'budget_exhausted'
     assert len(adapter.patch_calls) == 1
     assert sum(row['budget_reserved'] for row in operation_rows(tmp_path)) == 1
+
+
+def test_owner_records_cleanup_failure_and_reaps_without_erasing_original(tmp_path):
+    import subprocess
+    from unittest.mock import Mock
+
+    from autonomy_lab.campaign import finalize_owner
+    (tmp_path / 'workers').mkdir()
+    save(tmp_path / 'environment.json', {'status': 'running'})
+    save(tmp_path / 'failed.json', {'error_type': 'OriginalFailure'})
+    child = Mock()
+    child.wait.side_effect = subprocess.TimeoutExpired('authored-child', 10)
+    with patch('autonomy_lab.campaign.cleanup', side_effect=OSError):
+        with pytest.raises(RuntimeError, match='finalization'):
+            finalize_owner(tmp_path, '12345678', [(tmp_path, child)])
+    assert json.loads((tmp_path / 'failed.json').read_text())['error_type'] == 'OriginalFailure'
+    assert json.loads((tmp_path / 'cleanup.json').read_text())['status'] == 'failed'
+    assert {row['stage'] for row in json.loads((tmp_path / 'finalization.json').read_text())['errors']} == {'reap_worker', 'cleanup'}
+    (tmp_path / 'failed.json').unlink()
+    with patch('autonomy_lab.campaign.cleanup', side_effect=OSError):
+        with pytest.raises(RuntimeError):
+            finalize_owner(tmp_path, '12345678', [])
+    assert json.loads((tmp_path / 'failed.json').read_text())['stage'] == 'finalization'
+
+
+def test_crash_between_directory_creation_and_attempt_commit_stays_unknown(campaign):
+    episode = campaign / 'workers/operator-authored/episode-authored'
+    episode.mkdir(parents=True)
+    row = scorecard(campaign)['workers'][0]
+    assert row['attempt'] is None
+    assert row['episodes'][0]['attempt'] is None
+    assert row['episodes'][0]['outcome'] is None
+
+
+def test_malformed_response_status_cannot_break_export_or_credit_health(campaign):
+    sample(campaign)
+    path = campaign / 'samples/0000.json'
+    data = json.loads(path.read_text())
+    data['verification']['probes'] = [{'observations': {'quotes': [{'kind': 'response'}]}}]
+    save(path, data)
+    result = scorecard(campaign)
+    assert result['samples'][0]['verdict'] == 'unknown'
+    assert result['measured_requests']['http_unknown'] == 1

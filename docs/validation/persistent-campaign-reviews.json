@@ -1,0 +1,201 @@
+{
+  "scope": "persistent campaign first lifecycle gate",
+  "reviews": [
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T20:33:13.321050+00:00",
+      "finished_at": "2026-09-24T20:34:52.282078+00:00",
+      "generation_attempts": 1,
+      "snapshot": {
+        "files": [
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "9c09881caf2684594007824ca18cad4b443b44a2d2d04c99b7bed6fb9521cd5f"
+          },
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/janitor.py",
+            "sha256": "5684c4cfa853b5623cec87fba62964b241eb1302380979e35f2316aaf97e2829"
+          },
+          {
+            "included": "full_source",
+            "path": "scenarios/campaign-restart.json",
+            "sha256": "6dd8961f1fbe1affe0dab6a1bf58c1cf7b52863ee448883f5174bc3d05d701ca"
+          }
+        ],
+        "prompt_sha256": "a5fafa793f52765ddcae8264dd3636df4203dbcfd9b18dfba9d6dd9b77e21a26",
+        "review_kind": "campaign_runtime",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "5b415486643059ce8b2ce0b3eb132e1cb0415520bb474090e49320a2e61544e1",
+        "source_bytes": 24743
+      },
+      "findings_text": "**Findings (2 concrete defects, within supplied component)**\n\n**1. `max_restart_downtime_seconds` is accepted, validated, and never measured or enforced \u2014 the claimed restart gate has no accounting.**\n- `src/autonomy_lab/campaign.py`, `Contract` (field + `valid_schedule`), `spawn_worker`, `worker`, `own`.\n- Trace: the only references to `max_restart_downtime_seconds` are the field declaration and the `>= duration_seconds` check. `spawn_worker` writes `attempt.json{started_at}`, `worker` writes `ready.json{at}`/`failed.json`/`finished.json`, but nothing computes the gap between the prior operator's last liveness (its `failed.json`/kill time or last `episode-*/outcome.json.finished_at`) and the new operator's `ready.json.at`, and nothing compares it against the contract. `own()` writes `finished.json` unconditionally after the window regardless of how long the operator role was vacant (it does not even observe operator workspaces).\n- Reproduction: run `own` with `campaign-restart.json`; SIGKILL the operator at t=10 s; call `start-operator` at t=100 s (downtime 90 s > 45 s). Result: `finished.json` written, no artifact records or rejects the 90 s gap; the \"healthy restart\" gate passes vacuously.\n- Minimal fix: in `own()` before `finished.json`, enumerate `workers/operator-*`, order by `attempt.json.started_at`, compute `downtime = ready_at(n) \u2212 max(last outcome finished_at, failed/finished at)(n\u22121)` for each successive pair, save `restart-accounting.json`, and raise (\u2192 `failed.json`) if any `downtime > contract.max_restart_downtime_seconds` or if the operator role was vacant at `window['end']`.\n\n**2. Operator single-instance lock is checked only inside the child, after the start budget is irrevocably consumed; `start-operator` reports success for a worker that immediately fails.**\n- `campaign.py`: `spawn_worker` (budget check + `mkdir` under `{role}-launch.lock`), `worker` (`with exclusive(directory / f'{role}.lock')`), `main` (`print(spawn_worker(...)[0])`).\n- Trace: `start-operator` \u2192 `spawn_worker` counts `workers/operator-*` (\u2265 limit \u2192 refuse), creates the workspace, spawns child, returns. The child then tries `LOCK_EX|LOCK_NB` on `operator.lock`. If the previous operator is still alive (operator not yet killed, or `SIGKILL` delivered but not yet reaped so the flock is still held), the child raises `BlockingIOError`, writes `failed.json`, exits. The CLI already printed the workspace path with exit 0; one of `max_operator_starts=3` slots is gone (the dead directory still counts in `existing`). Two such collisions exhaust the budget with zero real restarts, and there is no `stop-operator` command exposing `stop_worker`, so the documented restart path cannot guarantee the lock is free.\n- Reproduction: `own` running with live operator; run `start-operator` once \u2192 prints path, exit 0; `workers/operator-<new>/failed.json{error_type:\"BlockingIOError\"}` appears; `start-operator` a third time \u2192 `RuntimeError('Worker start budget exhausted')` although only one operator ever ran.\n- Minimal fix: in `spawn_worker`, before `mkdir`, probe `exclusive(directory / f'{role}.lock')` non-blocking (acquire and release) and raise `RuntimeError('Role still running')` on `BlockingIOError`; additionally have `main` wait (bounded, e.g. 10 s) for `ready.json` or `failed.json` and exit non-zero on failure. Optionally add a `stop-operator` subcommand calling `stop_worker` and waiting until `process_identity(pid)` no longer matches.\n\n**Unsupported assumptions flagged (not verified from supplied code)**\n- `harness.save` is atomic (rename-based); workers poll for `window.json` existence and `read` immediately.\n- `ActionBroker.__init__` opens/creates the WAL `-shm` before `operation_rows` opens `?mode=ro` (otherwise the read-only open fails after a clean prior shutdown). `operation_rows` also never closes its connection (context manager only commits).\n- `provision` forwards `lease_seconds` to the janitor lease; `janitor.start` defaults to 7200 s.\n- Second `save(ending.json)` in `own()`'s `finally` overwrites the original ending timestamp \u2014 minor accounting loss, noted not counted.\n\nSnapshot ID 5b415486643059ce8b2ce0b3eb132e1cb0415520bb474090e49320a2e61544e1",
+      "usage_cost_estimate_usd": 0.45462,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "http_status": 200,
+      "source_commit": "d88beaa9eb71951acdaa45eef57f6f0d47c7b12c"
+    },
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T20:33:16.766908+00:00",
+      "finished_at": "2026-09-24T20:34:04.269023+00:00",
+      "generation_attempts": 1,
+      "snapshot": {
+        "files": [
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/campaign_report.py",
+            "sha256": "97ff3223fa65966fbcdc556ed1ff69c82daff158085680f60e48bc78a1ba1c4c"
+          },
+          {
+            "included": "full_source",
+            "path": "scripts/check_campaign.py",
+            "sha256": "2c1b977a44c2647b4a3a00793197c59b38a73e5a99bba3841432e51382f55600"
+          },
+          {
+            "included": "test_names_only",
+            "path": "tests/test_campaign.py",
+            "sha256": "2a87747a0787f179e731aab70419f6823187f7f5ed046e5b61063bcd79e704be"
+          },
+          {
+            "included": "full_source",
+            "path": "scenarios/campaign-restart.json",
+            "sha256": "6dd8961f1fbe1affe0dab6a1bf58c1cf7b52863ee448883f5174bc3d05d701ca"
+          }
+        ],
+        "prompt_sha256": "782f85821ad181663daa094ed43f5e3f88902a38375f982083f95bb41eb5868d",
+        "review_kind": "campaign_scorecard",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "5648d53ecee8467b767f5e5fe1009642504aaac2055dc6f2b38dab6e47a9255e",
+        "source_bytes": 14656
+      },
+      "findings_text": "**Defect 1 \u2014 `scripts/check_campaign.py`, `finally` block (`for process in children: process.wait(timeout=10)`)**\n\nTrigger: any checker failure after the resumed operator is spawned (e.g. `AssertionError('Insufficient observations wholly inside operator downtime')`, or `owner.wait` timing out). Trace:\n\n1. Exception \u2192 `except BaseException` sets `result['error_type']`, re-raises.\n2. `finally`: owner is still alive \u2192 `owner.kill()` (SIGKILL; owner's own janitor never runs). `environment.json` status \u2260 `deleted` \u2192 `cleanup(directory, \u2026)` \u2014 relying on the janitor terminating the resumed operator is an unsupported assumption here; if it does not, `children[1].wait(timeout=10)` raises `subprocess.TimeoutExpired`.\n3. That exception replaces the original one, and `result['finished_at']`, `save(gate/'result.json', result)` and `print(gate)` are skipped. The failed receipt on disk is the pre-failure copy written mid-run (`status: 'failed'`, no `error_type`), and the gate path is never printed. The runbook's stated guarantee (\"retain failed runs\") is broken exactly in the failure case.\n\nEven on the happy path, the checker never stops `resumed`; termination depends on the owner's cleanup, so the same wait can throw after a nominal pass and convert it to a crash with no receipt.\n\nMinimal fix:\n```python\nfinally:\n    try:\n        if owner.poll() is None:\n            owner.kill(); owner.wait(timeout=10)\n        for process in children:\n            if process.poll() is None:\n                os.killpg(process.pid, signal.SIGKILL)  # spawn_worker uses its own session per stop_worker contract\n            process.wait(timeout=10)\n        env = directory / 'environment.json'\n        if env.exists() and read(env)['status'] != 'deleted':\n            result['cleanup'] = cleanup(directory, {'cluster': read(env)['cluster']})\n    except Exception as error:\n        result['cleanup_error_type'] = type(error).__name__\n    result['finished_at'] = time.time()\n    save(gate / 'result.json', result)\n    print(gate, flush=True)\n```\n(Order: stop children before deleting the cluster so a live operator cannot act during teardown.)\n\n**Defect 2 \u2014 `src/autonomy_lab/campaign_report.py`, `timely` computation**\n\n```python\ntimely = (scheduled <= started_at <= scheduled + lateness\n          and started_at <= finished_at <= min(window['end'], scheduled + sample_interval_seconds))\n```\nThe contract declares `sample_window_seconds: 1`, but the report never reads it; the completion bound is the full 10 s interval. Trigger: a sample starts at `scheduled+1.9`, its probes stall (two probes \u00d7 `request_timeout_seconds` 2 plus DB/API time) and finish at `scheduled+9.8`. It is marked `on_time` and, if the verifier returns `verified_success`, credits the slot \u2014 although the observation spans nearly the entire gap to the next slot, violating the contract's sample window and the report's own \"no inference for intervals between probes\" limit. In `check_campaign.py`, such a sample straddling `stopped`/`ready['at']` also silently drops out of `during` (needs `finished_at <= ready['at']`) or gets counted with an interval that overlaps the operator being up, corrupting the \"wholly inside downtime\" count both ways. `contract.sample_window_seconds` is dead configuration.\n\nMinimal fix:\n```python\ndeadline = min(window['end'], scheduled + contract.sample_lateness_seconds + contract.sample_window_seconds)\ntimely = (scheduled <= row['started_at'] <= scheduled + contract.sample_lateness_seconds\n          and row['started_at'] <= row['finished_at'] <= deadline)\n```\nand have `Contract` validate `sample_lateness_seconds + sample_window_seconds < sample_interval_seconds`.\n\n**Unsupported assumptions (not independently verifiable from supplied source)**\n\n- `initial = next((directory/'workers').glob('operator-*'))` assumes the owner spawns the operator before writing `window.json`; otherwise `StopIteration`. Order not shown.\n- `downtime = ready['at'] - stopped` and the `during` filter use the operator's self-reported `ready.json` timestamp, which the report itself classifies as a claim; the checker's `wait_until` uses `time.time()` while `await_file` uses `time.monotonic()` \u2014 clock bases of `ready['at']`/sample timestamps are assumed to be wall-clock.\n- `quote['status_code']` will `KeyError` on a `response` quote without that field; whether the verifier guarantees it is not shown.\n\nSnapshot ID 5648d53ecee8467b767f5e5fe1009642504aaac2055dc6f2b38dab6e47a9255e",
+      "usage_cost_estimate_usd": 0.22625,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "http_status": 200,
+      "source_commit": "d88beaa9eb71951acdaa45eef57f6f0d47c7b12c"
+    },
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T20:40:30.701700+00:00",
+      "finished_at": "2026-09-24T20:42:23.811461+00:00",
+      "generation_attempts": 1,
+      "snapshot": {
+        "files": [
+          {
+            "included": "selected_lifecycle_functions",
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "ffd2c1fbc736f26597713fbeecfaf16fb234ccd5a88f9243f868117a909c86d1"
+          },
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/campaign_report.py",
+            "sha256": "97ff3223fa65966fbcdc556ed1ff69c82daff158085680f60e48bc78a1ba1c4c"
+          },
+          {
+            "included": "full_source",
+            "path": "scripts/check_campaign.py",
+            "sha256": "dc8cb06eefc87fe943adf59722da1e312c345dcfc207fae6b700443e2887121e"
+          },
+          {
+            "included": "selected_function:cleanup",
+            "path": "src/autonomy_lab/janitor.py",
+            "sha256": "5684c4cfa853b5623cec87fba62964b241eb1302380979e35f2316aaf97e2829"
+          },
+          {
+            "included": "selected_function:run_window",
+            "path": "src/autonomy_lab/verifier.py",
+            "sha256": "4f61c4e917aa297f4591a7594bef950de98ea3ed3ce0d040984092ac3d36a434"
+          }
+        ],
+        "prompt_sha256": "eb4ab95446844e2468f8a1c92f69ab083f718ba320baafbecf33300e746effa0",
+        "review_kind": "campaign_followup",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "8f1eb004db4e62b7b65e545a33059c2353520e5cf04d3e6410689ed908d7c996",
+        "source_bytes": 30101
+      },
+      "findings_text": "**Findings (2), plus unsupported assumptions**\n\n---\n\n### Defect 1 \u2014 `src/autonomy_lab/campaign.py`, `own()` `finally:` block (lines `if (directory / 'environment.json').exists(): save(... cleanup(...))` and `process.wait(timeout=10)`)\n\n**Durability / receipt loss.** The `except BaseException` branch writes `failed.json` only for exceptions raised inside the `try`. `cleanup()` (janitor) is called in `finally` and can raise (`ValueError('Cluster ownership mismatch')`, `subprocess.CalledProcessError`/`TimeoutExpired` from `kind delete` or `docker ps`). When it does:\n\nTrace (healthy run):\n1. `try` completes: `identities-after.json`, `finished.json{contract_pass:None}` written.\n2. `finally`: `cleanup()` raises `CalledProcessError` from `kind delete`.\n3. `cleanup.json` is never written (`save` never reached); `failed.json` is never written (we are outside `except`); the `process.wait` loop is skipped, so observer/operator zombies are not reaped.\n4. Owner exits non\u2011zero. `check_campaign.run()` raises `'Campaign owner failed'` *before* `scorecard()`, so `scorecard-a.json` is never produced; even if produced later, `owner_failure` is `None` and `owner_finished` is `True` while `cleanup` is `None` \u2014 the artifact contradicts the exit code and the failure cause is only in `owner.log`.\n\nThe same path also applies when `cleanup()` raises after a genuine `try` failure: the second error overwrites nothing, but the janitor error is still unrecorded.\n\n**Minimal fix:**\n```python\nfinally:\n    if not (directory / 'ending.json').exists():\n        save(directory / 'ending.json', {'at': time.time()})\n    if (directory / 'environment.json').exists():\n        try:\n            save(directory / 'cleanup.json', cleanup(directory, {'cluster': 'autolab-' + run_id}))\n        except Exception as error:\n            save(directory / 'cleanup.json', {'status': 'error', 'error_type': type(error).__name__,\n                                              'finished_at': time.time()})\n            if not (directory / 'failed.json').exists():\n                save(directory / 'failed.json', {'at': time.time(), 'error_type': type(error).__name__,\n                                                 'stage': 'cleanup'})\n            raise\n    for _, process in processes:\n        with contextlib.suppress(subprocess.TimeoutExpired):\n            process.wait(timeout=10)\n```\n(and reorder so reaping runs before/independently of cleanup, or wrap as shown). `check_campaign` already re-runs cleanup when `environment.json.status != 'deleted'`, so this fix preserves the receipt without changing gate semantics.\n\n---\n\n### Defect 2 \u2014 `src/autonomy_lab/campaign_report.py`, `scorecard()` line `requests[f\"http_{quote['status_code']}\"] += 1`\n\n**Reproducibility / hard-fail on partial data.** Every other field in this loop is accessed with `.get()`; `status_code` is not. A single `kind == 'response'` quote without `status_code` (e.g., a verifier probe that records a truncated/aborted response, or the collector-error path producing a partial quote list) raises `KeyError`, aborting the *entire* export \u2014 including the frozen-calendar accounting that is supposed to be deterministic even for failed runs. The checker then fails with `KeyError` instead of the intended `'Timeline includes failed\u2026samples'` receipt, and `scorecard-a.json` is absent.\n\n**Trigger:** any sample where a response quote lacks `status_code`. Whether the supplied verifier can emit such a quote is **not verifiable here** (quote construction not supplied) \u2014 see assumptions.\n\n**Minimal fix:**\n```python\nif quote.get('kind') == 'response':\n    requests[f\"http_{quote.get('status_code', 'unknown')}\"] += 1\n```\n\n---\n\n### Unsupported assumptions (not counted as defects)\n\n- `exclusive()` uses `LOCK_NB` and raises `BlockingIOError`; the concurrent-operator assertion depends on this exact exception name and exit code 1.\n- `contract.max_operator_starts \u2265 3` and `max_restart_downtime_seconds > ~31s`; otherwise the restart at `restart_offset_seconds=60` is refused by `spawn_worker` or fails the downtime assertion by construction.\n- `operator()` creates `episode-*/attempt.json` atomically with the directory; `scorecard` does `read(episode/'attempt.json')` unconditionally, so a SIGKILL between `mkdir` and `save` would crash the export (same class as Defect 2).\n- `process_identity` of a SIGKILLed zombie changes/returns falsy only after reaping; the checker's 10 s termination wait relies on the owner's 0.25 s `poll()` loop to reap the initial operator.\n\nNo other actionable defects substantiated in the supplied verifier `run_window`, janitor `cleanup`, `finalize_gate`, or `observe`.\n\nSnapshot ID: 8f1eb004db4e62b7b65e545a33059c2353520e5cf04d3e6410689ed908d7c996",
+      "usage_cost_estimate_usd": 0.5438,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "source_commit": "5b3c986fdd12f00974f5ef4fbf78cfbe5dcf2339"
+    }
+  ],
+  "incomplete_attempts": [
+    {
+      "status": "failed",
+      "started_at": "2026-09-24T20:29:05.937952+00:00",
+      "finished_at": "2026-09-24T20:29:06.240428+00:00",
+      "generation_attempts": 0,
+      "error": "Token preflight exceeds 14,999 input tokens or returned an invalid count"
+    },
+    {
+      "status": "incomplete",
+      "started_at": "2026-09-24T20:29:43.932451+00:00",
+      "finished_at": "2026-09-24T20:32:22.393951+00:00",
+      "generation_attempts": 1,
+      "error": "Review incomplete: stop_reason='max_tokens'; no continuation requested",
+      "http_status": 200,
+      "usage_cost_estimate_usd": 0.71424
+    },
+    {
+      "status": "failed",
+      "started_at": "2026-09-24T20:38:14.040092+00:00",
+      "finished_at": "2026-09-24T20:39:20.571831+00:00",
+      "generation_attempts": 1,
+      "error": "Messages request returned HTTP 500; no retry requested",
+      "http_status": 500
+    }
+  ],
+  "dispositions": [
+    {
+      "finding": "Cleanup/reaping errors can skip final gate receipt",
+      "decision": "fixed",
+      "evidence": "finalize_gate independently attempts process and cluster cleanup and always records original error plus finalization errors. Authored failure test covers simultaneous reaping/cleanup exceptions."
+    },
+    {
+      "finding": "Sample window must be a hard one-second collection deadline",
+      "decision": "not_substantiated",
+      "evidence": "Existing verifier run_window uses one second as a minimum interval with a terminal probe. Full collection must finish by the next ten-second slot; exact start/end times are retained and downtime inclusion checks both boundaries. Documentation clarified; late successes remain unknown."
+    },
+    {
+      "finding": "Owner completion vacuously passes maximum downtime",
+      "decision": "not_substantiated",
+      "evidence": "The component omitted check_campaign, which compares observed stopped-to-ready time against the contract. Owner completion explicitly says contract_pass:null. The gate now additionally confirms original process termination before starting the downtime interval. No downtime is inferred from last successful episode."
+    },
+    {
+      "finding": "start-operator exits successfully before the child refuses ownership",
+      "decision": "fixed",
+      "evidence": "CLI now waits for readiness or returns an error. The declared budget intentionally counts attempts, including a refused duplicate, to bound launches; it is not replenished by failures."
+    },
+    {
+      "finding": "Read-only SQLite connection not explicitly closed",
+      "decision": "fixed",
+      "evidence": "operation_rows now uses contextlib.closing."
+    },
+    {
+      "finding": "Janitor can replace cleanup status used by repeated exports",
+      "decision": "self_review_fixed",
+      "evidence": "cleanup returns its result to the owner, which stores immutable campaign cleanup.json; exports do not depend on the detached janitor updating janitor-result.json."
+    },
+    {
+      "finding": "Owner finally cleanup exceptions have no durable failure receipt",
+      "decision": "fixed",
+      "evidence": "finalize_owner separately attempts worker stops/reaping and cleanup, writes cleanup/finalization failures, preserves a prior failed.json, and raises after recording errors. Test covers simultaneous cleanup/reaping failures and previously successful owner paths."
+    },
+    {
+      "finding": "Interruption between episode directory creation and attempt receipt breaks export",
+      "decision": "fixed",
+      "evidence": "Missing worker or episode attempt records export null; an outcome without its attempt is never credited. A boundary test constructs only the directory, without inventing an assessment."
+    },
+    {
+      "finding": "A response without status_code breaks metrics export",
+      "decision": "defensive_hardening",
+      "evidence": "Current _http_observation creates kind and status_code together, so no emitted example was established. The exporter now retains an unknown status and classifies its slot unknown if partial/malformed evidence is supplied."
+    }
+  ],
+  "limits": "Source review is not execution or human approval. Separate component omissions are identified in each snapshot; real Kubernetes receipts are separate."
+}
