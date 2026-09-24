@@ -40,6 +40,7 @@ COMPONENT_SCOPES = {
     "fallback_scenarios": ({"experiments", "value_scenarios"}, {"value_scenarios", "experiment_boundaries"}),
     "fallback_verification": ({"value_scenarios", "verifier"}, {"value_scenarios", "verifier"}),
     "fallback_reporting": ({"value_scenarios"}, {"value_reporting"}),
+    "interrupted_reporting": (set(), {"interrupted_reporting", "value_reporting"}),
     "isolation": ({"isolated_runtime", "isolated_agent", "rpc", "authority_worker"}, {"isolated_runtime"}),
     "context": ({"agent", "context"}, set()),
     "context_logic": ({"context"}, {"context"}),
@@ -195,6 +196,8 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
             paths.add("docs/RUNBOOK_FALLBACK_EXPERIMENT.md")
     if scope == "fallback_reporting":
         paths |= {"scripts/report_agent_value.py", "scripts/export_report.py"}
+    if scope == "interrupted_reporting":
+        paths |= {"scripts/recover_interrupted_report.py", "scripts/report_agent_value.py", "scripts/export_report.py", "docs/RUNBOOK_FALLBACK_EXPERIMENT.md"}
     if scope == "ax_boundary":
         paths |= {"infra/ax/privilege-drop.patch", "infra/ax/privilege_drop_test.go", "infra/ax/durable-cleanup.patch", "infra/ax/README.md"}
     if scope not in COMPONENT_SCOPES:

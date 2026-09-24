@@ -123,7 +123,13 @@ def render(report):
               "structured": "Structured", "no_agent": "No-agent healthy"}
     lines = [f"# {title}", "", f"Study: `{report['name']}`.", "",
              f"Release `{report['release_id']}`. Recorded {report['recorded']}/{report['planned']}; cleanup: {report['cleanup']}.",
-             "", "Supported completions / planned trials. Controls show independently healthy environments / planned trials.", "",
+             ""]
+    if report.get("recovery"):
+        recovery = report["recovery"]
+        lines += [f"Operator-recovered accounting: the controller finalized {recovery['controller_finalized_trials']} trials. "
+                  f"Trial {recovery['interrupted_trial_index']} was interrupted during a service stop and remains unassessed; "
+                  "its running record was preserved. Cleanup was performed manually after archival. No trial was rerun.", ""]
+    lines += ["Supported completions / planned trials. Controls show independently healthy environments / planned trials.", "",
              "| Scenario | " + " | ".join(labels[a] for a in actors) + " |", "|---|" + "---:|" * len(actors)]
     for scenario in scenarios:
         if not any(p["scenario"] == scenario for p in report["plan"]):
