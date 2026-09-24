@@ -13,7 +13,7 @@ from pathlib import Path
 
 SCENARIOS = {"routing", "distraction", "healthy", "out_of_authority", "lost_ack",
              "concurrent_change", "adversarial", "dependency_changed", "adversarial_ack",
-             "lost_ack_changed"}
+             "lost_ack_changed", "quote_arithmetic", "quote_upstream", "observer_outage"}
 VARIANTS = {"basic", "structured", "runbook", "no_agent"}
 
 

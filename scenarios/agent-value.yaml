@@ -1,0 +1,33 @@
+schema_version: 1
+name: agent-value-comparison
+status: development
+preregistered: true
+model: gemini-3.8-flash
+repetitions: 2
+run_order_seed: 2026092320
+scenarios:
+- routing
+- healthy
+- lost_ack
+- quote_arithmetic
+- quote_upstream
+- observer_outage
+variants:
+- runbook
+- basic
+- structured
+- no_agent
+expected_behavior:
+  routing: repair
+  healthy: healthy
+  lost_ack: repair
+  quote_arithmetic: escalate
+  quote_upstream: escalate
+  observer_outage: healthy
+window_seconds: 30
+trial_timeout_seconds: 900
+max_turns: 12
+max_tokens: 32000
+max_output_tokens: 2048
+runtime: isolated-docker
+context_policy: recent-exchanges

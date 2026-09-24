@@ -28,6 +28,11 @@ from autonomy_lab.kubernetes import ROOT, Kubernetes
 from autonomy_lab.runbook import run as runbook
 from autonomy_lab.supervisor import supervise
 from autonomy_lab.toolbox import ObservationTools
+from autonomy_lab.value_scenarios import (
+    backend_observation_outage,
+    configure_quote_fault,
+    semantic_fault_established,
+)
 from autonomy_lab.verifier import verify
 
 SCENARIOS = {
@@ -41,6 +46,9 @@ SCENARIOS = {
     "dependency_changed",
     "adversarial_ack",
     "lost_ack_changed",
+    "quote_arithmetic",
+    "quote_upstream",
+    "observer_outage",
 }
 VARIANTS = {"runbook", "basic", "structured", "no_agent"}
 
@@ -221,7 +229,16 @@ def run_trial(
                 ) as db:
                     db.execute("REVOKE SELECT ON products FROM inventory_reader")
             controller_event("dependency_permission_revoked")
-        if scenario != "healthy":
+        if scenario in {"quote_arithmetic", "quote_upstream"}:
+            configure_quote_fault(kube, scenario)
+            controller_event("quote_configuration_fault", case=scenario)
+        if scenario == "quote_arithmetic":
+            fault = check(kube, verifier_kube, window_seconds=1)
+            save(run_dir / "semantic-fault.json", fault)
+            if not semantic_fault_established(fault):
+                raise RuntimeError("Wrong HTTP-200 quote was not established")
+            controller_event("client_semantic_failure_established")
+        elif scenario not in {"healthy", "observer_outage"}:
             establish_fault(kube, verifier_kube, run_dir)
             controller_event("client_path_failure_established")
 
@@ -261,6 +278,10 @@ def run_trial(
             quote_port = stack.enter_context(kube.forward("deployment/quote", 8080))
             inventory_port = stack.enter_context(kube.forward("deployment/inventory", 8080))
             db_port = stack.enter_context(kube.forward("deployment/postgres", 5432))
+            observer_inventory_port = inventory_port
+            if scenario == "observer_outage":
+                observer_inventory_port = stack.enter_context(backend_observation_outage(kube))
+                controller_event("backend_observation_proxy_closed")
             verification_index = 0
 
             def verify_current():
@@ -297,7 +318,7 @@ def run_trial(
                     observer_kube,
                     broker,
                     f"http://127.0.0.1:{quote_port}",
-                    f"http://127.0.0.1:{inventory_port}",
+                    f"http://127.0.0.1:{observer_inventory_port}",
                     verify_current,
                     run_dir,
                     run_id,

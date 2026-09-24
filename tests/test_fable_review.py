@@ -100,7 +100,7 @@ def test_broker_profile_enforces_smaller_input_and_low_effort():
 
 @pytest.mark.parametrize("scope", [scope for scope in review.COMPONENT_SCOPES if scope != "handoff"])
 def test_named_components_enforce_explicit_source_allowlists_and_budget(tmp_path, scope):
-    modules = review.FOUNDATION | review.AGENTS
+    modules = review.FOUNDATION | review.AGENTS | set().union(*(m for m, _ in review.COMPONENT_SCOPES.values()))
     for module in modules:
         put(tmp_path, f"src/autonomy_lab/{module}.py", f"module = '{module}'\n")
     snapshot = review.build_snapshot(tmp_path, scope)
