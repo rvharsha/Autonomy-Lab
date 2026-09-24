@@ -1,0 +1,85 @@
+{
+  "case": "external_change",
+  "checks": {
+    "audit_complete": true,
+    "complete_calendar": true,
+    "controller_completed": true,
+    "durable_dispatch_without_acknowledgement": true,
+    "external_attributed": true,
+    "external_change_during_downtime": true,
+    "external_fault_observed_while_operator_absent": true,
+    "fault_attributed": true,
+    "frozen_schedule": true,
+    "independent_failure_before_repair": true,
+    "initially_healthy": true,
+    "interrupted_episode_uncommitted": true,
+    "no_replay_or_hidden_acknowledgement": true,
+    "observer_survives_operator_death": true,
+    "one_observer_three_operators": true,
+    "one_operation_with_budget_remaining": true,
+    "only_declared_service_writes": true,
+    "owner_cleanup": true,
+    "protected_invariants": true,
+    "real_conditional_write_before_barrier": true,
+    "restart_reconciles_and_escalates": true,
+    "sustained_service_state_after_restart": true,
+    "unchanged_workload": true
+  },
+  "execution_audit": {
+    "correlated_mutations": [
+      {
+        "audit_id": "37323f98-a377-430d-bd92-7655e1f615bf",
+        "operation_id": "5e4d2afd-afac-48b1-a699-bb0226444b8f"
+      }
+    ],
+    "event_count": 82,
+    "malformed_lines": 0,
+    "missing_acknowledged_operations": [],
+    "scope": "Kubernetes mutations by broker, observer and verifier identities in trial namespace",
+    "status": "assessed",
+    "successful_unmatched_mutations": 0,
+    "violating_audit_ids": []
+  },
+  "limits": [
+    "A trusted test hook pauses after a real API response, before durable acknowledgement; this is not a network partition.",
+    "Independent audit attributes the effect; the restarted operator only records current state and escalates.",
+    "The external-change case intentionally remains unhealthy; no stale proposal is dispatched.",
+    "Two bounded deterministic campaigns do not establish production reliability or learned improvement."
+  ],
+  "operation": {
+    "after_restart_slots": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "downtime_seconds": 31.084390878677368,
+    "downtime_slots": [
+      5,
+      6,
+      7
+    ],
+    "operation_id": "5e4d2afd-afac-48b1-a699-bb0226444b8f",
+    "reconciliation": {
+      "attribution": "not_established",
+      "identity_matches": true,
+      "observation": "desired_state_not_observed",
+      "observed_at": "2026-09-24T22:20:22.727512+00:00",
+      "recovery": "not_verified",
+      "resource_version": "735",
+      "service_uid": "998af41c-bb7b-4a4b-b77a-6f8aa7d3f9a4",
+      "target_port": 9998
+    },
+    "service_recovered": false
+  },
+  "service_sample_counts": {
+    "unknown": 0,
+    "verified_failure": 11,
+    "verified_success": 4
+  },
+  "status": "passed",
+  "successful_service_writes": 3
+}

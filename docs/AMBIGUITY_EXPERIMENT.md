@@ -1,5 +1,7 @@
 # Persistent operation with an unrecorded effect
 
+The [executed results](AMBIGUITY_RESULTS.md) pass on GCP and in CI.
+
 This preregistered gate follows the [recurring-incident experiment](RECURRENCE_RESULTS.md).
 It tests a real Kubernetes mutation whose caller dies before recording its result,
 then restart with and without a conflicting external change. There are two separate

@@ -216,3 +216,12 @@ def test_partial_attempt_exports_failed_evaluation_without_a_barrier_or_journal(
         assert result['status'] == 'failed'
         assert result['checks']['controller_completed'] is False
         assert result == evaluate(tmp_path)
+
+
+@pytest.mark.parametrize('verdict,expected', [('verified_failure', False), ('unknown', None)])
+def test_failed_attempt_does_not_report_expected_recovery_as_observed(verdict, expected):
+    inputs = authored('unchanged')
+    inputs['card']['samples'][12]['verdict'] = verdict
+    result = assess_case(**inputs)
+    assert result['status'] == 'failed'
+    assert result['operation']['service_recovered'] is expected

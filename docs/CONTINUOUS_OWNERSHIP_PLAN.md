@@ -2,7 +2,7 @@
 
 The [purpose and alignment check](GOAL_ALIGNMENT.md) connects each milestone to the
 evidence needed for an autonomy or investment decision. The next implementation
-priority is ambiguous effects, external changes and remaining lifecycle gates on
+priority is telemetry gaps and remaining lifecycle gates on
 one persistent workload, followed by one independently gated procedure improvement
 and a fair sustained comparison.
 
@@ -72,9 +72,13 @@ and in CI, including concurrent-owner refusal and normal cleanup. The
 two attributed repairs across operator restarts, followed by budget rejection and
 escalation on a third fault, with one workload and one complete observation calendar.
 This closes the declared recurrence slice of gate 2 and budget portion of gate 4.
-Ambiguous effects, conflicting external changes, telemetry gaps and supervised
-owner termination still require their separate gates. Procedure improvement and
-a sustained comparison remain unproven.
+The [ambiguous-effect gate](AMBIGUITY_RESULTS.md) now passes on both platforms,
+closing the interruption/reconciliation and external-change refusal slice of gate
+3: one real unrecorded effect, no replay despite remaining budget, and independently
+measured health or failure. Actual stale-proposal dispatch/API rejection remains
+outside that gate. Telemetry gaps and supervised campaign-owner termination still
+require their separate gates. Procedure improvement and a sustained comparison
+remain unproven.
 
 ## Subsequent milestones
 

@@ -117,9 +117,16 @@
   ],
   "followup_validation": "Focused adversarial tests cover the fixes; Fable reviewed the earlier snapshot and is not claimed to have approved the changed source.",
   "final_component_sha256": {
-    "src/autonomy_lab/ambiguity.py": "e70a6e600618b70877b980ebd33ac7ae0dcd48d4a71d44d4fe2c17d23e5ac56b",
+    "src/autonomy_lab/ambiguity.py": "65cd0203103ebebea7ea504a00acce04abe1b10959221a304bc01bc6586d81be",
     "scripts/check_ambiguity.py": "e214ebca1e1a17c8574f70776d569bccce9559e622877e6250a083614613d9d0",
     "src/autonomy_lab/campaign.py": "8f2b9d6e2589477a8117bdac3fb3a2b3e1db31d1e8043c39eaa7e936f527d737",
-    "tests/test_ambiguity.py": "cb0b5acf5484570808cb1033aa397d169c75ad3f141bfadff90cccd9d5d59c9d"
+    "tests/test_ambiguity.py": "06697826c110ac0b6403dc34fe4bf4d3040d8d8e460068ca2c4452ee4f66b646"
+  },
+  "self_review_followup": {
+    "finding": "A failed unchanged case could label expected recovery as observed recovery in its summary.",
+    "decision": "fixed after completing the frozen runs",
+    "change": "Derive service_recovered from independent post-restart slots; return null for missing/unknown coverage. No acceptance criteria changed.",
+    "tests": "test_failed_attempt_does_not_report_expected_recovery_as_observed",
+    "validation": "Both completed GCP scorecards/evaluations reproduce identical bytes with the original scorer and reporting correction. The follow-up is covered by two authored cases and subsequent real CI."
   }
 }

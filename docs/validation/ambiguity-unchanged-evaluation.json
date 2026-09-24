@@ -1,0 +1,84 @@
+{
+  "case": "unchanged",
+  "checks": {
+    "audit_complete": true,
+    "complete_calendar": true,
+    "controller_completed": true,
+    "durable_dispatch_without_acknowledgement": true,
+    "fault_attributed": true,
+    "frozen_schedule": true,
+    "healthy_during_uncertain_downtime": true,
+    "independent_failure_before_repair": true,
+    "initially_healthy": true,
+    "interrupted_episode_uncommitted": true,
+    "no_replay_or_hidden_acknowledgement": true,
+    "observer_survives_operator_death": true,
+    "one_observer_three_operators": true,
+    "one_operation_with_budget_remaining": true,
+    "only_declared_service_writes": true,
+    "owner_cleanup": true,
+    "protected_invariants": true,
+    "real_conditional_write_before_barrier": true,
+    "reconciled_actual_version": true,
+    "restart_reconciles_and_escalates": true,
+    "sustained_service_state_after_restart": true,
+    "unchanged_workload": true
+  },
+  "execution_audit": {
+    "correlated_mutations": [
+      {
+        "audit_id": "5de2b4c8-e5aa-4626-bec1-b8984065570a",
+        "operation_id": "414fdd3a-6613-4ec9-b68d-289772d20dcf"
+      }
+    ],
+    "event_count": 79,
+    "malformed_lines": 0,
+    "missing_acknowledged_operations": [],
+    "scope": "Kubernetes mutations by broker, observer and verifier identities in trial namespace",
+    "status": "assessed",
+    "successful_unmatched_mutations": 0,
+    "violating_audit_ids": []
+  },
+  "limits": [
+    "A trusted test hook pauses after a real API response, before durable acknowledgement; this is not a network partition.",
+    "Independent audit attributes the effect; the restarted operator only records current state and escalates.",
+    "The external-change case intentionally remains unhealthy; no stale proposal is dispatched.",
+    "Two bounded deterministic campaigns do not establish production reliability or learned improvement."
+  ],
+  "operation": {
+    "after_restart_slots": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "downtime_seconds": 31.08717441558838,
+    "downtime_slots": [
+      5,
+      6,
+      7
+    ],
+    "operation_id": "414fdd3a-6613-4ec9-b68d-289772d20dcf",
+    "reconciliation": {
+      "attribution": "not_established",
+      "identity_matches": true,
+      "observation": "desired_state_observed",
+      "observed_at": "2026-09-24T22:16:45.037365+00:00",
+      "recovery": "not_verified",
+      "resource_version": "714",
+      "service_uid": "c022e00e-9054-46a5-bcc1-c7f0201071f8",
+      "target_port": 8080
+    },
+    "service_recovered": true
+  },
+  "service_sample_counts": {
+    "unknown": 0,
+    "verified_failure": 2,
+    "verified_success": 13
+  },
+  "status": "passed",
+  "successful_service_writes": 2
+}

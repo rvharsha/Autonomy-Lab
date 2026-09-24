@@ -161,7 +161,8 @@ def assess_case(card, spec, record, before, barrier, journal, captured, raw_samp
         detail = {'operation_id': op_id, 'reconciliation': reconciliation,
                   'downtime_seconds': record['resumed_ready_at'] - record['stopped_at'],
                   'downtime_slots': [s['slot'] for s in during], 'after_restart_slots': [s['slot'] for s in after],
-                  'service_recovered': expected_port == 8080}
+                  'service_recovered': (all(s['verdict'] == 'verified_success' for s in after)
+                                        if len(after) >= 3 and all(s['verdict'] != 'unknown' for s in after) else None)}
     else:
         checks['interrupted_operation_evidence'] = False
     checks['only_declared_service_writes'] = len(writes) == (3 if spec['case'] == 'external_change' else 2) and {e['auditID'] for e in writes} == allowed
