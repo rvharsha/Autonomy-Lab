@@ -14,6 +14,7 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+from export_report import identity
 from report_agent_value import build, render
 
 
@@ -96,7 +97,7 @@ def recover(run, service_journal, cleanup_receipt, unit):
         # original bytes, including the interrupted worker's partial record.
         for filename, value in {
             "results.json": combined,
-            "accounting.json": {"planned": len(plan), "recorded": len(combined), "unrun": plan[index:]},
+            "accounting.json": {"planned": len(plan), "recorded": len(combined), "unrun": [identity(p) for p in plan[index:]]},
             "cleanup.json": {"status": "deleted"},
         }.items():
             (target / filename).write_text(json.dumps(value))

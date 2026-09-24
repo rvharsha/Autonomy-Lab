@@ -92,11 +92,13 @@ def test_worker_missing_repetition_is_explicitly_bound_to_ordered_plan(interrupt
     write(path, row)
     manifest = json.loads((run / "manifest.json").read_text())
     manifest["planned_trials"][3]["score"] = {"task_success": True}
+    manifest["planned_trials"][4]["private_metadata"] = "PRIVATE_PLAN_METADATA"
     write(run / "manifest.json", manifest)
     report = recovery.recover(*interrupted)
     assert report["trials"][-1]["repetition"] == 1
     assert report["trials"][-1]["task_success"] is None
     assert report["recovery"]["partial_repetition_source"] == "ordered_manifest_position"
+    assert "PRIVATE_PLAN_METADATA" not in json.dumps(report)
 
 
 def test_unrelated_binary_journal_messages_and_blank_lines_do_not_hide_stop(interrupted):

@@ -70,7 +70,9 @@ REMEDIATION_FINDINGS = {
         "Recovery overwrote a supplied conflicting repetition from the ordered plan and failed "
         "on unrelated binary journald MESSAGE fields. Worker partial records normally omit "
         "repetition; check the explicit missing-field provenance and rejection of conflicting "
-        "supplied repetitions, without requiring a field the worker does not write."
+        "supplied repetitions, without requiring a field the worker does not write. "
+        "A follow-up identified raw extra plan metadata in the derived unrun list; check "
+        "normalization through export_report.identity, including remaining unrun trials."
     ),
     "broker": (
         "Pre-dispatch rejection previously retained a reserved budget slot; actual dispatched API "
