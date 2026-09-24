@@ -199,6 +199,16 @@ commits do not require overwriting it.
 
 ## Operate and clean up
 
+The later [fallback study](../../docs/RUNBOOK_FALLBACK_RESULTS.md) exposed a
+different termination boundary: a systemd service stop/restart during unattended
+package maintenance interrupted both the controller and its detached janitor.
+The controller-only SIGKILL check above does not validate whole-service
+termination. The original evidence was archived, the owned cluster was manually
+deleted, and the VM was stopped. Before another live comparison, require a real
+service-stop gate proving final accounting and cleanup survive independently of
+the study's control group. Keep host maintenance and restoration explicit and
+bounded; do not disable security updates indefinitely to make a run pass.
+
 Use the same explicit project, zone, and IAP flags when restarting or accessing
 the host. Starting it grants a new 12-hour run interval. Applications exist only
 while a declared lab run provisions them; the VM is an on-demand experiment host.

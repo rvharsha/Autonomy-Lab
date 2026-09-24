@@ -2,7 +2,9 @@
 
 Start with the [research findings and readiness](docs/FINDINGS.md), [annotated trajectories](docs/TRAJECTORIES.md), and [reproduction guide](docs/REPRODUCING.md). The corrected research release is **v0.1.1**; [handoff validation](docs/HANDOFF_VALIDATION.md) records its execution gates.
 
-The completed [48-trial automation and agent comparison](docs/AGENT_VALUE_RESULTS.md) found runbook 10/12, basic 12/12 and structured 12/12 supported completions, plus 12 unscored controls. The entire agent advantage was a known missing observer-failure fallback in the runbook. Structured used about 15% more reported tokens than basic for the same completion result. The comparison adds research evidence; it does not expand production readiness or repair authority.
+The latest [80-trial fallback comparison](docs/RUNBOOK_FALLBACK_RESULTS.md) accounts for 79 finalized trials and one interrupted attempt. Original runbook: 14/16; verification fallback: 15/16 with one unknown; basic: 15/16; structured: 16/16, plus 16 unscored controls. The deterministic fallback closed both healthy observer-outage cases with zero model tokens, but a host service restart interrupted its final trial and automatic cleanup. Its promotion gate remains unmet. The VM is stopped, and the original evidence and manual cleanup are recorded.
+
+The earlier [48-trial comparison](docs/AGENT_VALUE_RESULTS.md) remains separate: runbook 10/12, basic 12/12 and structured 12/12, plus 12 controls. These studies add research evidence; they do not expand repair authority or establish production readiness.
 
 A Kubernetes lab for testing diagnosis, bounded repair, independent verification, and recovery after interruption. It runs locally or on the [GCP experiment host](infra/gcp/README.md) in `autonomy-lab-509518`. The research proposal is in [PLAN.md](PLAN.md); milestones are in [BUILD_PLAN.md](BUILD_PLAN.md).
 

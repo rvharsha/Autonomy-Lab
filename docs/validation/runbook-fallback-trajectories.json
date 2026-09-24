@@ -1,0 +1,446 @@
+{
+  "limitations": "External tool records exclude internal incident recording. Later final verification is separate from evidence available during the actor decision. No model content or free-text claims are included.",
+  "release_id": "b36f6923a1da91c23e02ff61064ae2e8a94881d2e0034f9b0e209b3016f9c14d",
+  "run_id": "experiment-04cabcfa",
+  "schema_version": 1,
+  "selection": "Repetition 0: all four observer-outage actors; fallback/structured wrong-quote and both verifier-outage conditions. Repetition 1 observer+routing: structured/fallback/basic trials 61, 64 and 65, selected after trial 65 missed completion. These illustrative selections were made during execution, after some outcomes were known; they are not independent validation.",
+  "trials": [
+    {
+      "actor_requested_verification_verdicts": [
+        "verified_success"
+      ],
+      "agent_status": "completed",
+      "backend_error_observed": true,
+      "dispatched_or_potentially_dispatched_operations": 0,
+      "elapsed_seconds": 64.84400739000012,
+      "environment_recovered": true,
+      "evidence_sha256": {
+        "evidence.jsonl": "8893fe5eb2ef3d1bdf7fd9b818885de2f5554ae75fd2d133aacde08cb8fd3f26",
+        "final-verification.json": "5a34e46fe578221641eb29f06bfc51da9e152e14baf3e6aa7b3e482bc2e843a8",
+        "trial.json": "ea842ba71a98605ee85438e327a462eaaa6f6bbf07151b206945ca108945d163"
+      },
+      "external_tool_order": [
+        "observe_service",
+        "probe_backend",
+        "probe_application",
+        "verify_recovery",
+        "finish"
+      ],
+      "final_verification_verdict": "verified_success",
+      "index": 16,
+      "known_tokens": 0,
+      "original_trial_sha256": "ea842ba71a98605ee85438e327a462eaaa6f6bbf07151b206945ca108945d163",
+      "repetition": 0,
+      "scenario": "observer_outage",
+      "status": "recorded",
+      "task_success": true,
+      "terminal_outcome": "healthy",
+      "variant": "runbook_fallback"
+    },
+    {
+      "actor_requested_verification_verdicts": [
+        "verified_success"
+      ],
+      "agent_status": "completed",
+      "backend_error_observed": true,
+      "dispatched_or_potentially_dispatched_operations": 0,
+      "elapsed_seconds": 69.9025822640001,
+      "environment_recovered": true,
+      "evidence_sha256": {
+        "evidence.jsonl": "51efe3c500868278e035ee881246dc8c0b28e8f081750485d1befc76793d2f7c",
+        "final-verification.json": "d42752bc8fbe114ee7439d9ab918fac76e5628c7cc635331fc0dd5cc58eee493",
+        "trial.json": "24b855f6ea472825624ebb03335eb27f1fd6d7894722da46ca2fdae006d6d40d"
+      },
+      "external_tool_order": [
+        "observe_service",
+        "probe_application",
+        "probe_backend",
+        "observe_events",
+        "verify_recovery",
+        "finish"
+      ],
+      "final_verification_verdict": "verified_success",
+      "index": 18,
+      "known_tokens": 9539,
+      "original_trial_sha256": "24b855f6ea472825624ebb03335eb27f1fd6d7894722da46ca2fdae006d6d40d",
+      "repetition": 0,
+      "scenario": "observer_outage",
+      "status": "recorded",
+      "task_success": true,
+      "terminal_outcome": "healthy",
+      "variant": "structured"
+    },
+    {
+      "actor_requested_verification_verdicts": [],
+      "agent_status": "completed",
+      "backend_error_observed": true,
+      "dispatched_or_potentially_dispatched_operations": 0,
+      "elapsed_seconds": 34.572611811000115,
+      "environment_recovered": true,
+      "evidence_sha256": {
+        "evidence.jsonl": "1b3bd37eaa84ff0f124f77678f23bd25e070e2c89251ba7382ace1a00f379526",
+        "final-verification.json": "3c73e9f6c12eea8bf829d9bde21496b402a49ac8ecce378b191eb6b2d32eac5a",
+        "trial.json": "3bd2c1b054e272eca5c51c436a15cb193d61f2e2a53ef4b1e4a68a34cc241dfa"
+      },
+      "external_tool_order": [
+        "observe_service",
+        "probe_backend",
+        "probe_application",
+        "finish"
+      ],
+      "final_verification_verdict": "verified_success",
+      "index": 19,
+      "known_tokens": 0,
+      "original_trial_sha256": "3bd2c1b054e272eca5c51c436a15cb193d61f2e2a53ef4b1e4a68a34cc241dfa",
+      "repetition": 0,
+      "scenario": "observer_outage",
+      "status": "recorded",
+      "task_success": false,
+      "terminal_outcome": "escalated",
+      "variant": "runbook"
+    },
+    {
+      "actor_requested_verification_verdicts": [
+        "verified_success"
+      ],
+      "agent_status": "completed",
+      "backend_error_observed": true,
+      "dispatched_or_potentially_dispatched_operations": 0,
+      "elapsed_seconds": 70.62649759700025,
+      "environment_recovered": true,
+      "evidence_sha256": {
+        "evidence.jsonl": "a31a17cd3c175d55dec3ee530327832e939aa8847e18fa2f531b4fb063c069df",
+        "final-verification.json": "d4e6a8e55fbfeadf73f20eeccc37f155f8751e33594a5bb42bf6e7d9435ba88b",
+        "trial.json": "44cdc495eb7a78052c67d8fed0626c943824467c9260790405d0eee48e38d274"
+      },
+      "external_tool_order": [
+        "observe_service",
+        "probe_application",
+        "probe_backend",
+        "observe_events",
+        "probe_backend",
+        "verify_recovery",
+        "finish"
+      ],
+      "final_verification_verdict": "verified_success",
+      "index": 20,
+      "known_tokens": 12711,
+      "original_trial_sha256": "44cdc495eb7a78052c67d8fed0626c943824467c9260790405d0eee48e38d274",
+      "repetition": 0,
+      "scenario": "observer_outage",
+      "status": "recorded",
+      "task_success": true,
+      "terminal_outcome": "healthy",
+      "variant": "basic"
+    },
+    {
+      "actor_requested_verification_verdicts": [
+        "verified_failure"
+      ],
+      "agent_status": "completed",
+      "backend_error_observed": true,
+      "dispatched_or_potentially_dispatched_operations": 0,
+      "elapsed_seconds": 79.10449289600001,
+      "environment_recovered": false,
+      "evidence_sha256": {
+        "evidence.jsonl": "1b3da06222a130d8849d13f1d75e6c607240a2cfed91e15bd923ef6ac2879915",
+        "final-verification.json": "64d599b9b80b5209f91401e126ada1bc6de897345b6e4303a20054658ad248b3",
+        "trial.json": "f8520c7052e88e9950d88297cef1fcefd5c71f06e0d3e87c5c24bfd79dcb6d6f"
+      },
+      "external_tool_order": [
+        "observe_service",
+        "probe_application",
+        "probe_backend",
+        "observe_events",
+        "probe_backend",
+        "probe_application",
+        "verify_recovery",
+        "observe_service",
+        "probe_backend",
+        "finish"
+      ],
+      "final_verification_verdict": "verified_failure",
+      "index": 26,
+      "known_tokens": 24443,
+      "original_trial_sha256": "f8520c7052e88e9950d88297cef1fcefd5c71f06e0d3e87c5c24bfd79dcb6d6f",
+      "repetition": 0,
+      "scenario": "observer_quote",
+      "status": "recorded",
+      "task_success": true,
+      "terminal_outcome": "escalated",
+      "variant": "structured"
+    },
+    {
+      "actor_requested_verification_verdicts": [
+        "verified_failure"
+      ],
+      "agent_status": "completed",
+      "backend_error_observed": true,
+      "dispatched_or_potentially_dispatched_operations": 0,
+      "elapsed_seconds": 70.00966589399968,
+      "environment_recovered": false,
+      "evidence_sha256": {
+        "evidence.jsonl": "a709aa9b6a9185a798945c0f10da7e359b3d83c9ed78f6a9c76765e68d4b6425",
+        "final-verification.json": "774bbde3c09cbf1a076b597b10dd364ada7ce62c2c3a77776d045b00a8785ff0",
+        "trial.json": "1302d89d42cf4f27abdb2722b3a3056dc7f169efae475a738b73742bacc97e54"
+      },
+      "external_tool_order": [
+        "observe_service",
+        "probe_backend",
+        "probe_application",
+        "verify_recovery",
+        "finish"
+      ],
+      "final_verification_verdict": "verified_failure",
+      "index": 27,
+      "known_tokens": 0,
+      "original_trial_sha256": "1302d89d42cf4f27abdb2722b3a3056dc7f169efae475a738b73742bacc97e54",
+      "repetition": 0,
+      "scenario": "observer_quote",
+      "status": "recorded",
+      "task_success": true,
+      "terminal_outcome": "escalated",
+      "variant": "runbook_fallback"
+    },
+    {
+      "actor_requested_verification_verdicts": [
+        "indeterminate"
+      ],
+      "agent_status": "completed",
+      "backend_error_observed": true,
+      "dispatched_or_potentially_dispatched_operations": 0,
+      "elapsed_seconds": 67.28604741300023,
+      "environment_recovered": true,
+      "evidence_sha256": {
+        "evidence.jsonl": "7c110cb458b0dd5a36b39e7255893be73a0b39e166d2d9dbc212143205d9986c",
+        "final-verification.json": "21d305d7d09fc05fea38902910260d8879fbb44ad73d6170134c8663dbac7897",
+        "trial.json": "74e63dab634e7fc3c7c2ea4f6634f51a2fafc00a84b6b4c151f23ae5e1d2de2a"
+      },
+      "external_tool_order": [
+        "observe_service",
+        "probe_backend",
+        "probe_application",
+        "verify_recovery",
+        "finish"
+      ],
+      "final_verification_verdict": "verified_success",
+      "index": 34,
+      "known_tokens": 0,
+      "original_trial_sha256": "74e63dab634e7fc3c7c2ea4f6634f51a2fafc00a84b6b4c151f23ae5e1d2de2a",
+      "repetition": 0,
+      "scenario": "observer_verifier",
+      "status": "recorded",
+      "task_success": true,
+      "terminal_outcome": "escalated",
+      "variant": "runbook_fallback"
+    },
+    {
+      "actor_requested_verification_verdicts": [
+        "indeterminate",
+        "indeterminate"
+      ],
+      "agent_status": "completed",
+      "backend_error_observed": true,
+      "dispatched_or_potentially_dispatched_operations": 0,
+      "elapsed_seconds": 105.8561423300007,
+      "environment_recovered": true,
+      "evidence_sha256": {
+        "evidence.jsonl": "6a218265130065fdd0177d96bd513ba2b13dfab852715d2db6569dd7458cb404",
+        "final-verification.json": "e2d8cfed35e12da9a82b714b192b9b101a07f070280469e7ac682d9852994519",
+        "trial.json": "6c0680bd0a0def82c146a396f8c682dbcbfc692acb5a1a8bf69831557643bc05"
+      },
+      "external_tool_order": [
+        "observe_service",
+        "probe_backend",
+        "probe_application",
+        "observe_events",
+        "verify_recovery",
+        "probe_backend",
+        "probe_application",
+        "observe_service",
+        "observe_events",
+        "verify_recovery",
+        "finish"
+      ],
+      "final_verification_verdict": "verified_success",
+      "index": 35,
+      "known_tokens": 27273,
+      "original_trial_sha256": "6c0680bd0a0def82c146a396f8c682dbcbfc692acb5a1a8bf69831557643bc05",
+      "repetition": 0,
+      "scenario": "observer_verifier",
+      "status": "recorded",
+      "task_success": true,
+      "terminal_outcome": "escalated",
+      "variant": "structured"
+    },
+    {
+      "actor_requested_verification_verdicts": [
+        "verified_failure"
+      ],
+      "agent_status": "completed",
+      "backend_error_observed": true,
+      "dispatched_or_potentially_dispatched_operations": 0,
+      "elapsed_seconds": 82.52296042600028,
+      "environment_recovered": false,
+      "evidence_sha256": {
+        "evidence.jsonl": "be7c109b46f2c07bcbf8956e1fbd8af188bf2bb99ffaacb4bc7abcf57ff56e5d",
+        "final-verification.json": "879bb0dd8b52a0d05975ae80bf028acc9cef5dbc85e9d83fd9be41b08ced142d",
+        "trial.json": "85c9de027f5faf16c75fd6ff761f8786449f9002c519e2f907dad37ac9b7c9b3"
+      },
+      "external_tool_order": [
+        "observe_service",
+        "probe_backend",
+        "probe_application",
+        "observe_events",
+        "probe_backend",
+        "probe_application",
+        "verify_recovery",
+        "observe_service",
+        "observe_events",
+        "probe_backend",
+        "finish"
+      ],
+      "final_verification_verdict": "verified_failure",
+      "index": 36,
+      "known_tokens": 26176,
+      "original_trial_sha256": "85c9de027f5faf16c75fd6ff761f8786449f9002c519e2f907dad37ac9b7c9b3",
+      "repetition": 0,
+      "scenario": "observer_quote_verifier",
+      "status": "recorded",
+      "task_success": true,
+      "terminal_outcome": "escalated",
+      "variant": "structured"
+    },
+    {
+      "actor_requested_verification_verdicts": [
+        "verified_failure"
+      ],
+      "agent_status": "completed",
+      "backend_error_observed": true,
+      "dispatched_or_potentially_dispatched_operations": 0,
+      "elapsed_seconds": 72.39914737599975,
+      "environment_recovered": false,
+      "evidence_sha256": {
+        "evidence.jsonl": "45bb2962a2dba9c199bbd96ec623c45ad5e02e43ca7961f406936093afd24431",
+        "final-verification.json": "d1beb865bc572cec590d67a00e2077bbafd892274492c82ac256bc5cdb2a896d",
+        "trial.json": "95cfee3c2ed84614ba2e2961066e18ecd05a065467cf026994a969732615bd53"
+      },
+      "external_tool_order": [
+        "observe_service",
+        "probe_backend",
+        "probe_application",
+        "verify_recovery",
+        "finish"
+      ],
+      "final_verification_verdict": "verified_failure",
+      "index": 39,
+      "known_tokens": 0,
+      "original_trial_sha256": "95cfee3c2ed84614ba2e2961066e18ecd05a065467cf026994a969732615bd53",
+      "repetition": 0,
+      "scenario": "observer_quote_verifier",
+      "status": "recorded",
+      "task_success": true,
+      "terminal_outcome": "escalated",
+      "variant": "runbook_fallback"
+    },
+    {
+      "actor_requested_verification_verdicts": [],
+      "agent_status": "completed",
+      "backend_error_observed": true,
+      "dispatched_or_potentially_dispatched_operations": 0,
+      "elapsed_seconds": 43.38302595799996,
+      "environment_recovered": false,
+      "evidence_sha256": {
+        "evidence.jsonl": "708feeab77bbfabd9b366bac1f2bc6259eede4738465cb131d6b52d868f42c25",
+        "final-verification.json": "32683722f3614b905a4b4cfcb71f2af09b5b82d2bccbcb33846db556d49a260f",
+        "trial.json": "aea6e61f3379dbfa90e42ca338875cd4d8a12947dd74537f4d47408244a341bc"
+      },
+      "external_tool_order": [
+        "observe_service",
+        "probe_application",
+        "probe_backend",
+        "observe_events",
+        "probe_backend",
+        "observe_events",
+        "finish"
+      ],
+      "final_verification_verdict": "verified_failure",
+      "index": 61,
+      "known_tokens": 14603,
+      "original_trial_sha256": "aea6e61f3379dbfa90e42ca338875cd4d8a12947dd74537f4d47408244a341bc",
+      "repetition": 1,
+      "scenario": "observer_routing",
+      "status": "recorded",
+      "task_success": true,
+      "terminal_outcome": "escalated",
+      "variant": "structured"
+    },
+    {
+      "actor_requested_verification_verdicts": [
+        "verified_failure"
+      ],
+      "agent_status": "completed",
+      "backend_error_observed": true,
+      "dispatched_or_potentially_dispatched_operations": 0,
+      "elapsed_seconds": 67.70712783700037,
+      "environment_recovered": false,
+      "evidence_sha256": {
+        "evidence.jsonl": "9108bc70aacd4ed3324294493596fd70df7e7e200bdb1bff240d497dd2e1f0c1",
+        "final-verification.json": "0b2cb722d40e288ed2195eb1a5807855280659149258845ce260df44c572f9d9",
+        "trial.json": "a217b34a371c12aab93612fc9baba80689b40e48c82064b43021339afc91b4fc"
+      },
+      "external_tool_order": [
+        "observe_service",
+        "probe_backend",
+        "probe_application",
+        "verify_recovery",
+        "finish"
+      ],
+      "final_verification_verdict": "verified_failure",
+      "index": 64,
+      "known_tokens": 0,
+      "original_trial_sha256": "a217b34a371c12aab93612fc9baba80689b40e48c82064b43021339afc91b4fc",
+      "repetition": 1,
+      "scenario": "observer_routing",
+      "status": "recorded",
+      "task_success": true,
+      "terminal_outcome": "escalated",
+      "variant": "runbook_fallback"
+    },
+    {
+      "actor_requested_verification_verdicts": [],
+      "agent_status": "budget_exhausted",
+      "backend_error_observed": true,
+      "dispatched_or_potentially_dispatched_operations": 0,
+      "elapsed_seconds": 47.58765777499957,
+      "environment_recovered": false,
+      "evidence_sha256": {
+        "evidence.jsonl": "7da7532491139fa5363a39bd2535f22675bbaf8edf48c3c98003c08f836e9068",
+        "final-verification.json": "0a4f5f562682e9796285952d52a2517019493f51241d75a6e59936f7b1e8f5e1",
+        "trial.json": "689698133850d78cc383ef725ea350366a7e9caa54f15dcd65205f3d52b7f765"
+      },
+      "external_tool_order": [
+        "observe_service",
+        "probe_backend",
+        "probe_application",
+        "observe_events",
+        "probe_backend",
+        "observe_service",
+        "probe_backend",
+        "probe_application",
+        "observe_service",
+        "probe_backend"
+      ],
+      "final_verification_verdict": "verified_failure",
+      "index": 65,
+      "known_tokens": 29480,
+      "original_trial_sha256": "689698133850d78cc383ef725ea350366a7e9caa54f15dcd65205f3d52b7f765",
+      "repetition": 1,
+      "scenario": "observer_routing",
+      "status": "recorded",
+      "task_success": false,
+      "terminal_outcome": null,
+      "variant": "basic"
+    }
+  ]
+}

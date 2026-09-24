@@ -1,0 +1,10 @@
+{
+  "cluster": "autolab-04cabcfa",
+  "finished_at": "2026-09-24T06:48:48.570419+00:00",
+  "janitor_result_sha256": "a2e0395d34258089a0878e2ca99c43de580f2daafab90f7d78ddec972c1c6a51",
+  "method": "manual_invocation_of_owned_resource_janitor_after_archival",
+  "original_archive_sha256": "f3b64f9268ab4fab5e56c6457c1a6da3e21b51e93cffc1d3d9c446224ebc268a",
+  "run_id": "experiment-04cabcfa",
+  "schema_version": 1,
+  "status": "deleted"
+}
