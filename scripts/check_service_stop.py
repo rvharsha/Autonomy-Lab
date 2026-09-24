@@ -50,6 +50,39 @@ def evidence_json(root, name):
     return json.loads(evidence_bytes(root, name))
 
 
+def receipt_directory():
+    """Keep privileged writes outside the lab user's replaceable checkout.
+
+    Every ancestor must be root-owned and not writable by other users. Opening
+    components without following links also rejects pre-planted symlinks.
+    Once checked, only root can rename these ancestors or our private child.
+    """
+    root = Path('/var/lib/autonomy-lab/service-gates')
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    descriptor = os.open('/', flags)
+    try:
+        for component in root.parts[1:]:
+            require_trusted_directory(os.fstat(descriptor))
+            try:
+                os.mkdir(component, mode=0o700, dir_fd=descriptor)
+            except FileExistsError:
+                pass
+            child = os.open(component, flags, dir_fd=descriptor)
+            os.close(descriptor)
+            descriptor = child
+        require_trusted_directory(os.fstat(descriptor))
+        name = 'service-gate-' + uuid.uuid4().hex[:8]
+        os.mkdir(name, mode=0o700, dir_fd=descriptor)
+        return root / name
+    finally:
+        os.close(descriptor)
+
+
+def require_trusted_directory(metadata):
+    if metadata.st_uid != 0 or metadata.st_mode & 0o022 or not stat.S_ISDIR(metadata.st_mode):
+        raise PermissionError('Gate receipt ancestors must be root-owned and not user-writable')
+
+
 def unit_state(unit):
     output = subprocess.check_output(['systemctl', 'show', unit,
         '--property=ActiveState,SubState,MainPID,ControlGroup,ExecMainCode,ExecMainStatus,Restart,KillMode,ExecStopPost'],
@@ -109,8 +142,7 @@ def run(mode, user, *, committed_prefix=False):
     if os.geteuid() != 0:
         raise PermissionError('System service gate requires host administrator access')
     subprocess.run(['sudo', '-u', user, 'mkdir', '-p', str(ROOT / 'artifacts')], check=True, timeout=15)
-    output = ROOT / 'artifacts' / ('service-gate-' + uuid.uuid4().hex[:8])
-    output.mkdir(parents=True, mode=0o700)
+    output = receipt_directory()
     result = {'mode': mode, 'committed_prefix': committed_prefix,
               'status': 'running', 'started_at': timestamp()}
     save(output / 'result.json', result)

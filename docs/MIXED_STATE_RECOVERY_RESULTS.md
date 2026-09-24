@@ -86,3 +86,15 @@ The next claim is [continuous service ownership](CONTINUOUS_OWNERSHIP_PLAN.md):
 separate the operator from the workload's lifecycle and keep an independent
 service scorecard running across operator downtime. Persistent operation and
 procedure evolution remain unproven.
+
+### Subsequent source review
+
+A Fable review of the published source/results found that privileged gate receipts
+were written beneath a lab-user-writable checkout. New gates now write under
+`/var/lib/autonomy-lab/service-gates`, with root-owned, non-user-writable ancestors
+and no symlink traversal. The original executed candidate and evidence hashes
+above remain unchanged; these historical receipts do not prove authenticity
+against a malicious lab user. The separate suggestion that restart overwrites
+the first recovery receipt was checked against `finalize`: its exclusive lock
+and existing-receipt early return preserve the first receipt. Review and
+dispositions are in [the review record](validation/mixed-state-reviews.json).

@@ -4,8 +4,10 @@ import copy
 import importlib.util
 import json
 import os
+import stat
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -155,3 +157,26 @@ def test_regular_nested_evidence_has_exact_content_digest(tmp_path):
     path.write_bytes(b'{"status":"recorded"}\n')
     assert gate.evidence_bytes(tmp_path, 'trial-001/trial.json') == path.read_bytes()
     assert gate.evidence_digest(tmp_path, 'trial-001/trial.json') == service.digest(path)
+
+
+@pytest.mark.parametrize('uid,mode', [(1001, 0o700), (0, 0o770), (0, 0o707), (0, 0o777)])
+def test_privileged_receipts_reject_replaceable_ancestors(uid, mode):
+    with pytest.raises(PermissionError):
+        gate.require_trusted_directory(SimpleNamespace(st_uid=uid, st_mode=stat.S_IFDIR | mode))
+
+
+def test_privileged_receipts_accept_root_owned_nonwritable_ancestors():
+    gate.require_trusted_directory(SimpleNamespace(st_uid=0, st_mode=stat.S_IFDIR | 0o755))
+    with pytest.raises(PermissionError):
+        gate.require_trusted_directory(SimpleNamespace(st_uid=0, st_mode=stat.S_IFREG | 0o600))
+
+
+def test_receipt_path_is_outside_checkout_and_all_components_are_nofollow():
+    with patch.object(gate.os, 'open', side_effect=range(10, 15)) as opened, \
+            patch.object(gate.os, 'fstat', return_value=SimpleNamespace(st_uid=0, st_mode=stat.S_IFDIR | 0o755)), \
+            patch.object(gate.os, 'mkdir') as mkdir, patch.object(gate.os, 'close'):
+        directory = gate.receipt_directory()
+    assert directory.parent == Path('/var/lib/autonomy-lab/service-gates')
+    assert all(call.args[1] & os.O_NOFOLLOW for call in opened.call_args_list)
+    assert [call.args[0] for call in opened.call_args_list] == ['/', 'var', 'lib', 'autonomy-lab', 'service-gates']
+    assert mkdir.call_args.kwargs == {'mode': 0o700, 'dir_fd': 14}
