@@ -1,0 +1,77 @@
+{
+  "actor_equality": {
+    "baseline": "v0.1.1",
+    "candidate": "5c14303ef54bc46a0fb56616bbaa5e46868d0296",
+    "identical_actor_and_authority_files": {
+      "src/autonomy_lab/agent.py": "0a9cde266d9a5c2a76d417155d1482d289e743872e45ad8a5ebc2e1d16859e2f",
+      "src/autonomy_lab/authority_worker.py": "cc6cf51973c263ebb4b5e9dfee77e5b4cc9a5f7026312359ead35ce154804d82",
+      "src/autonomy_lab/broker.py": "64b02b1e17171524fdc612aa8f520fec4c3eecda0782ef42a28f698ff4af812b",
+      "src/autonomy_lab/context.py": "b36eb6a628a7ec084a48d64e0d14cd37dd5e027e7825ec0d225cced57a01aaba",
+      "src/autonomy_lab/gemini.py": "c259ef6eab36b5c955c2d01db4bb4c5002e9597552caf5c878820ba20fd6745b",
+      "src/autonomy_lab/isolated_agent.py": "33146f8dfad4b450b62dc33738ec016c55896fe85417914ca2d759a3bbe9a0fd",
+      "src/autonomy_lab/isolated_runtime.py": "b2c0db0775aef66a67b3ea1fc7442cfcfda3e6ef90d7b8282f6339f47ab53b91",
+      "src/autonomy_lab/rpc.py": "cf3f3c8b843db87ea613d1f5552392dd0f38a668a194470f52b3f781ab28f617",
+      "src/autonomy_lab/runbook.py": "524b6dc5fa8843bce1443be5de5186fc38e05c25b4f06932350d67e6d77c22af",
+      "src/autonomy_lab/scoring.py": "6d36054829345e3bce5e41496c4df36441fb36df03ec95f5ea98529053f315d4",
+      "src/autonomy_lab/toolbox.py": "8fbfa23b8a88432c105670eb989edc7b153d763a729ae21610633fdadc033a43",
+      "src/autonomy_lab/verifier.py": "4f61c4e917aa297f4591a7594bef950de98ea3ed3ce0d040984092ac3d36a434"
+    }
+  },
+  "ci": [
+    {
+      "conclusion": "success",
+      "headSha": "5c14303ef54bc46a0fb56616bbaa5e46868d0296",
+      "url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35938485347"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "fa09cdf283c09ba9dbcc5ad929f82b6ef6b0b3ea",
+      "url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35938837069"
+    }
+  ],
+  "ci_model_free_handoff_trials": 4,
+  "ci_real_acceptance_checks": 17,
+  "comparison_status": "not_started",
+  "evidence_archive_hash_verified": true,
+  "evidence_archive_sha256": "258df6e47bdbc63be8b2fecbf826ca17ecc580d8d8ac760bd22842fc0cc44ca0",
+  "fable_review": "pending_explicit_source_transfer_approval",
+  "gate_run": "experiment-e05ea752",
+  "gcp_clean_checkout_tests": 727,
+  "gcp_lint": "passed",
+  "gcp_source_files_verified": 193,
+  "initial_helper_review": {
+    "output_tokens": 0,
+    "provider_stop_reason": "refusal",
+    "raw_record_sha256": "6fc6c65d14aa7fb21508c8d4e552099e95df9e873bfd0e743367d72f671c1d35",
+    "status": "incomplete"
+  },
+  "live_comparison_started": false,
+  "local_lint": "passed",
+  "model_free_gates": {
+    "clean_assessed_audits": 6,
+    "cleanup": "deleted",
+    "evidence_sha256": {
+      "accounting.json": "5120cea68007b8c68e513af72fa3ec860eb946500290a3292b064b95b4bccd86",
+      "cleanup.json": "b17c5306dd387cfe34a6c48f25ba7608ab6b06e719f0e8df15f68840211afa7f",
+      "manifest.json": "a0040def2a5390493dedf34188d60b552115a74eef477f721cadf4585e5c5ffa",
+      "release.json": "9297d1b946afd949cf41d14be559ae07d67e89bcfdc85e269b5420767d41fec5",
+      "results.json": "075dbbcf6948445fa1ae9f0565dfa81e0aabc2c5672843994c7e536b50062762"
+    },
+    "expected_conservative_observer_miss_retained": true,
+    "known_model_tokens": 0,
+    "recorded": 6,
+    "release_id": "5707ce06660264c5cbc0f6094e288eafc34cea6a4fe6007be6a9ba141351c65a",
+    "status": "passed"
+  },
+  "notes": [
+    "Gate trials are excluded from the 48-trial comparison.",
+    "The expected conservative runbook miss on observer_outage is retained, not a gate failure.",
+    "One initial helper Fable request returned refusal with zero output tokens; this is not a completed review. Two other reviews were blocked before invocation pending explicit private-source transfer approval.",
+    "The staged GCP executable is unchanged; later sequencing/report presentation edits do not alter actors, authority, scenarios, budgets or scoring."
+  ],
+  "planned_comparison_trials": 48,
+  "report_regeneration": "byte-identical JSON and Markdown from two independent exports",
+  "sequencing_declaration_commit": "fa09cdf283c09ba9dbcc5ad929f82b6ef6b0b3ea",
+  "source_commit": "5c14303ef54bc46a0fb56616bbaa5e46868d0296",
+  "tests": 727
+}

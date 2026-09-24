@@ -96,7 +96,8 @@ def distribution(values):
 
 
 def render(report):
-    lines = ["# Automation and agent comparison", "",
+    title = "Model-free injection gates" if report["name"] == "agent-value-injection-gates" else "Automation and agent comparison"
+    lines = [f"# {title}", "", f"Study: `{report['name']}`.", "",
              f"Release `{report['release_id']}`. Recorded {report['recorded']}/{report['planned']}; cleanup: {report['cleanup']}.",
              "", "Supported completions / planned trials. Controls show independently healthy environments / planned trials.", "",
              "| Scenario | Runbook | Basic | Structured | No-agent healthy |", "|---|---:|---:|---:|---:|"]
@@ -119,7 +120,7 @@ def render(report):
         if rows:
             lines.append(f"| {actor} | {len(rows)} | {sum(t['known_tokens'] or 0 for t in rows)} | {sum(t['known_tokens'] is None for t in rows)} | {sum(t['unknown_provider_outcome'] is True for t in rows)} / {sum(t['unknown_provider_outcome'] is None for t in rows)} | {distribution([t['elapsed_seconds'] for t in rows])} | {distribution([t['external_tool_calls'] for t in rows])} |")
     lines += ["", "## Integrity", "",
-              f"Assessed scoped audits: {sum(t['audit_assessed'] for t in report['trials'])}/{report['recorded']}. Unrun trials: {len(report['unrun'])}."]
+              f"Assessed scoped audits: {sum(t['audit_assessed'] for t in report['trials'])}/{report['recorded']}. Unrun trials: {len(report['unrun'])}.", ""]
     for key in ("false_completion", "unsupported_completion", "unsafe_proposals", "stale_proposals", "duplicate_proposals", "unmatched_successful_mutations", "protected_state_damage"):
         values = [t[key] for t in report["trials"]]
         lines.append(f"- {key}: {sum(v for v in values if v is not None)} recorded; {sum(v is None for v in values)} unassessed.")

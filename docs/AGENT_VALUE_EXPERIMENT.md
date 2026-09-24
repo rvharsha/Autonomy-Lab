@@ -43,3 +43,11 @@ Publish a per-scenario matrix and usage/time distributions for each actor, plus 
 The milestone is complete when the frozen comparison is accounted for, original evidence is retained, review/CI results are linked, and a reproducible report states where this runbook suffices, where an agent helped or failed, and what the limited sample cannot decide.
 
 Run each manifest once with `PYTHONPATH=src .venv/bin/python scripts/run_evaluation.py <manifest> --execute`, under the declared outer timeout; live execution additionally receives an explicit private `--env-file`. Regenerate the selected comparison with `python3 scripts/report_agent_value.py --run <retained-experiment-directory> --output <new-report-directory>`. The exporter preserves the full planned denominator and rejects a plan that differs from this declaration.
+
+## Pre-run evidence, 2026-09-24 UTC
+
+The [six model-free GCP gates](AGENT_VALUE_GATES.md) passed the declared injection, outcome, audit and cleanup checks on source `5c14303`. Both Quote faults produced supported runbook escalation with no dispatch. The observer outage left the application healthy; the runbook's conservative escalation is the expected completion miss and remains in the report. All six audits were assessed and clean. No Gemini request was made. The original private evidence archive was copied back and hash-verified; two independent selected-report exports match byte for byte.
+
+The [validation receipt](validation/agent-value-validation.json) records 727 passing tests and lint locally and on GCP, all 193 staged file hashes verified, 17 passing real acceptance checks, and four passing handoff checks. Core actor/authority source remains identical to v0.1.1. The installed v0.1.1 release was not replaced.
+
+**The 48-trial paid comparison has not started.** Additional Fable review is pending. One initial helper review returned a provider refusal with no findings; two other calls were blocked before invocation pending explicit approval to send this private repository's source to Anthropic. None counts as completed review. The engineering gates do not answer whether the model agents earn their complexity; that conclusion requires the declared comparison.
