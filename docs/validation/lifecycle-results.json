@@ -122,6 +122,8 @@
       "source_files_verified": 281,
       "source_archive_sha256": "ccda56c5de3c2771db00755700a3d5c0de32738cad3b45a34c9e9428756f8e02",
       "offline_exports_identical": true,
+      "offline_scorecard_identical": true,
+      "offline_evaluation_identical": true,
       "resources": 11,
       "cleanup": {
         "errors": [],
@@ -650,6 +652,8 @@
       "source_files_verified": 281,
       "source_archive_sha256": "e77fbd3b25a613af1c555c63e754253cc6a5277ff61bd53ab773b3fa383dfe09",
       "offline_exports_identical": true,
+      "offline_scorecard_identical": true,
+      "offline_evaluation_identical": true,
       "resources": 11,
       "cleanup": {
         "accounting": "recorded",
@@ -938,6 +942,8 @@
       "source_files_verified": 281,
       "source_archive_sha256": "e77fbd3b25a613af1c555c63e754253cc6a5277ff61bd53ab773b3fa383dfe09",
       "offline_exports_identical": true,
+      "offline_scorecard_identical": true,
+      "offline_evaluation_identical": true,
       "resources": 11,
       "cleanup": {
         "accounting": "recorded",

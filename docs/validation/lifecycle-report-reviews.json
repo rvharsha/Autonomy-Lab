@@ -1,0 +1,91 @@
+{
+  "scope": "Claims review of the neutral technical follow-up and selected lifecycle evidence; no raw-evidence authentication or new historical-cohort review",
+  "reviews": [
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T23:50:36.889753+00:00",
+      "finished_at": "2026-09-24T23:51:17.762022+00:00",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 \"All five GCP scorecards reproduce byte for byte\" is not supported by the ledger.**\n\nReport, \"Execution identities and checks\": *\"All five GCP scorecards reproduce byte for byte from retained samples and journals; all three completed gate evaluations also reproduce exactly.\"*\n\nLedger `offline_scorecard_identical`:\n- telemetry (6d09\u2026): `null`\n- original_restart: `true`\n- original_kill: `true`\n- restart (8d61\u2026): `null`\n- kill (8d61\u2026): `null`\n\nOnly two of five GCP rows record a scorecard reproduction check; three record no result. The ledger does record `offline_exports_identical: true` for telemetry/restart/kill, but that is a separate field (export duplicates), and the protocol treats scorecard and evaluation exports as distinct artifacts (\"Repeated scorecard and evaluation exports must be identical\"). As written, the report asserts a five-for-five scorecard result that the selected ledger neither records nor can be reconciled from. Either the ledger is missing three `true` values or the sentence should read that scorecard reproduction was recorded for the two failed owner attempts and export identity for the three passing cases.\n\n**Finding 2 \u2014 Several headline telemetry numbers have no ledger counterpart.**\n\nReport telemetry table: *\"Healthy operator claims during the gap: 6 (GCP) / 7 (GitHub Actions)\"* and *\"Healthy independent slots after restart: 8\"*; plus *\"Corrected-source CI telemetry separately repeated 15 healthy, 2 failed and 4 unknown slots\"*.\n\nThe ledger telemetry rows contain `sample_counts`, `measured_requests`, `unknown_slots` and boolean checks (`operator_claims_did_not_fill_measurement_gap`, `independent_health_after_escalation`) but no count of operator claims during the gap, no count of post-restart healthy slots, and no row at all for a corrected-source (8d61\u2026) CI telemetry run \u2014 `ci_validation` covers only `headSha 6d09\u2026`. The protocol makes the first two quantities pass conditions (\"at least two complete healthy operator claims\u2026 during the collection outage\"; \"at least three independent samples after restart must be healthy\"), so the specific values 6/7/8 and the second CI cohort's 15/2/4 are presented as verified figures while the supplied evidence records only that the thresholds were met. This is an evidence-provenance overclaim rather than a demonstrated numeric error; the fix is to either add these fields (and the 36073757275 run) to the ledger or mark them as controller-log figures not in the public ledger.\n\n**Numbers that do reconcile:** 39 sample hashes (17+7+7+4+4); 204 responses = 120+30+34+20 with 20 \u00d7 503; 84 = 24+6+14+40 and 48 = 24+6+8+10; 3/4/5 and 3/1/8 slot counts; unknown slots 3\u20136 and 4\u201311; cleanup 2.07 s / 2.09 s \u2248 2.0686 / 2.0876; archive SHA-256 and VM `TERMINATED` match; `protocol_changed: false`, `prior_failed_attempts_reclassified: false` consistent with report text. Historical-cohort table not checked.\n\nSnapshot 87298f012f680da6d34c1b638fdee24179745c108ae771938a838f540f7218e4",
+      "usage_cost_estimate_usd": 0.2834,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "http_status": 200,
+      "snapshot": {
+        "files": [
+          {
+            "included": "full text",
+            "path": "follow-up technical report",
+            "sha256": "a7cfad8dda6e9bb85e5d73c38848ab6850ba1cda0ec801c108443c6039057cc8"
+          },
+          {
+            "included": "full text",
+            "path": "docs/LIFECYCLE_EXPERIMENT.md",
+            "sha256": "f0a86f0b861dd070a391e407665fd5a5a50cec96e08365e743ee900af045fb10"
+          },
+          {
+            "included": "selected ledger fields; no raw samples/audit",
+            "path": "docs/validation/lifecycle-results.json",
+            "sha256": "272bd28f0c1e1c5ed12a2d87e5d62b395e7f475d94c0c33a1c3788cc42ba5cdd"
+          }
+        ],
+        "prompt_sha256": "019b2845226fdd7dfe35ab1832012b9adc45a68c0d26b4ef14a8c1d36efa3f0f",
+        "review_kind": "persistent_lifecycle_followup_report",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "87298f012f680da6d34c1b638fdee24179745c108ae771938a838f540f7218e4",
+        "source_bytes": 39344
+      }
+    },
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T23:52:23.659160+00:00",
+      "finished_at": "2026-09-24T23:53:02.180089+00:00",
+      "generation_attempts": 1,
+      "findings_text": "**Resolution of prior findings**\n\n**Finding 1 \u2014 five-for-five scorecard reproduction: RESOLVED as a field-naming issue, not a false claim.**\n\nTrace through the supplied verifier (passed-case path, lines beginning `card=scorecard(campaign)` inside `for case in execution['cases']`):\n\n1. `evaluation` is freshly recomputed (`evaluate(gate)` for telemetry; `assess_stop(scorecard(campaign), post, record, read_events(...), journal_events(...), samples)` for restart/kill).\n2. `card=scorecard(campaign)` is freshly recomputed from the extracted samples.\n3. For each of `('scorecard',card),('evaluation',evaluation)`: `save(local-*.json)`; assert local == `*-a.json`; assert `*-a.json == *-b.json`; and, since `record['status']=='passed'`, assert SHA-256 of `*-a.json` == `record[name+'_sha256']`.\n4. Sample hashes and source hashes are re-verified.\n5. Only then is `offline_exports_identical: True` appended \u2014 with no `offline_scorecard_identical` / `offline_evaluation_identical` keys, which serialize as `null`.\n\nThe failed-attempt path (`record['status']=='failed'` and no `evaluation-a.json`) reconstructs only the scorecard, asserts it equals both `post-stop-scorecard-a/b.json`, and emits `offline_scorecard_identical: True, offline_evaluation_identical: None`.\n\nSo the ledger encodes 3 passed rows (scorecard + evaluation both byte-identical, under the umbrella field) plus 2 failed rows (scorecard only). Five of five scorecards and three of three evaluations were reconstructed and compared. The report sentence is supported by the program as supplied; the ledger's asymmetric field usage caused the misread.\n\nRemaining defect (measurement/reporting): the passed-row `reports.append` omits the per-artifact booleans, so a reader of the ledger alone cannot see scorecard identity for the three passed cases.\nMinimal fix: in the passed-case `reports.append`, add `'offline_scorecard_identical':True,'offline_evaluation_identical':True` alongside `offline_exports_identical`, or rename the umbrella field to `offline_scorecard_and_evaluation_identical`. Ledger regeneration only; no protocol or attempt reclassification implied.\n\n**Finding 2 \u2014 6/7, 8, and 15/2/4: RESOLVED; figures were omitted from the review packet, not absent from the ledger.**\n\n- `telemetry_operation_details[0].operation.operator_healthy_claims_during_gap = 6` (GCP), `[1]... = 7` (GitHub Actions) \u2014 matches \"6 (GCP) / 7 (GitHub Actions)\".\n- `after_restart_slots = [13..20]` on both platforms \u2192 length 8 \u2014 matches \"Healthy independent slots after restart: 8\" (both platforms report the same 8 slots; the report gives a single value, which is consistent).\n- `followup_ci_telemetry.sample_counts = {verified_success:15, verified_failure:2, unknown:4}`, `source_commit 8d61\u2026` \u2014 matches \"15 healthy, 2 failed and 4 unknown\".\n- `followup_ci_validation.url` ends `/runs/36073757275`, `headSha 8d61\u2026`, `conclusion: success` \u2014 the run the prior finding said was missing is present.\n\nNo numeric contradiction remains. The prior characterization (\"evidence-provenance overclaim\") is withdrawn; it arose from the packet truncation, and the report/ledger were not altered.\n\n**One item to confirm against report text (not a demonstrated contradiction):** both telemetry operations carry `reconciliation: {attribution: not_established, observation: unavailable, recovery: not_verified, error_type: RuntimeError}`. If the report anywhere states that the telemetry-gap cause was attributed or recovery verified, that would be unsupported; if it reports these as unresolved, it reconciles. I have no report excerpt asserting otherwise.\n\n**Caveats:** conclusions rest on the verifier source and ledger excerpts as supplied; I have not authenticated that this exact program produced the ledger. Historical-cohort table still unchecked.\n\nSnapshot 584feb4bfe5639886a7d49a203ee8c586f8a5ab3eb1273b90e26508ed3701f8b",
+      "usage_cost_estimate_usd": 0.18666,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "http_status": 200,
+      "snapshot": {
+        "files": [
+          {
+            "included": "exact additional ledger fields omitted from the prior review packet",
+            "path": "docs/validation/lifecycle-results.json",
+            "sha256": "272bd28f0c1e1c5ed12a2d87e5d62b395e7f475d94c0c33a1c3788cc42ba5cdd"
+          },
+          {
+            "included": "full executed reconstruction program; raw samples are not supplied",
+            "path": "local reconstruction program",
+            "sha256": "4ef86f5254782f8b1e9c0d3bf30b8a3bfff06d602519a84437c8e2222c4d6a09"
+          }
+        ],
+        "prompt_sha256": "f147f270253eac7077ef1d922de39d08ba0bb7274c5258119adcb6cbd90681d3",
+        "review_kind": "persistent_lifecycle_report_evidence_followup",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "584feb4bfe5639886a7d49a203ee8c586f8a5ab3eb1273b90e26508ed3701f8b",
+        "source_bytes": 13041
+      }
+    }
+  ],
+  "dispositions": [
+    {
+      "finding": "Five scorecards and three completed evaluations reproduce exactly",
+      "decision": "Supported by executed reconstruction code and ledger; clarify per-artifact fields",
+      "change": "Regenerated all GCP accounting from the retained archive and added explicit offline_scorecard_identical and offline_evaluation_identical booleans to passed rows. Failed rows retain null evaluation identity. No scoring, evidence or outcome changed."
+    },
+    {
+      "finding": "Operator claims, post-restart healthy slots and fixed-source CI counts missing",
+      "decision": "Resolved by exact existing ledger fields omitted from the shortened review packet",
+      "change": "Supplied evaluation.operation and followup_ci_* fields without changing the counts or outcomes; Fable withdrew the overclaim finding."
+    }
+  ],
+  "preflight_attempt": {
+    "status": "blocked_before_generation",
+    "reason": "First full packet exceeded the existing 14999 input token cap; reduced packet used the same cap."
+  },
+  "limits": [
+    "Fable received report text, protocol, selected ledger fields and local reconstruction source, not raw cluster evidence.",
+    "The followup resolved reported numeric/provenance questions; it is not blanket approval of implementation or readiness.",
+    "Historical summaries were not independently re-reviewed in this claims pass."
+  ]
+}

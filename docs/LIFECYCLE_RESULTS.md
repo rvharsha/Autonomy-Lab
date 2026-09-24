@@ -126,7 +126,10 @@ The first three produced audit-shape and receipt-capture fixes before execution.
 The ownership-fix review raised path/test-scope questions; actual source paths,
 append behavior and the real privileged/unprivileged reruns resolve them. Review
 snapshots and dispositions distinguish reviewed source from later fixes. Fable
-review is additional engineering input, not evidence authentication.
+review is additional engineering input, not evidence authentication. A separate
+[claims review and evidence followup](validation/lifecycle-report-reviews.json)
+reconciled reported counts and reconstruction statements. Its provenance question
+led to explicit per-artifact identity fields in the ledger; no outcome changed.
 
 The original source passed 984 tests/lint and all six
 [CI jobs](https://github.com/rvharsha/Autonomy-Lab/actions/runs/36072604868).
