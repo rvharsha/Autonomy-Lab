@@ -128,7 +128,7 @@ def test_named_components_enforce_explicit_source_allowlists_and_budget(tmp_path
 
 def test_interrupted_reporting_scope_contains_only_explicit_public_sources(tmp_path):
     expected = {"scripts/recover_interrupted_report.py", "scripts/report_agent_value.py",
-                "scripts/export_report.py", "docs/RUNBOOK_FALLBACK_EXPERIMENT.md"}
+                "scripts/export_report.py"}
     for name in expected:
         put(tmp_path, name, "public_source = True\n")
     put(tmp_path, ".state/private.json", "PRIVATE_PROVIDER_CONTENT")

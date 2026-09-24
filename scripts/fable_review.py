@@ -197,7 +197,7 @@ def build_snapshot(root: Path, scope: str = "foundation", *, remediation: bool =
     if scope == "fallback_reporting":
         paths |= {"scripts/report_agent_value.py", "scripts/export_report.py"}
     if scope == "interrupted_reporting":
-        paths |= {"scripts/recover_interrupted_report.py", "scripts/report_agent_value.py", "scripts/export_report.py", "docs/RUNBOOK_FALLBACK_EXPERIMENT.md"}
+        paths |= {"scripts/recover_interrupted_report.py", "scripts/report_agent_value.py", "scripts/export_report.py"}
     if scope == "ax_boundary":
         paths |= {"infra/ax/privilege-drop.patch", "infra/ax/privilege_drop_test.go", "infra/ax/durable-cleanup.patch", "infra/ax/README.md"}
     if scope not in COMPONENT_SCOPES:
