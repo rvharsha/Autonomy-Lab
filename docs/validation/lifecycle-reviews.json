@@ -135,6 +135,41 @@
         "snapshot_id": "30f36db003420c6c7e417d9f8010222aad14a3f5f5b1019bbc6db618b9caac5c",
         "source_bytes": 37484
       }
+    },
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T23:38:42.234233+00:00",
+      "finished_at": "2026-09-24T23:39:11.118915+00:00",
+      "generation_attempts": 1,
+      "findings_text": "**Finding 1 \u2014 the precreated log path is not shown to be the path the broker appends to (correctness of the fix itself)**\n\n`src/autonomy_lab/campaign.py:361` creates `directory / 'api-mutations.jsonl'`. The writer in the Kubernetes adapter (`patch_service` \u2192 `audit`) opens `self.kubeconfig.parent / \"api-mutations.jsonl\"`. The fix is only effective if `provision(directory, run_id, ...)` places the kubeconfig directly in `directory`, not in a subdirectory (e.g. `directory/kube/config`) or a per-worker directory. The diff does not show `provision`, and nothing in the diff or test ties the two paths together.\n\nTrigger / trace if they differ: `own()` touches `directory/api-mutations.jsonl` (autolab, 0600, never used) \u2192 privileged fault injector writes `directory/<sub>/api-mutations.jsonl` first as root 0600 \u2192 broker `audit(event=\"dispatch\")` raises `PermissionError` exactly as before. Gates fail again with the same signature, and the new test still passes because it asserts on the wrong file.\n\nMinimal fix: derive the log path from one shared definition and use it in both places, e.g. in the adapter:\n\n```python\ndef mutation_log(directory: Path) -> Path:\n    return directory / \"api-mutations.jsonl\"\n```\n\nthen in `campaign.py` `mutation_log(directory).touch(mode=0o600, exist_ok=False)` and in `Kubernetes.audit` `mutation_log(self.kubeconfig.parent)` (or pass the campaign directory into `Kubernetes` explicitly if kubeconfig does not live at the campaign root). Confirm with the pending live rerun before treating the gate failure as resolved.\n\n**Finding 2 \u2014 the test does not exercise the failure it claims to prevent**\n\n`tests/test_campaign.py:17-31` asserts `log.stat().st_uid == directory.stat().st_uid` under a single unprivileged user, where every file trivially has that uid; it also stops before any external writer runs. It therefore cannot detect (a) the path mismatch above, or (b) a privileged injector that replaces the file (write-to-temp + `os.replace`, `write_text` after unlink) instead of appending, which would again yield a root-owned file regardless of precreation.\n\nMinimal fix: after the precreate, in the same test, open the file through the adapter's actual code path \u2014 e.g. construct `Kubernetes(kubeconfig=<path provision would produce>, cluster_name='autolab-00000000')` with a stub kubeconfig and call the `audit` writer (or a small extracted `append_mutation(...)` helper) with `\"a\"` \u2014 and assert the bytes land in `directory / 'api-mutations.jsonl'`. Separately, require the privileged injector to append (open with `O_APPEND`, no rename) and document that assumption next to the `touch`, since ownership retention depends on it.\n\nNo other substantiated defects in the correction. `touch(mode=0o600, exist_ok=False)` is fine (umask can only tighten it; `exist_ok=False` correctly surfaces a pre-existing foreign file rather than silently adopting it).\n\n9d43e2abcfeda175d321c78dd24bdece27f481fff566bbd22f1b070bf417833e",
+      "usage_cost_estimate_usd": 0.12472,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "http_status": 200,
+      "snapshot": {
+        "files": [
+          {
+            "included": "diff and focused source",
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "776e2709d6da1a918ebe6830fd239c02f71c22946a1182d2bd83dbe1a425083d"
+          },
+          {
+            "included": "diff and focused source",
+            "path": "src/autonomy_lab/kubernetes.py",
+            "sha256": "1812c19cb4cc63a723b06e085efab881bb548742573d20f42113c42b677f7730"
+          },
+          {
+            "included": "diff and focused source",
+            "path": "tests/test_campaign.py",
+            "sha256": "bfa9754c5a2bf45171586f4150bf834a5d24a0fbc1131dc9d60a5dcabe5c5d2d"
+          }
+        ],
+        "prompt_sha256": "c51b29299d81db3eabc0f9b52f408ab2953997768758980571e097a675706dfd",
+        "review_kind": "campaign_audit_ownership_fix",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "9d43e2abcfeda175d321c78dd24bdece27f481fff566bbd22f1b070bf417833e",
+        "source_bytes": 9914
+      }
     }
   ],
   "dispositions": [
@@ -157,6 +192,18 @@
       "decision": "fixed",
       "reason": "Capture the parsed receipt and its hash from the same bytes before waiting for final unit state, then compare afterward. Original systemd InvocationID is also required.",
       "test": "test_receipt_snapshot_binds_reviewed_body_before_later_replacement"
+    },
+    {
+      "review": "audit_ownership_fix",
+      "finding": 1,
+      "decision": "not_applicable",
+      "reason": "The focused packet omitted the campaign adapter paths. campaign.operator constructs broker-kubeconfig directly in the campaign directory, and the gate constructs its admin kubeconfig in that same directory. Both adapter logs target the precreated path. The actual failed file path was also independently inspected on GCP."
+    },
+    {
+      "review": "audit_ownership_fix",
+      "finding": 2,
+      "decision": "test_scope_clarified",
+      "reason": "The authored regression asserts precreation, timing, owner and private mode; it is not evidence of cross-user execution. The supplied adapter opens the log in append mode without replacing it. The repeated real root-injector/autolab-operator gates provide the required cross-user validation; those results must pass before the defect is reported as closed."
     }
   ],
   "validation": "984 authored tests passed; lint passed. Fable reviewed the recorded prior snapshots, not the fixed source. Real experiment execution is still pending.",
@@ -171,6 +218,8 @@
     "finding": "Both GCP owner attempts missed the real-effect barrier because the privileged injector created api-mutations.jsonl as root/0600. The unprivileged broker could not append before dispatch. Both attempts retained uncertainty and cleaned up; neither passed its intended termination gate.",
     "correction": "Create the empty 0600 audit log as the campaign owner before provisioning; retain failed attempts and use a separate frozen source.",
     "protocol_changed": false,
-    "test": "test_campaign_owns_private_mutation_log_before_any_external_writer"
+    "test": "test_campaign_owns_private_mutation_log_before_any_external_writer",
+    "fixed_source": "8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684",
+    "authored_validation": "985 tests and lint pass locally and on GCP; both corrected real owner gates passed under separate identities."
   }
 }

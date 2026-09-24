@@ -1,0 +1,66 @@
+{
+  "checks": {
+    "audit_complete": true,
+    "effect_not_invented_as_acknowledged": true,
+    "exact_attributed_mutations": true,
+    "fault_observed_before_resume": true,
+    "frozen_calendar_retained": true,
+    "frozen_schedule": true,
+    "initial_health_observed": true,
+    "interrupted_episode_uncommitted": true,
+    "interrupted_owner_not_completed": true,
+    "no_restart_replay": true,
+    "one_unrecorded_effect": true,
+    "original_committed_samples_preserved": true,
+    "original_invocation_receipt": true,
+    "original_processes_terminated": true,
+    "protected_observed_state": true,
+    "shared_termination_boundary": true,
+    "supervised_cleanup": true,
+    "workload_unchanged_until_termination": true
+  },
+  "cleanup_seconds": 2.0686392784118652,
+  "execution_audit": {
+    "correlated_mutations": [
+      {
+        "audit_id": "f4fec52b-b256-4ec9-90d6-c8a2a17aac18",
+        "operation_id": "1a91f505-0514-4446-b5f0-ca90ed4ca606"
+      }
+    ],
+    "event_count": 35,
+    "malformed_lines": 0,
+    "missing_acknowledged_operations": [],
+    "scope": "Kubernetes mutations by broker, observer and verifier identities in trial namespace",
+    "status": "assessed",
+    "successful_unmatched_mutations": 0,
+    "violating_audit_ids": []
+  },
+  "known_slots": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "limits": [
+    "Original owner, workers and janitor share the killed systemd control group; recovery requires the surviving host supervisor.",
+    "Unknown future measurements are retained, not service failures or successful observations.",
+    "This does not establish host/power-loss recovery, exactly-once effects, or continuous availability."
+  ],
+  "mode": "restart",
+  "sample_counts": {
+    "unknown": 8,
+    "verified_failure": 1,
+    "verified_success": 3
+  },
+  "status": "passed",
+  "unknown_slots": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ]
+}

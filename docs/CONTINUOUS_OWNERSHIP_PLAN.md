@@ -2,13 +2,13 @@
 
 The [purpose and alignment check](GOAL_ALIGNMENT.md) connects each milestone to the
 evidence needed for an autonomy or investment decision. The next implementation
-priority is telemetry gaps and remaining lifecycle gates on
-one persistent workload, followed by one independently gated procedure improvement
-and a fair sustained comparison.
+priority is one independently gated procedure improvement, followed by a fair
+sustained comparison. The bounded missing-evidence and supervised owner-termination
+slices now have [real results](LIFECYCLE_RESULTS.md).
 
 This is the next phase after the bounded experiments in [the findings](FINDINGS.md).
 The objective is to keep one real service within an explicit operating contract
-while its operator stops, restarts and faces recurring incidents. Continuous
+while its operator stops, restarts and faces recurring incidents. Sustained production
 operation and learned improvement remain proposed, not demonstrated capabilities.
 
 ## First claim and implementation boundary
@@ -22,8 +22,8 @@ claim of continuous operation or merely disable experiment cleanup.
 Use three distinct lifecycles:
 
 - A campaign owner provisions one Quote/Inventory/PostgreSQL workload, holds a
-  bounded cleanup lease and records the original resource identities. Only that
-  owner may end the campaign and delete the workload.
+  bounded cleanup lease and records the original resource identities. That
+  owner and its explicitly designated supervisor own campaign cleanup.
 - A restartable operator observes and proposes today's typed routing repair
   through the existing broker. Its restart cannot recreate the workload, reset
   the measurement window, rewind the campaign budget or abandon uncertain work.
@@ -76,9 +76,13 @@ The [ambiguous-effect gate](AMBIGUITY_RESULTS.md) now passes on both platforms,
 closing the interruption/reconciliation and external-change refusal slice of gate
 3: one real unrecorded effect, no replay despite remaining budget, and independently
 measured health or failure. Actual stale-proposal dispatch/API rejection remains
-outside that gate. Telemetry gaps and supervised campaign-owner termination still
-require their separate gates. Procedure improvement and a sustained comparison
-remain unproven.
+outside that gate. The [lifecycle gates](LIFECYCLE_RESULTS.md) now preserve real measurement gaps and
+unavailable reconciliation, and clean up after termination of the owner and its
+original janitor. Two original owner attempts failed from audit-log ownership;
+their evidence remains retained alongside the corrected executions. These close
+the missing-evidence portion of gate 4 and supervised-owner portion of gate 5.
+Actual stale-proposal API rejection, procedure improvement and a sustained
+comparison remain unproven.
 
 ## Subsequent milestones
 
