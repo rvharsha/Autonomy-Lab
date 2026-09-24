@@ -53,3 +53,7 @@ The [validation receipt](validation/agent-value-validation.json) records 727 pas
 Four subsequent [Fable source reviews](validation/agent-value-reviews.json) completed after explicit source-transfer approval. A token subtotal presentation issue was corrected before live execution and the follow-up review completed; the full local suite now has 729 passing tests. Runtime source remains unchanged. The initial refusal and two blocked calls remain separate from completed reviews. Valid legacy AX preflight and conditional local-audit limitations are documented outside the selected isolated-Docker study.
 
 **The 48-trial paid comparison has not started at this pre-run checkpoint.** The engineering gates do not answer whether the model agents earn their complexity; that conclusion requires the declared comparison. The current pre-run review and test receipt is [agent-value-reviews.json](validation/agent-value-reviews.json); the earlier gate receipt preserves its original pending-review status.
+
+## Completed study, 2026-09-24 UTC
+
+The single frozen execution is now complete: 48/48 recorded, no replacements or unrun trials, 34/36 supported actor completions and 12 unscored controls. Read the [results and decision](AGENT_VALUE_RESULTS.md), [generated measurements](AGENT_VALUE_MEASUREMENTS.md) and [execution receipt](validation/agent-value-comparison-receipt.json). The pre-run checkpoint above remains historical; no actor, budget or scoring rule changed after live execution started.

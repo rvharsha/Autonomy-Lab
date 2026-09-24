@@ -57,3 +57,34 @@ The credential loader reads only its accepted key assignments and never evaluate
 ## Ten-minute discussion walkthrough
 
 Use a completed demo's report if provisioning would consume the discussion time. Spend two minutes on the reasoning/authority/verification boundary, four minutes on the [three trajectories](TRAJECTORIES.md), two minutes on the [findings and null results](FINDINGS.md), and two minutes on what evidence would justify a new scope of authority. The source, manifest, report and original failure should be available together. This is a research demonstration, not an assertion that every agent incident completes.
+
+## Reproduce the agent-value comparison
+
+The later [48-trial comparison](AGENT_VALUE_RESULTS.md) is available on the repository's main branch after PR #4, not in the v0.1.1 tag used above. Its runtime was frozen at `5c14303ef54bc46a0fb56616bbaa5e46868d0296`; its reviewed exporter is from `17472e2d2f6b327998a55ababfec1722d74df923`. Neither the installed v0.1.1 release nor earlier study results were replaced.
+
+From a checkout containing the completed comparison, regenerate its measurement table offline using only the committed selected evidence:
+
+```sh
+python3 - <<'PY'
+import json
+import sys
+from pathlib import Path
+sys.path.insert(0, "scripts")
+from report_agent_value import render
+report = json.loads(Path("docs/validation/agent-value-comparison.json").read_text())
+assert render(report) == Path("docs/AGENT_VALUE_MEASUREMENTS.md").read_text()
+print("Published measurements reproduce exactly from selected evidence.")
+PY
+```
+
+Expect runbook **10/12**, basic **12/12**, structured **12/12**, and 12 unscored controls. All 48 trials have assessed scoped audits. This verifies table regeneration; it does not rerun or independently authenticate the original experiment. The [receipt](validation/agent-value-comparison-receipt.json) includes original evidence hashes, source hashes, provider accounting, pre-run CI/review references and cleanup status.
+
+An operator with the retained private raw evidence can regenerate the selected JSON and Markdown using the reviewed exporter:
+
+```sh
+python3 scripts/report_agent_value.py --run /path/to/experiment-f3cd10f4 --output artifacts/agent-value-report
+```
+
+Replace the example input path with the actual retained experiment directory; the output must be new. The local archive is under ignored `.state/value-comparison/`, and the second copy is on the stopped GCP host disk at the location in the receipt. Do not publish whole raw directories: they contain private provider content and runtime credentials/configuration. The selected exporter excludes those fields.
+
+A fresh live repetition requires the exact runtime commit, `scenarios/agent-value.yaml`, the [declared gates, budgets and outer timeout](AGENT_VALUE_EXPERIMENT.md), and a deliberately authorized model credential. Plan it with `PYTHONPATH=src .venv/bin/python scripts/run_evaluation.py scenarios/agent-value.yaml` before adding execution flags. Retain it under a new run identifier and denominator. Provider responses are nondeterministic; it cannot replace the recorded 48 trials or validate an altered baseline without a new declaration.
