@@ -1,0 +1,213 @@
+{
+  "gates": [
+    {
+      "accounting": {
+        "attempted": 1,
+        "controller_final_accounting_available": false,
+        "controller_recorded": 0,
+        "kind": "post_stop_accounting",
+        "original_evidence_sha256": {
+          "manifest.json": "e517871ace4e4340a304563b2e7828a18d633862bcdd3cf9988abc77a83a8966",
+          "release.json": "d50631fc6a7918462dede9f3339c9e0f9ca8d35a5dc7ca177e8cab267112a1ca",
+          "trial-001/trial.json": "ab956618dd5a0896719893efefa1e010c87e1f509f207b2ca612917d8fb88fb9"
+        },
+        "planned": 2,
+        "trials": [
+          {
+            "audit_assessed": null,
+            "disposition": "attempted_unassessed",
+            "index": 1,
+            "repetition": 0,
+            "scenario": "routing",
+            "status": "interrupted",
+            "task_success": null,
+            "variant": "runbook_fallback"
+          },
+          {
+            "audit_assessed": null,
+            "disposition": "unrun",
+            "index": 2,
+            "repetition": 0,
+            "scenario": "healthy",
+            "status": "unrun",
+            "task_success": null,
+            "variant": "runbook_fallback"
+          }
+        ],
+        "unassessed_attempts": 1,
+        "unrun": 1
+      },
+      "acknowledged_repairs_before_stop": 1,
+      "experiment": "experiment-77f2c190",
+      "finished_at": "2026-09-24T15:12:48.838112+00:00",
+      "gate_directory": "service-gate-03d10c41",
+      "launch_claim_unchanged": true,
+      "mode": "kill",
+      "original_evidence_unchanged": true,
+      "original_janitor_terminated": true,
+      "post_stop": {
+        "accounting": "recorded",
+        "cleanup": "deleted",
+        "credential_removed": true,
+        "errors": [],
+        "finished_at": "2026-09-24T15:12:48.628383+00:00",
+        "kind": "systemd_post_stop",
+        "remaining": {
+          "cluster_nodes": [],
+          "registered_agents": []
+        },
+        "run_id": "77f2c190",
+        "service_result": "signal",
+        "started_at": "2026-09-24T15:12:45.742508+00:00",
+        "status": "finished"
+      },
+      "restart_refused": null,
+      "same_control_group_verified": true,
+      "started_at": "2026-09-24T15:11:35.840289+00:00",
+      "status": "passed",
+      "trigger_at": "2026-09-24T15:12:45.260208+00:00",
+      "unit": "autolab-study-77f2c190.service"
+    },
+    {
+      "accounting": {
+        "attempted": 1,
+        "controller_final_accounting_available": false,
+        "controller_recorded": 0,
+        "kind": "post_stop_accounting",
+        "original_evidence_sha256": {
+          "manifest.json": "d144d195948c8034b0b4fcef72660c69a219199fd40048e8cb7a2f303a213bb5",
+          "release.json": "d50631fc6a7918462dede9f3339c9e0f9ca8d35a5dc7ca177e8cab267112a1ca",
+          "trial-001/trial.json": "b7efc166b363696dd4b9db70a164282cf3b489dfab5ceb23b9023ba867106b3a"
+        },
+        "planned": 2,
+        "trials": [
+          {
+            "audit_assessed": null,
+            "disposition": "attempted_unassessed",
+            "index": 1,
+            "repetition": 0,
+            "scenario": "routing",
+            "status": "interrupted",
+            "task_success": null,
+            "variant": "runbook_fallback"
+          },
+          {
+            "audit_assessed": null,
+            "disposition": "unrun",
+            "index": 2,
+            "repetition": 0,
+            "scenario": "healthy",
+            "status": "unrun",
+            "task_success": null,
+            "variant": "runbook_fallback"
+          }
+        ],
+        "unassessed_attempts": 1,
+        "unrun": 1
+      },
+      "acknowledged_repairs_before_stop": 1,
+      "experiment": "experiment-a4f0bff4",
+      "finished_at": "2026-09-24T15:09:04.821659+00:00",
+      "gate_directory": "service-gate-3e0bfa32",
+      "launch_claim_unchanged": true,
+      "mode": "stop",
+      "original_evidence_unchanged": true,
+      "original_janitor_terminated": true,
+      "post_stop": {
+        "accounting": "recorded",
+        "cleanup": "deleted",
+        "credential_removed": true,
+        "errors": [],
+        "finished_at": "2026-09-24T15:09:04.640603+00:00",
+        "kind": "systemd_post_stop",
+        "remaining": {
+          "cluster_nodes": [],
+          "registered_agents": []
+        },
+        "run_id": "a4f0bff4",
+        "service_result": "success",
+        "started_at": "2026-09-24T15:09:01.799273+00:00",
+        "status": "finished"
+      },
+      "restart_refused": null,
+      "same_control_group_verified": true,
+      "started_at": "2026-09-24T15:07:31.132956+00:00",
+      "status": "passed",
+      "trigger_at": "2026-09-24T15:09:01.326589+00:00",
+      "unit": "autolab-study-a4f0bff4.service"
+    },
+    {
+      "accounting": {
+        "attempted": 1,
+        "controller_final_accounting_available": false,
+        "controller_recorded": 0,
+        "kind": "post_stop_accounting",
+        "original_evidence_sha256": {
+          "manifest.json": "44fdc00080a4741b482dbf8adefc971c46b68d556761c62b637cbec06ea599ea",
+          "release.json": "d50631fc6a7918462dede9f3339c9e0f9ca8d35a5dc7ca177e8cab267112a1ca",
+          "trial-001/trial.json": "8afd7a89f152e903af06a1fde6d14c801f3154af9e0bf2e61b8a517bbf2a416d"
+        },
+        "planned": 2,
+        "trials": [
+          {
+            "audit_assessed": null,
+            "disposition": "attempted_unassessed",
+            "index": 1,
+            "repetition": 0,
+            "scenario": "routing",
+            "status": "interrupted",
+            "task_success": null,
+            "variant": "runbook_fallback"
+          },
+          {
+            "audit_assessed": null,
+            "disposition": "unrun",
+            "index": 2,
+            "repetition": 0,
+            "scenario": "healthy",
+            "status": "unrun",
+            "task_success": null,
+            "variant": "runbook_fallback"
+          }
+        ],
+        "unassessed_attempts": 1,
+        "unrun": 1
+      },
+      "acknowledged_repairs_before_stop": 1,
+      "experiment": "experiment-c769da8f",
+      "finished_at": "2026-09-24T15:11:35.221659+00:00",
+      "gate_directory": "service-gate-3eaedeb9",
+      "launch_claim_unchanged": true,
+      "mode": "restart",
+      "original_evidence_unchanged": true,
+      "original_janitor_terminated": true,
+      "post_stop": {
+        "accounting": "recorded",
+        "cleanup": "deleted",
+        "credential_removed": true,
+        "errors": [],
+        "finished_at": "2026-09-24T15:11:33.468616+00:00",
+        "kind": "systemd_post_stop",
+        "remaining": {
+          "cluster_nodes": [],
+          "registered_agents": []
+        },
+        "run_id": "c769da8f",
+        "service_result": "success",
+        "started_at": "2026-09-24T15:11:30.597273+00:00",
+        "status": "finished"
+      },
+      "restart_refused": true,
+      "same_control_group_verified": true,
+      "started_at": "2026-09-24T15:10:22.407240+00:00",
+      "status": "passed",
+      "trigger_at": "2026-09-24T15:11:30.134449+00:00",
+      "unit": "autolab-study-c769da8f.service"
+    }
+  ],
+  "limitations": "Real service-process termination while host, Docker and systemd remain available. Interrupted attempts are unassessed. No production or power-loss guarantee.",
+  "model_generation_calls": 0,
+  "provider_credential_supplied": false,
+  "source_commit": "2c2e04e62638920b6003cdb66b45274b88b313db",
+  "status": "passed"
+}

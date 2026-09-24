@@ -4,6 +4,8 @@
 
 The [prospective plan](RUNBOOK_FALLBACK_EXPERIMENT.md) declared 80 trials: eight conditions, five variants, two repetitions. Run `experiment-04cabcfa` started on GCP on 2026-09-24 at 04:44:57 UTC. The controller finalized **79 trials** before its service was stopped at 06:41:27 UTC. Trial 80 had started; its original worker record remains `running`, without a final outcome or audit. [Offline recovery accounting](validation/runbook-fallback-comparison.json) classifies that attempt as interrupted using retained service-stop evidence. All 80 planned attempts are accounted for, with **60 supported completions, three measured completion misses, one unassessed actor trial, and 16 unscored controls**. Nothing was rerun or replaced.
 
+**Dated follow-up, 24 September 2026:** the [service-recovery correction and separately declared validation](SERVICE_RECOVERY_RESULTS.md) address the lifecycle failure. They do not replace trial 80, change this denominator or satisfy this study's original promotion gate. The historical result below remains unchanged.
+
 ## Completion and resource use
 
 | Actor | Supported / planned | Unassessed outcomes | Reported tokens | Requests / retained responses |

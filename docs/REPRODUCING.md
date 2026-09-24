@@ -128,3 +128,29 @@ python3 scripts/recover_interrupted_report.py \
 Replace the example private paths with the actual extraction location; the output must be new. Run twice into separate directories and compare `report.json` and `REPORT.md` byte-for-byte with each other and the committed selected artifacts. Original raw `trial.json` files stay untouched, including trial 80's `running` status. The report explicitly separates operator-classified interruption, original evidence hashes, derived accounting hashes and manual cleanup. Worker records normally lack repetition; the report identifies the ordered manifest position as its source and rejects any conflicting supplied repetition.
 
 The source review and [recovery-review ledger](validation/runbook-fallback-recovery-review.json) cover the exporter, not independent authentication of supplied logs or cleanup receipts. Raw archives contain private model content and runtime configuration and must not be published wholesale. The separate 16 model-free gates do not complete the interrupted comparison. Before another live study, validate maintenance-safe termination, final accounting and independently surviving cleanup; any new study requires its own declaration and denominator, with no replacement of trial 80.
+
+## Reproduce service recovery and the separate fallback validation
+
+The [service-recovery declaration](SERVICE_RECOVERY_EXPERIMENT.md) defines three process-termination gates and a distinct 32-trial model-free validation. Its frozen runtime/gate source is `2c2e04e62638920b6003cdb66b45274b88b313db`. Use that exact source and the [managed cloud entry point](../infra/gcp/README.md#operate-and-clean-up) when reproducing these conditions. Host, systemd and Docker availability are explicit assumptions; this is not a power-loss test.
+
+Run `scripts/check_service_stop.py` separately with positional arguments `stop`, `restart` and `kill` as the host administrator. Each creates a fresh gate identity, waits for an acknowledged repair and checks post-stop recovery. Do not restart an old prepared job to reproduce it: the durable launch claim deliberately refuses replay. New executions need fresh prepared identities, and failed gates must remain recorded.
+
+The subsequent `scenarios/runbook-fallback-validation.yaml` contains eight known conditions, fallback/no-agent variants and two repetitions. No provider credential is needed. The criterion is all 32 controller-finalized trials, all 16 supported fallback outcomes, expected control environments, established fault exposure, clean assessed scoped audits, successful cleanup and matching exports. A lifecycle gate's interrupted trial does not count as a completed fallback validation trial.
+
+Regenerate the published measurement table from its selected evidence without cloud or model access:
+
+```sh
+PYTHONPATH=scripts:src .venv/bin/python - <<'PY'
+import json
+from pathlib import Path
+from report_agent_value import render
+report = json.loads(Path("docs/validation/runbook-fallback-validation-32.json").read_text())
+text = render(report)
+assert text == Path("docs/RUNBOOK_FALLBACK_VALIDATION_MEASUREMENTS.md").read_text()
+print(text)
+PY
+```
+
+An operator with the private archive should verify its SHA-256 against the [execution receipt](validation/service-recovery-execution.json), extract it in a private directory, and run the frozen exporter over `checkout/artifacts/experiment-0acc5582` into two new output directories. Both files in each export (`report.json` and `REPORT.md`) must match the receipt's hashes. The archive also retains the pre-launch checker, its declaration and digest, the three lifecycle gates, source archive/provenance, service journal and post-stop accounting. Original files are never rewritten to satisfy a gate.
+
+The [original 80-trial result](RUNBOOK_FALLBACK_RESULTS.md) remains 79 finalized plus one unassessed attempt. Keep its evidence, denominator and decision separate from this validation. Public hashes support integrity checks; they do not independently authenticate the experiment. Raw kubeconfigs and runtime artifacts stay private.

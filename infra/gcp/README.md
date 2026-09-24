@@ -204,16 +204,18 @@ different termination boundary: a systemd service stop/restart during unattended
 package maintenance interrupted both the controller and its detached janitor.
 The controller-only SIGKILL check above does not validate whole-service
 termination. The original evidence was archived, the owned cluster was manually
-deleted, and the VM was stopped. Before another live comparison, require a real
-service-stop gate proving final accounting and cleanup survive independently of
-the study's control group. Keep host maintenance and restoration explicit and
-bounded; do not disable security updates indefinitely to make a run pass.
+deleted, and the VM was stopped at that point. The subsequent
+[service-recovery results](../../docs/SERVICE_RECOVERY_RESULTS.md) record real
+stop, restart and entire-group SIGKILL gates on the corrected wrapper. Each
+cleaned owned resources and preserved honest interrupted/unrun accounting. Host
+security updates remain enabled; the correction does not suppress maintenance.
 
-The proposed correction and separate validation are declared in
+The correction and separate validation are declared in
 [SERVICE_RECOVERY_EXPERIMENT.md](../../docs/SERVICE_RECOVERY_EXPERIMENT.md).
 Use the managed entry point for new cloud studies: prepare one manifest as
-`autolab`, then launch that prepared job as the host administrator. For example,
-from the exact staged checkout (replace the printed job path below):
+`autolab`, then launch that prepared job as the host administrator. Enter the
+exact staged checkout from an administrator shell (`sudo -i`); its parent is
+private to the lab account. For example (replace the printed job path below):
 
 ```sh
 sudo -u autolab env PYTHONPATH=src .venv/bin/python scripts/service_experiment.py prepare scenarios/runbook-fallback-validation.yaml
