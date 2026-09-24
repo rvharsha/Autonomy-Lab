@@ -54,5 +54,6 @@ def test_outage_closes_real_listener_and_reserves_dead_endpoint():
             probe.settimeout(2)
             assert probe.connect_ex(("127.0.0.1", port)) in {errno.ECONNREFUSED, errno.EAGAIN, errno.ETIMEDOUT}
         with socket.socket() as replacement:
+            replacement.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             with pytest.raises(OSError):
                 replacement.bind(("127.0.0.1", port))

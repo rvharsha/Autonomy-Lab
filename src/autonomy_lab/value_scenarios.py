@@ -39,7 +39,6 @@ def backend_observation_outage(kube):
     with kube.forward("deployment/inventory", 8080) as port:
         pass
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as reservation:
-        reservation.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         reservation.bind(("127.0.0.1", port))
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
             probe.settimeout(2)
