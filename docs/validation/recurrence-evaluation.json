@@ -1,0 +1,95 @@
+{
+  "checks": {
+    "all_incidents_executed": true,
+    "audit_complete": true,
+    "complete_calendar": true,
+    "cumulative_budget": true,
+    "exact_operation_count": true,
+    "healthy_initial_measurements": true,
+    "only_declared_service_writes": true,
+    "owner_cleanup": true,
+    "protected_invariants": true,
+    "routing-1": true,
+    "routing-2": true,
+    "routing-3": true,
+    "unchanged_workload": true
+  },
+  "dispatch_budget_reserved": 2,
+  "execution_audit": {
+    "correlated_mutations": [
+      {
+        "audit_id": "00da2a2c-738b-4caa-b093-a3c5ff1037d3",
+        "operation_id": "ae9ea328-4984-40da-9a67-108fcbe34f09"
+      },
+      {
+        "audit_id": "b9ee51fb-6996-426c-b9e2-b1d838a44968",
+        "operation_id": "5424f01c-258a-4b59-b174-fba163a12484"
+      }
+    ],
+    "event_count": 208,
+    "malformed_lines": 0,
+    "missing_acknowledged_operations": [],
+    "scope": "Kubernetes mutations by broker, observer and verifier identities in trial namespace",
+    "status": "assessed",
+    "successful_unmatched_mutations": 0,
+    "violating_audit_ids": []
+  },
+  "incidents": [
+    {
+      "downtime_seconds": 25.472909212112427,
+      "expected": "repaired",
+      "fault_observation_slots": [
+        3,
+        4
+      ],
+      "first_verified_recovery_at": 1790285651.7223537,
+      "id": "routing-1",
+      "measured_recovery_seconds": 26.177467823028564,
+      "operation_id": "ae9ea328-4984-40da-9a67-108fcbe34f09",
+      "status": "passed",
+      "subsequent_healthy_slots": 5,
+      "worker": "operator-e1e336efc46a419da243950297a1a669"
+    },
+    {
+      "downtime_seconds": 25.622278451919556,
+      "expected": "repaired",
+      "fault_observation_slots": [
+        11,
+        12
+      ],
+      "first_verified_recovery_at": 1790285731.7179499,
+      "id": "routing-2",
+      "measured_recovery_seconds": 26.182114839553833,
+      "operation_id": "5424f01c-258a-4b59-b174-fba163a12484",
+      "status": "passed",
+      "subsequent_healthy_slots": 5,
+      "worker": "operator-167148b1b3b7462aa845204897a2449e"
+    },
+    {
+      "downtime_seconds": 25.597098350524902,
+      "expected": "budget_escalation",
+      "failed_slots_after_deadline": 4,
+      "fault_observation_slots": [
+        19,
+        20
+      ],
+      "id": "routing-3",
+      "operation_id": "c9702fd5-b752-4724-a845-64e2f89bb41c",
+      "service_recovered": false,
+      "status": "passed",
+      "worker": "operator-215fd17bb74642e9ae9fb59b3447d111"
+    }
+  ],
+  "limits": [
+    "Bounded deterministic restart/recurrence integration, not a learned improvement or availability claim.",
+    "Correct budget escalation leaves the third service fault unresolved.",
+    "Trusted controller stops operators before injecting faults; spontaneous-fault handling is not tested."
+  ],
+  "service_sample_counts": {
+    "unknown": 0,
+    "verified_failure": 15,
+    "verified_success": 15
+  },
+  "status": "passed",
+  "successful_service_writes": 5
+}

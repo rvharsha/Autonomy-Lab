@@ -1,5 +1,7 @@
 # Recurring incidents with cumulative authority
 
+The [executed results](RECURRENCE_RESULTS.md) now pass on GCP and in CI.
+
 This gate extends the [healthy persistent-workload gate](PERSISTENT_CAMPAIGN.md).
 It tests one persistent workload, two attributed repairs across operator restarts,
 and a third incident refused after the campaign's two-dispatch budget is spent.
