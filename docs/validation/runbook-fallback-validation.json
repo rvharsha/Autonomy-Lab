@@ -1,0 +1,64 @@
+{
+  "ci": {
+    "artifact_sha256": {
+      "demo-84a0a404/REPORT.md": "33aede959d08507fa19dd99746a93ee9e625ec893a685c26bbf4b4f19504c580",
+      "demo-84a0a404/result.json": "90203d69376625edd28d852378082d6344167541cc3fed4702e819ca06e16396",
+      "handoff-report-a/REPORT.md": "48d0bea23a03ef011eb22df28ea6ba8c5c7ed1917fb6fcbbd9fa2068c07ae329",
+      "handoff-report-a/report.json": "e911561d919d5f3068d054dc96839783c7865cfcbcccbc5cad5747247c670642",
+      "handoff-report-b/REPORT.md": "48d0bea23a03ef011eb22df28ea6ba8c5c7ed1917fb6fcbbd9fa2068c07ae329",
+      "handoff-report-b/report.json": "e911561d919d5f3068d054dc96839783c7865cfcbcccbc5cad5747247c670642",
+      "published-reconciliation-report/REPORT.md": "c12d95ed0789a4348a5a6081d909b65e7b2874e08298e009828ccdcb1ec1a37a",
+      "published-reconciliation-report/report.json": "f3d53f0b69d1227000534e506ebed94bc719e6bba57cb85bbf2fd5f7f37b442e",
+      "published-reliability-report/REPORT.md": "6938159c4f3ec167c522646fc687d12525d01e6327dfb1324778eb397f2887d5",
+      "published-reliability-report/report.json": "b53dfecf786a35e93306c4485e23beef058330424af7b1a2dab1d99c4957d0f1"
+    },
+    "ci_url": "https://github.com/rvharsha/Autonomy-Lab-/actions/runs/35954932484",
+    "duplicate_exports": "identical",
+    "handoff_trials": 4,
+    "lint": "passed",
+    "real_acceptance_checks": 17,
+    "reviewed_repository_commit": "cbddb2503191da285bcfc7c88496ef712ce046a0",
+    "runtime_source_commit": "cbddb2503191da285bcfc7c88496ef712ce046a0",
+    "status": "passed",
+    "unit_tests": 752
+  },
+  "completed_fable_reviews": 4,
+  "duplicate_gate_exports": "byte_identical",
+  "gate_archive_sha256": "b190307b21f480cd14fb44bfc5e07d769f0a00069aad7c1f873ab9c21e970a26",
+  "gate_exit_code": 0,
+  "gate_finished_at": "2026-09-24T04:41:53Z",
+  "gate_runtime_hashes_match_committed_source": true,
+  "gate_started_at": "2026-09-24T04:20:04Z",
+  "gates": {
+    "clean_assessed_audits": 16,
+    "cleanup": "deleted",
+    "evidence_sha256": {
+      "accounting.json": "a1cbef018a3f0d6e9c1734f1ee0a1e9e768f9a110b85577582ac6d379021dab5",
+      "cleanup.json": "b17c5306dd387cfe34a6c48f25ba7608ab6b06e719f0e8df15f68840211afa7f",
+      "manifest.json": "2ea343ea1886ad4d038ae672050b20d68ee50a29491b052fc6c3e5823934722d",
+      "release.json": "c8f38b3576cbe9b6eb8fc3bf5856e4edda041427d9d7c6f1181b34c3c00357dd",
+      "results.json": "1907e574e2df44aa92336be83dd4c61de5c356578148347dc926831db6572918"
+    },
+    "fallback_supported_completions": 8,
+    "known_model_tokens": 0,
+    "recorded": 16,
+    "release_id": "f453e16a26484deba501b5f8a88bba98a69232b5ecefcd7140fae921aaf8db80",
+    "run_directory": "/srv/autonomy-lab/studies/cbddb2503191da285bcfc7c88496ef712ce046a0/checkout/artifacts/experiment-ce1b138e",
+    "status": "passed"
+  },
+  "installed_release_replaced": false,
+  "limitations": [
+    "Model-free gates are separate from the 80-trial comparison and cannot establish relative agent value.",
+    "The historical 48-trial comparison and its source/results are unchanged."
+  ],
+  "lint": "passed",
+  "paid_comparison_started_at_this_checkpoint": false,
+  "planned_live_trials": 80,
+  "review_ledger_sha256": "b684681082194d29aa13a34fcb6554302774fd69dbd1f9254def78d3bfc16d0e",
+  "runtime_source_commit": "cbddb2503191da285bcfc7c88496ef712ce046a0",
+  "schema_version": 1,
+  "source_archive_sha256": "2acd9849ceaba316dc27d8993e58fbb5b50f97b63e5106cb76310c77cb210653",
+  "staged_source_file_count": 205,
+  "status": "pre_run_gates_passed",
+  "unit_tests": 752
+}
