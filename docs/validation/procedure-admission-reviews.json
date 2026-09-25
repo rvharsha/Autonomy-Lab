@@ -1,0 +1,47 @@
+{
+  "reviews": [
+    {
+      "status": "completed",
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/procedures.py",
+            "sha256": "a9422bd1f995a107175590d2ad681f2e5b1546b5b03640edf9dda99800de9a55"
+          },
+          {
+            "path": "scripts/check_procedures.py",
+            "sha256": "0a8fa8fae2ce98c6b261609d19e4c0829702d8085897434ea631239bbd4be849"
+          },
+          {
+            "path": "tests/test_procedures.py",
+            "sha256": "3c9236c7d65edfc82894e45ee3df62650296c1c1997fa55444e1327c0e0b0e07"
+          },
+          {
+            "path": "docs/PROCEDURE_ADMISSION.md",
+            "sha256": "a0000b51339602cbe68e1547997d96803ada2240cb33c9250f22be029d5eb5b7"
+          }
+        ],
+        "prompt_sha256": "a12f66330288cc51886f726b2d2c80593ae1547e70dda6fe2a09dca76fb0babc",
+        "review_kind": "procedure_admission_calibration",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "d47f4b1a2562451b8e27df4dbbde4ed8159894da63b30879ed5ff96a2164f6d7",
+        "source_bytes": 31466
+      },
+      "usage_cost_estimate_usd": 0.3628,
+      "requested_model": "claude-fable-5-1",
+      "dispositions": [
+        {
+          "finding": "Contradictory verifier success/protected-routing failure could pass summary checks",
+          "status": "addressed",
+          "resolution": "Reproduce final verdict, reasons and counts from every raw probe; require complete window and declared environment outcome. The injected routing failure remains recorded and is allowed only as an unhealthy environment outcome where the protocol permits it. Documentation makes non-routing protected invariants explicit."
+        },
+        {
+          "finding": "Version omits evaluated image and repeated promotion can obscure activation evidence",
+          "status": "addressed",
+          "resolution": "Version includes release and image identities. Store immutable definition separately from complete per-decision receipts; pin the activating revision, preserving it through rejected candidates and later promotions."
+        }
+      ]
+    }
+  ],
+  "followup": "pending; source calibration not yet executed"
+}
