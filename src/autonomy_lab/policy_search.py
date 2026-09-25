@@ -46,6 +46,9 @@ def declaration(policy, context):
     spec['contract']['procedure_program'] = raw.decode()
     if context == 'stable':
         del spec['external_restore_offset'], spec['second_fault_offset']
+    else:
+        # Keep independent controller transitions between customer windows.
+        spec.update(external_restore_offset=85, second_fault_offset=125)
     for path in ('scripts/check_policy_search.py', '.github/workflows/policy-search.yml'):
         spec['gate_sources'][path] = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
     return spec
@@ -70,6 +73,15 @@ def plan():
         'limits': ['Authored development contexts, not hidden confirmation or production frequency estimates.',
                    'No model, promotion or execution authority; no measured human-work or full-cost advantage.'],
     }
+
+
+def require_controller_separation(samples, record):
+    """Controller timing must not change a customer verdict within its window."""
+    for name in ('fault', 'external_restore', 'second_fault'):
+        if name in record:
+            action = record[name]
+            require(all(action['finished_at'] < s['started_at'] or s['finished_at'] < action['requested_at']
+                        for s in samples), 'Controller action overlaps a customer measurement window')
 
 
 def evaluate(gate):
@@ -99,6 +111,7 @@ def evaluate(gate):
             timings.append((record[name]['requested_at'], spec[name + '_offset']))
     require(all(0 <= actual - (start + offset) <= spec['schedule_lateness_seconds']
                 for actual, offset in timings), 'Controller schedule slipped')
+    require_controller_separation(card['samples'], record)
     require(record['stop_requested_at'] <= record['stopped_at'] <= record['fault']['requested_at']
             and record['first_stop_requested_at'] <= record['first_stopped_at'] <= record['second_requested_at'],
             'Prior operator did not stop before next phase')

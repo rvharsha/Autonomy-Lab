@@ -24,8 +24,8 @@ Restarting the operator does not replenish the budget.
 | 20 s | Stop initial healthy operator | | |
 | 25 s | Break inventory routing | | |
 | 45 s | Start first response | Conflict only its first actual prepared dispatch | Conflict every actual prepared dispatch |
-| 80 s | | No controller repair | Controller restores routing |
-| 120 s | | No new fault | Controller breaks routing again |
+| 85 s | | No controller repair | Controller restores routing |
+| 125 s | | No new fault | Controller breaks routing again |
 | 135 s | Stop/reap first response operator if still alive | | |
 | 140 s | Start second response, no contention | May encounter the original unresolved fault or a healthy service | Encounters the second fault |
 | 210 s | Finish observation and delete owned cluster | | |
@@ -35,6 +35,9 @@ before the actual broker request. The audit must contain the corresponding
 409/422 rejection. A policy declining repair has no such exposure; its customer
 failure remains an outcome, and it receives no credit for handling a rejection.
 Controller repairs are independently attributed.
+Every controller routing change must finish between customer measurement windows;
+an overlap invalidates the comparison instead of turning timing jitter into a
+policy outcome. Operator repair latency remains part of the customer measurement.
 
 ## Evaluation and selection
 
@@ -84,6 +87,16 @@ shards 0 through 3. Artifact paths are allowlisted; kubeconfigs and owner logs a
 excluded.
 
 ## Decision boundary
+
+The [original cohort](https://github.com/rvharsha/Autonomy-Lab/actions/runs/36187359586)
+at `97c5e88` remains failed. All sixteen campaigns completed and cleaned up, but
+relative CLI paths caused SQLite URI export failures. Diagnostic replay also
+found controller transitions at 80/120 seconds overlapping sample windows; the
+80-second controller repair yielded different window verdicts in equivalent
+no-repair configurations. No selection was issued. The correction resolves CLI
+paths and moves these transitions to 85/125 seconds, with a new overlap rejection
+check. It requires a separate source-pinned cohort; diagnostic results do not
+replace the original failed exports.
 
 These are authored development contexts. Backend-observation unavailability,
 rejection followed by a changed diagnosis, and uncertain writes are not matched

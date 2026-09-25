@@ -4,13 +4,23 @@ import copy
 import importlib.util
 import itertools
 import json
+import sqlite3
+from pathlib import Path
 
 import pytest
 
-from autonomy_lab.campaign import read
+from autonomy_lab.campaign import operation_rows, read
 from autonomy_lab.harness import save
 from autonomy_lab.kubernetes import ROOT
-from autonomy_lab.policy_search import BASELINE, CONTEXTS, SHARDS, plan, programs, select
+from autonomy_lab.policy_search import (
+    BASELINE,
+    CONTEXTS,
+    SHARDS,
+    plan,
+    programs,
+    require_controller_separation,
+    select,
+)
 from autonomy_lab.procedure import CHOICES
 
 
@@ -186,3 +196,67 @@ def test_passing_summaries_cannot_replace_raw_evidence(runner, tmp_path, monkeyp
         runner.reproduce(tmp_path / 'plan.json', tmp_path / 'source', tmp_path / 'replay')
     receipt = read(tmp_path / 'replay/reproduction.json')
     assert receipt['selection'] is None and len(receipt['errors']) == 16
+
+
+def empty_journal(gate):
+    directory = gate / 'campaign'
+    directory.mkdir()
+    with sqlite3.connect(directory / 'operations.sqlite') as db:
+        db.execute('CREATE TABLE operations (created_at TEXT, operation_id TEXT)')
+
+
+def test_relative_destination_reaches_real_readonly_sqlite_export(runner, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    save(Path('plan.json'), plan())
+    exported = []
+
+    def export(gate, *unused):
+        empty_journal(gate)
+        exported.append(operation_rows(gate / 'campaign'))
+        save(gate / 'result.json', {'status': 'passed'})
+
+    monkeypatch.setattr(runner, 'run_case', export)
+    runner.run_shard(Path('plan.json'), 0, Path('relative-shard'))
+    assert exported == [[], [], [], []]
+
+
+def test_relative_replay_source_reaches_real_readonly_sqlite_export(runner, selection_case, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    declared, results = selection_case
+    save(Path('plan.json'), declared)
+    for shard in range(SHARDS):
+        path = Path('source') / f'policy-search-shard-{shard}'
+        path.mkdir(parents=True)
+        save(path / 'plan.json', declared)
+        save(path / 'result.json', {'shard': shard, 'status': 'passed', 'unrun': [],
+                                   'cases': {c: {'status': 'passed'} for c in declared['shards'][shard]}})
+        for case in declared['shards'][shard]:
+            gate = path / 'cases' / case
+            gate.mkdir(parents=True)
+            empty_journal(gate)
+            save(gate / 'result.json', {'status': 'passed'})
+            for label in ('a', 'b'):
+                save(gate / f'evaluation-{label}.json', results[case])
+
+    def export(gate):
+        assert operation_rows(gate / 'campaign') == []
+        return results[gate.name]
+
+    monkeypatch.setattr(runner, 'evaluate', export)
+    receipt = runner.reproduce(Path('plan.json'), Path('source'), Path('replay'))
+    assert receipt['status'] == 'complete' and receipt['selection']['selected'] == BASELINE
+
+
+@pytest.mark.parametrize('interval', [(80.06, 80.09), (79, 80.01), (81.18, 82), (79, 82)])
+def test_controller_transition_overlapping_any_part_of_window_invalidates_comparison(interval):
+    with pytest.raises(ValueError, match='overlaps'):
+        require_controller_separation([{'started_at': 80.01, 'finished_at': 81.18}],
+                                      {'external_restore': {'requested_at': interval[0], 'finished_at': interval[1]}})
+
+
+def test_controller_transition_between_windows_is_valid():
+    require_controller_separation([{'started_at': 80.01, 'finished_at': 81.18},
+                                   {'started_at': 90.01, 'finished_at': 91.18}],
+                                  {'external_restore': {'requested_at': 85.06, 'finished_at': 85.09}})
+    spec = plan()['cases']['p111-continuing']
+    assert spec['external_restore_offset'] == 85 and spec['second_fault_offset'] == 125

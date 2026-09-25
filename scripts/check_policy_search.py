@@ -13,6 +13,7 @@ from autonomy_lab.procedures import require
 
 
 def run_shard(plan_path, shard, destination):
+    destination = destination.resolve()
     declared = read(plan_path)
     require(declared == plan() and type(shard) is int and 0 <= shard < SHARDS,
             'Frozen plan or shard differs')
@@ -46,6 +47,7 @@ def run_shard(plan_path, shard, destination):
 
 
 def reproduce(plan_path, source, destination):
+    source, destination = source.resolve(), destination.resolve()
     declared = read(plan_path)
     require(declared == plan(), 'Frozen plan or source changed')
     destination.mkdir(parents=True, exist_ok=False)
