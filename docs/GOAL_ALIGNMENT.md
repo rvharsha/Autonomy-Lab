@@ -1,6 +1,6 @@
 # Purpose, evidence and next decisions
 
-Alignment review: 24 September 2026. This is a technical direction check, not a new
+Alignment review: 25 September 2026. This is a technical direction check, not a new
 experiment result or promotion decision. Historical study outcomes remain unchanged.
 
 ## The purpose
@@ -20,11 +20,11 @@ must be earned by the evidence.
 
 | Question | Evidence available | Decision still unsupported |
 |---|---|---|
-| Can evaluations determine whether work succeeded and whether a candidate should advance? | Independent semantic/invariant checks, retained unknowns, and a [candidate withheld after a regression miss](RECONCILIATION_RESULTS.md) | General production safety or an automated procedure-promotion system |
+| Can evaluations determine whether work succeeded and whether a candidate should advance? | Independent semantic/invariant checks, retained unknowns, a [candidate withheld after a regression miss](RECONCILIATION_RESULTS.md), and [reproduced calibration controlling admission](PROCEDURE_ADMISSION.md) | General production safety or admission of novel generated procedures |
 | Does more agent structure repay its cost? | [Matched model/runbook comparisons](AGENT_VALUE_RESULTS.md); the apparent observer-outage advantage was closed by a [deterministic fallback](SERVICE_RECOVERY_RESULTS.md) | Structured-state superiority, model necessity or greater repair authority |
 | Can state and evidence survive interrupted execution? | Durable operations, conditional repair, response-loss cases and [mixed-state termination gates](MIXED_STATE_RECOVERY_RESULTS.md) | Arbitrary exactly-once effects or host-failure tolerance |
 | Can the workload outlive its operator? | [Healthy restart](PERSISTENT_CAMPAIGN_RESULTS.md) and [300-second recurrence](RECURRENCE_RESULTS.md) gates on GCP and CI: unchanged workload, two attributed repairs, then cumulative-budget escalation with the service failure retained; [ambiguous-effect recovery](AMBIGUITY_RESULTS.md) adds no replay after a real unrecorded write, including an external change; [lifecycle gates](LIFECYCLE_RESULTS.md) retain missing measurements and clean up after the original campaign owner and janitor terminate | Broader sustained incident handling, capacity/release/security autonomy or production availability |
-| Can operating experience produce a better operator? | Human-directed interventions and regression evaluations; a [controlled-improvement design](CONTINUOUS_OWNERSHIP_PLAN.md) | An autonomous procedure-generation, promotion and withdrawal loop |
+| Can operating experience produce a better operator? | Human-directed interventions and regression evaluations; evaluated admission and [live withdrawal](PROCEDURE_WITHDRAWAL.md) of known deterministic procedures | Generated improvement, sealed counterexample evaluation and benefit over maintained automation |
 | Does the system reduce customer impact or human work at acceptable cost? | Scoped task outcomes, timings and model usage | Measured human-work savings, full recurring cost advantage or ROI |
 
 The foundation is credible for the bounded claims above. The continuous,
@@ -43,6 +43,10 @@ objective's achievement.
    now pass their [bounded gates](LIFECYCLE_RESULTS.md). Two failed original owner
    attempts are retained alongside the corrected runs.
    The ambiguity gate does not dispatch a stale proposal to test API rejection.
+   The separate [conditional-rejection development gate](CONDITIONAL_REJECTION.md)
+   targets that gap without changing the operating procedure; its baseline may
+   correctly escalate while customer failure persists. That is an opportunity
+   to evaluate an improvement, not evidence that an improvement already exists.
    Keep the current routing authority. Freeze the fault schedule, deadlines,
    complete calendar, pass criteria and stop conditions before each experiment.
    Escalation can be correct while the service remains failed; retain both facts.
@@ -56,6 +60,10 @@ objective's achievement.
    different cause. Rejecting a harmful proposal is required gate evidence;
    demonstrating a beneficial accepted proposal is a separate improvement claim.
    If none qualifies, report that result and do not manufacture a learning success.
+   Known-procedure admission and live withdrawal are now implemented and exercised;
+   candidate generation, a restricted interpreter, independent sealed cases and
+   comparison with a maintained baseline remain ahead. Development incidents must
+   not be relabeled as hidden tests after they inform the proposal.
 
 3. **Test whether the improvement is worth operating.** Preregister a comparison
    of competent conventional automation, a frozen model-assisted operator and an
