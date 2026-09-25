@@ -21,6 +21,10 @@ from autonomy_lab.janitor import cleanup, process_identity
 from autonomy_lab.kubernetes import ROOT
 
 
+class EvidenceUnavailable(RuntimeError):
+    """The pre-cleanup baseline could not be read; integrity is not assessed."""
+
+
 def source_files():
     paths = [*sorted((ROOT / 'src/autonomy_lab').glob('*.py')), ROOT / 'scripts/service_campaign.py',
              ROOT / 'scripts/service_experiment.py', ROOT / 'fixtures/expectations.json', ROOT / 'fixtures/database.sql',
@@ -100,9 +104,10 @@ def finalize(directory):
             environment = campaign / 'environment.json'
             if environment.exists() and (cluster is None or read(environment)['cluster'] != cluster):
                 raise ValueError('Campaign resource ownership mismatch')
-            before = operation_rows(campaign)
-            hashes = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in (campaign / 'samples').glob('*.json')}
+            before, hashes = None, None
             try:
+                before = operation_rows(campaign)
+                hashes = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in (campaign / 'samples').glob('*.json')}
                 if (campaign / 'window.json').exists():
                     save(directory / 'post-stop-scorecard-a.json', scorecard(campaign))
                     result['accounting'] = 'recorded'
@@ -125,6 +130,8 @@ def finalize(directory):
             except Exception as error:
                 result['errors'].append({'stage': 'cleanup', 'error_type': type(error).__name__})
             try:
+                if before is None or hashes is None:
+                    raise EvidenceUnavailable('Pre-cleanup evidence unavailable')
                 if before != operation_rows(campaign) or hashes != {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in (campaign / 'samples').glob('*.json')}:
                     raise RuntimeError('Recovery modified operation or measurement evidence')
                 result['original_evidence_unchanged'] = True

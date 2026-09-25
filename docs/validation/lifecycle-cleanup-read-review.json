@@ -1,0 +1,46 @@
+{
+  "scope": "Pre-merge cleanup when accounting inputs are unreadable",
+  "review": {
+    "status": "completed",
+    "requested_model": "claude-fable-5-1",
+    "started_at": "2026-09-25T00:53:09.301654+00:00",
+    "finished_at": "2026-09-25T00:53:43.009296+00:00",
+    "generation_attempts": 1,
+    "findings_text": "**Findings (2)**\n\n**1. `None` used as \"not captured\" sentinel collides with legitimate `None` return \u2014 scripts/service_campaign.py, `finalize()`, lines ~103 and ~129 (diff hunks)**\n\nThe correction encodes \"baseline unavailable\" as `before is None or hashes is None`. `hashes` is always a dict when the comprehension completes, but `before = operation_rows(campaign)` is an external call whose return type is not constrained here. If `operation_rows()` legitimately returns `None` for a campaign whose operations database has no rows / was never initialised (a plausible state for a campaign killed before its first operation), the evidence block will raise `RuntimeError('Pre-cleanup evidence unavailable')` even though the baseline *was* captured and matched. Result: `original_evidence_unchanged` is never set and `sample_sha256`/`scorecard_sha256` are dropped for a healthy run, and `status` becomes `'failed'` with an `'evidence'` error \u2014 a false negative in the primary post-stop gate.\n\nTrace: `operation_rows()` \u2192 `None`; hashing succeeds; `window.json` exists \u2192 `accounting='recorded'`; cleanup \u2192 `'deleted'`; evidence block: `before is None` \u2192 raise \u2192 `errors=[{'stage':'evidence',...}]`, `status='failed'`.\n\nMinimal fix \u2014 track capture explicitly rather than by value:\n```python\nbaseline_captured = False\ntry:\n    before = operation_rows(campaign)\n    hashes = {...}\n    baseline_captured = True\n    ...\n...\ntry:\n    if not baseline_captured:\n        raise RuntimeError('Pre-cleanup evidence unavailable')\n```\n(This also removes the reliance on `None` being an impossible return of a function defined in another module.)\n\n**2. \"Evidence unavailable\" and \"evidence modified\" are indistinguishable in the persisted result \u2014 same evidence block, lines ~129\u2013132**\n\nBoth conditions raise bare `RuntimeError`; the result only records `error_type`, so `post-stop.json` contains `{'stage':'evidence','error_type':'RuntimeError'}` in either case. Downstream consumers (and the existing gate on `original_evidence_unchanged`) cannot tell \"we couldn't read the baseline so we did not assert\" from \"cleanup mutated the operation/measurement evidence\" \u2014 the latter is a much more serious integrity signal. The new test only asserts the stage list, so this ambiguity is untested.\n\nFix: use a distinct exception class (or record a `reason` field) for the unavailable-baseline path, e.g.:\n```python\nclass EvidenceUnavailable(RuntimeError): ...\n...\nif not baseline_captured:\n    raise EvidenceUnavailable('Pre-cleanup evidence unavailable')\n```\nand extend the test to assert `errors[1]['error_type'] == 'EvidenceUnavailable'`.\n\n**Not raised:** cleanup ordering after ownership validation is correct; partial-capture (`before` set, hashing fails) is handled by the `or`; `accounting` correctly stays `'unknown'` on read failure. No security regression identified.\n\nSnapshot 9204d518fde83de7feb47595f495873e26f4b9dad35f9877ffe77b0e53bf3f15",
+    "usage_cost_estimate_usd": 0.17095,
+    "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+    "http_status": 200,
+    "snapshot": {
+      "files": [
+        {
+          "path:n": "scripts/service_campaign.py",
+          "sha256": "53a99128e691108a61ac13dad7e343719c5de412e4c00b790519a6fb45475feb"
+        },
+        {
+          "path:n": "tests/test_lifecycle.py",
+          "sha256": "5f4c6a3e4ba894f960ef5fc2b6a9c26df17bf028cd2d322926078083e0499a11"
+        }
+      ],
+      "prompt_sha256": "5b5e0e2001fc7be60678025531b939eb3ff4442f3891c2fda00f76623e45ff84",
+      "review_kind": "campaign_cleanup_read_failure",
+      "scope": "mixed_state_gate",
+      "snapshot_id": "9204d518fde83de7feb47595f495873e26f4b9dad35f9877ffe77b0e53bf3f15",
+      "source_bytes": 14696
+    }
+  },
+  "self_review_finding": "Reading the operation database or hashing samples could fail outside the accounting handler and bypass owned-resource cleanup.",
+  "fix": "Read the baseline within the accounting handler; run scoped cleanup after independently validated ownership even if that read fails. Preserve unknown/failed accounting and distinguish an unavailable baseline from an integrity mismatch.",
+  "dispositions": [
+    {
+      "finding": 1,
+      "decision": "not_applicable",
+      "reason": "campaign.operation_rows returns a list, including [] when the database is absent; it never returns None. None unambiguously represents uncaptured evidence."
+    },
+    {
+      "finding": 2,
+      "decision": "fixed",
+      "reason": "Persist EvidenceUnavailable for an absent baseline instead of the RuntimeError used for a detected integrity mismatch."
+    }
+  ],
+  "validation": "987 authored tests and lint pass; focused corruption regressions use real malformed SQLite bytes and an unreadable sample path with cleanup mocked. This failure branch has not been executed against a live cluster; earlier successful owner gates remain separate frozen evidence."
+}

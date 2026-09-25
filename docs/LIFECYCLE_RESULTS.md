@@ -154,3 +154,16 @@ operator and gated evolving procedures under matched authority and schedules.
 Measure customer impact, actual human active time and full operating/evaluation
 cost. Actual stale-proposal API rejection, production reliability, learned benefit,
 human-work savings and ROI remain unproven by these persistent campaigns.
+
+## Pre-merge cleanup followup
+
+A subsequent self-review found that reading the operation database or hashing
+samples could fail before the accounting handler and skip cleanup. The correction
+keeps ownership validation first, moves these fallible reads into accounting, and
+still attempts scoped cleanup if they fail. An unavailable baseline remains
+unassessed and is distinguished from a detected integrity mismatch. Two authored
+regressions use real malformed SQLite bytes and an unreadable sample path, with
+cleanup mocked; the suite passes 987 tests and lint. This new failure branch was
+not run against a live cluster. Prior GCP attempts retain their original source
+identities and outcomes. [Fable review and dispositions](validation/lifecycle-cleanup-read-review.json)
+record the additional check.

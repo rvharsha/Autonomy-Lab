@@ -285,6 +285,34 @@ def test_post_stop_accounting_failure_does_not_skip_cleanup(tmp_path):
         cleanup.assert_called_once()
 
 
+@pytest.mark.parametrize('damage', ['database', 'sample'])
+def test_post_stop_unreadable_evidence_still_cleans_owned_resources(tmp_path, damage):
+    module = load_script('service_campaign')
+    campaign = tmp_path / 'campaign'
+    campaign.mkdir()
+    (campaign / 'samples').mkdir()
+    owner = {'pid': 123, 'identity': 'authored', 'run_id': '1234abcd'}
+    for path, data in [(campaign / 'owner.json', owner), (tmp_path / 'launch-claim.json', owner),
+                       (campaign / 'environment.json', {'cluster': 'autolab-1234abcd'}), (campaign / 'window.json', {})]:
+        save(path, data)
+    if damage == 'database':
+        (campaign / 'operations.sqlite').write_bytes(b'authored corrupt database')
+    else:
+        # Reading a directory as a sample fails before scorecard() is reached.
+        (campaign / 'samples/0000.json').mkdir()
+    with patch.object(module, 'load_job', return_value=({}, campaign)), patch.object(module, 'process_identity', return_value=''), \
+            patch.object(module, 'cleanup', return_value={'status': 'deleted'}) as cleanup, \
+            patch.object(module, 'remaining_resources', return_value={'cluster_nodes': [], 'registered_agents': []}), \
+            patch.dict(module.os.environ, {'SERVICE_RESULT': 'signal', 'INVOCATION_ID': 'original'}):
+        result = module.finalize(tmp_path)
+        assert result['status'] == 'failed' and result['cleanup'] == 'deleted'
+        assert result['accounting'] == 'unknown'
+        assert [e['stage'] for e in result['errors']] == ['accounting', 'evidence']
+        assert result['errors'][1]['error_type'] == 'EvidenceUnavailable'
+        assert 'original_evidence_unchanged' not in result
+        cleanup.assert_called_once()
+
+
 def test_signal_refuses_reused_worker_identity(tmp_path):
     module = load_script('check_telemetry')
     save(tmp_path / 'worker-lease.json', {'pid': 123, 'identity': 'original'})
