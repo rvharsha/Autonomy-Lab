@@ -6,6 +6,7 @@ production availability, or the optimal policy for an unknown incident mix.
 
 import hashlib
 import json
+import math
 from collections import Counter
 
 from autonomy_lab.ambiguity import journal_events
@@ -101,6 +102,7 @@ def assess_audit(card, captured, record):
         require(event['responseObject']['metadata']['resourceVersion'] == action['resource_version'],
                 'Controller response differs')
     for attempt in record['attempts']:
+        require(attempt['phase'] in {'first', 'second'}, 'Unknown incident phase')
         if attempt['phase'] != 'first':
             require('change' not in attempt, 'Later repair must have no controller conflict')
             continue
@@ -128,6 +130,11 @@ def assess_audit(card, captured, record):
         attempts = [a for a in record['attempts'] if a['operation_id'] == op['operation_id']]
         require(len(attempts) == 1, 'Dispatch lacks one controller barrier record')
         attempt = attempts[0]
+        incident_start = record['fault' if attempt['phase'] == 'first' else 'second_fault']['finished_at']
+        incident_end = record['external_restore']['requested_at'] if attempt['phase'] == 'first' else window['end']
+        require(incident_start <= attempt['barrier']['at']
+                <= epoch(event['requestReceivedTimestamp']) <= epoch(event['stageTimestamp']) < incident_end,
+                'Dispatch phase differs from the incident calendar')
         require(request['service_uid'] == attempt['before']['metadata']['uid']
                 == card['identities_before']['Service/inventory']
                 and request['resource_version'] == attempt['before']['metadata']['resourceVersion']
@@ -156,9 +163,25 @@ def assess_audit(card, captured, record):
 
 def first_episode_completed_by(worker, deadline):
     """Episode names are UUIDs, so filename order does not imply chronology."""
-    first = min(worker['episodes'], key=lambda e: e['attempt']['started_at'], default=None)
-    return (first is not None and first['outcome'] is not None
-            and first['outcome']['finished_at'] <= deadline)
+    require(type(deadline) in (int, float) and math.isfinite(deadline), 'Malformed deadline')
+    episodes = worker['episodes']
+    if not episodes:
+        return False
+    starts = [e['attempt']['started_at'] for e in episodes]
+    require(all(type(t) in (int, float) and math.isfinite(t) for t in starts),
+            'Malformed episode start')
+    earliest = min(starts)
+    # Clock resolution can tie starts. Every tied earliest attempt must qualify;
+    # list order must not select a favorable completion over a missing one.
+    for episode in [e for e in episodes if e['attempt']['started_at'] == earliest]:
+        if episode['outcome'] is None:
+            return False
+        finished = episode['outcome']['finished_at']
+        require(type(finished) in (int, float) and math.isfinite(finished) and earliest <= finished,
+                'Malformed episode completion')
+        if finished > deadline:
+            return False
+    return True
 
 
 def evaluate(gate):

@@ -149,6 +149,49 @@ def test_actual_rejected_dispatch_is_retained_and_spent(rejected_dispatch):
     assert assess_audit(*rejected_dispatch) == rejected_dispatch[0]['operations']
 
 
+@pytest.mark.parametrize('shift', [-5, 7, 30])
+def test_first_incident_contention_cannot_move_outside_its_calendar(rejected_dispatch, shift):
+    card, audit, record = rejected_dispatch
+    attempt = record['attempts'][0]
+    attempt['barrier']['at'] += shift
+    attempt['release_requested_at'] += shift
+    for key in ('requested_at', 'finished_at'):
+        attempt['change'][key] += shift
+    for key in ('created_at', 'updated_at'):
+        op = card['operations'][0]
+        op[key] = stamp(datetime.fromisoformat(op[key]).timestamp() + shift)
+    for event in audit['events'][-2:]:
+        for key in ('requestReceivedTimestamp', 'stageTimestamp'):
+            event[key] = stamp(datetime.fromisoformat(event[key]).timestamp() + shift)
+    with pytest.raises(ValueError, match='incident calendar'):
+        assess_audit(card, audit, record)
+
+
+def test_dispatch_response_cannot_cross_controller_recovery(rejected_dispatch):
+    card, audit, record = rejected_dispatch
+    card['operations'][0]['updated_at'] = stamp(20.1)
+    audit['events'][-1]['stageTimestamp'] = stamp(20)
+    with pytest.raises(ValueError, match='incident calendar'):
+        assess_audit(card, audit, record)
+
+
+def test_second_phase_label_cannot_exempt_a_first_incident_write_from_contention(rejected_dispatch):
+    card, audit, record = rejected_dispatch
+    attempt = record['attempts'][0]
+    attempt['phase'] = 'second'
+    del attempt['change']
+    audit['events'].pop(-2)
+    with pytest.raises(ValueError, match='incident calendar'):
+        assess_audit(card, audit, record)
+
+
+def test_unknown_incident_phase_cannot_exempt_a_dispatch_from_contention(rejected_dispatch):
+    card, audit, record = rejected_dispatch
+    record['attempts'][0]['phase'] = 'undeclared'
+    with pytest.raises(ValueError, match='Unknown incident phase'):
+        assess_audit(card, audit, record)
+
+
 @pytest.mark.parametrize('change', ['no_api', 'late_conflict', 'late_release', 'wrong_version',
                                    'nonnull_result', 'reconciled', 'duplicate_barrier', 'early_journal'])
 def test_false_conditional_rejection_evidence_is_refused(rejected_dispatch, change):
@@ -194,3 +237,42 @@ def test_a_later_episode_cannot_hide_a_missing_or_late_first_completion(first_ou
 
 def test_empty_episode_population_cannot_satisfy_a_response_deadline():
     assert not first_episode_completed_by({'episodes': []}, 20)
+
+
+@pytest.mark.parametrize('outcome', [None, {'finished_at': 21}])
+def test_tied_earliest_attempts_cannot_depend_on_filename_order(outcome):
+    episodes = [
+        {'attempt': {'started_at': 10}, 'outcome': {'finished_at': 15}},
+        {'attempt': {'started_at': 10}, 'outcome': outcome},
+    ]
+    assert not first_episode_completed_by({'episodes': episodes}, 20)
+    assert not first_episode_completed_by({'episodes': episodes[::-1]}, 20)
+
+
+def test_tied_earliest_attempts_must_all_complete_by_deadline():
+    assert first_episode_completed_by({'episodes': [
+        {'attempt': {'started_at': 10}, 'outcome': {'finished_at': 15}},
+        {'attempt': {'started_at': 10}, 'outcome': {'finished_at': 20}},
+    ]}, 20)
+
+
+@pytest.mark.parametrize('value', [None, True, '10', float('nan'), float('inf')])
+@pytest.mark.parametrize('field', ['start', 'finish', 'deadline'])
+def test_malformed_single_episode_chronology_never_qualifies(value, field):
+    episode = {'attempt': {'started_at': 10}, 'outcome': {'finished_at': 15}}
+    deadline = 20
+    if field == 'start':
+        episode['attempt']['started_at'] = value
+    elif field == 'finish':
+        episode['outcome']['finished_at'] = value
+    else:
+        deadline = value
+    with pytest.raises(ValueError):
+        first_episode_completed_by({'episodes': [episode]}, deadline)
+
+
+def test_completion_cannot_predate_its_attempt():
+    with pytest.raises(ValueError):
+        first_episode_completed_by({'episodes': [
+            {'attempt': {'started_at': 10}, 'outcome': {'finished_at': 9}},
+        ]}, 20)

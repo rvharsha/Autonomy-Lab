@@ -80,3 +80,9 @@ No policy, authority, budget, schedule or outcome expectation changes. A fresh
 cohort is required. Original measured windows remain retained: refresh 7 healthy /
 14 failed / 0 unknown, single attempt 13 / 8 / 0, no-repair control 7 / 14 / 0.
 These observations do not retrospectively qualify the failed comparison.
+
+Additional source review tightened the evidence checks: all attempts tied for
+earliest start must complete, malformed chronology is refused, and each actual
+dispatch must remain within its declared incident's calendar. These are evaluator
+corrections; they do not change the policies or the controller rule. Each source
+revision's live cohort remains separate.
