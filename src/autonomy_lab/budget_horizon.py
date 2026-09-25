@@ -52,8 +52,9 @@ def declaration(arm):
     }
 
 
-def assess_audit(card, captured, record):
+def assess_audit(card, captured, record, context='continuing'):
     """Bind every namespace mutation to a declared controller or broker request."""
+    require(context in {'stable', 'continuing'}, 'Unknown contention context')
     require(captured['collection_closed'] is True and captured['malformed_lines'] == 0,
             'Audit is not complete')
     window = card['window']
@@ -89,7 +90,7 @@ def assess_audit(card, captured, record):
         seen.add(found[0]['auditID'])
         return found[0]
 
-    for name in ('fault', 'external_restore', 'second_fault'):
+    for name in (('fault',) if context == 'stable' else ('fault', 'external_restore', 'second_fault')):
         action = record[name]
         expected, target = (9999, 8080) if name == 'external_restore' else (8080, 9999)
         require(action['patch'] == repair_patch({
@@ -101,10 +102,13 @@ def assess_audit(card, captured, record):
                       action['requested_at'], action['finished_at'])
         require(event['responseObject']['metadata']['resourceVersion'] == action['resource_version'],
                 'Controller response differs')
+    first = [a for a in record['attempts'] if a['phase'] == 'first']
+    earliest = min((a['barrier']['at'] for a in first), default=None)
     for attempt in record['attempts']:
         require(attempt['phase'] in {'first', 'second'}, 'Unknown incident phase')
-        if attempt['phase'] != 'first':
-            require('change' not in attempt, 'Later repair must have no controller conflict')
+        conflict = attempt['phase'] == 'first' and (context == 'continuing' or attempt['barrier']['at'] == earliest)
+        if not conflict:
+            require('change' not in attempt, 'Uncontended repair must have no controller conflict')
             continue
         change = attempt['change']
         patch = annotation_patch(attempt['before'], attempt['operation_id'])
@@ -130,8 +134,12 @@ def assess_audit(card, captured, record):
         attempts = [a for a in record['attempts'] if a['operation_id'] == op['operation_id']]
         require(len(attempts) == 1, 'Dispatch lacks one controller barrier record')
         attempt = attempts[0]
-        incident_start = record['fault' if attempt['phase'] == 'first' else 'second_fault']['finished_at']
-        incident_end = record['external_restore']['requested_at'] if attempt['phase'] == 'first' else window['end']
+        if context == 'stable':
+            incident_start = record['fault']['finished_at'] if attempt['phase'] == 'first' else record['second_requested_at']
+            incident_end = record['first_stop_requested_at'] if attempt['phase'] == 'first' else window['end']
+        else:
+            incident_start = record['fault' if attempt['phase'] == 'first' else 'second_fault']['finished_at']
+            incident_end = record['external_restore']['requested_at'] if attempt['phase'] == 'first' else window['end']
         require(incident_start <= attempt['barrier']['at']
                 <= epoch(event['requestReceivedTimestamp']) <= epoch(event['stageTimestamp']) < incident_end,
                 'Dispatch phase differs from the incident calendar')
@@ -142,10 +150,13 @@ def assess_audit(card, captured, record):
                 'Dispatch differs from the prepared routing repair')
         require(epoch(op['created_at']) <= attempt['barrier']['at'] <= attempt['release_requested_at']
                 <= epoch(event['requestReceivedTimestamp']), 'Dispatch preceded barrier release')
-        if attempt['phase'] == 'first':
+        if 'change' in attempt:
+            require(op['status'] == 'rejected', 'Contended dispatch was not rejected')
             require(attempt['barrier']['at'] <= attempt['change']['requested_at']
                     <= attempt['change']['finished_at'] <= attempt['release_requested_at'],
                     'Contention was not introduced before the actual dispatch')
+        else:
+            require(op['status'] == 'acknowledged', 'Uncontended dispatch was not acknowledged')
         if op['status'] == 'acknowledged':
             metadata = event['responseObject']['metadata']
             require(op['reason'] == 'api_acknowledged' and json.loads(op['result']) == {
@@ -156,6 +167,9 @@ def assess_audit(card, captured, record):
                     and json.loads(op['result']) is None and op['reconciliation'] is None,
                     'Actual API rejection differs from journal')
         dispatches.append(op)
+    require(len(record['attempts']) == len(dispatches)
+            and {a['operation_id'] for a in record['attempts']} == {o['operation_id'] for o in dispatches},
+            'Controller barrier lacks an actual dispatch')
     require(len(writes) == len(seen) and {e['auditID'] for e in writes} == seen,
             'Undeclared or duplicate Service mutation')
     return dispatches

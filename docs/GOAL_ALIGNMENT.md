@@ -48,6 +48,13 @@ ranking. If it exposes a tradeoff, include the complementary stable-conflict
 context and fresh sequences before selecting a policy. Do not add a runtime,
 agents or broader permissions merely to make a model appear necessary.
 
+The [finite policy comparison](FINITE_POLICY_COMPARISON.md) supplies the matched
+stable-conflict context and enumerates all eight configurations. Its conservative
+selection rule requires an outcome improvement without a regression in either
+context. It remains a development comparison: fresh confirmation, remaining causal
+coverage and any subsequent canary require separate evidence. A null result ends
+this selection attempt with the maintained baseline retained.
+
 ## Next proof, in order
 
 1. **Retain the bounded operating foundation.** The declared
