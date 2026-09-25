@@ -1,0 +1,70 @@
+name: Budget horizon
+on:
+  pull_request:
+    paths:
+      - 'src/autonomy_lab/**'
+      - 'scripts/**'
+      - 'scenarios/**'
+      - 'procedures/**'
+      - 'fixtures/**'
+      - 'infra/**'
+      - 'Dockerfile'
+      - '*.lock'
+      - 'pyproject.toml'
+      - 'tests/test_budget_horizon.py'
+      - '.github/workflows/budget-horizon.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  budget-horizon:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: make setup
+      - run: PYTHONPATH=src .venv/bin/python scripts/check_budget_horizon.py
+      - name: Retain credential-free evidence including failed attempts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: budget-horizon-results
+          path: |
+            artifacts/budget-horizon-*/declaration.json
+            artifacts/budget-horizon-*/result.json
+            artifacts/budget-horizon-*/*/declaration.json
+            artifacts/budget-horizon-*/*/manifest.json
+            artifacts/budget-horizon-*/*/record.json
+            artifacts/budget-horizon-*/*/result.json
+            artifacts/budget-horizon-*/*/scorecard-*.json
+            artifacts/budget-horizon-*/*/evaluation-*.json
+            artifacts/budget-horizon-*/*/server-audit.json
+            artifacts/budget-horizon-*/*/campaign/contract.json
+            artifacts/budget-horizon-*/*/campaign/program-definition.json
+            artifacts/budget-horizon-*/*/campaign/window.json
+            artifacts/budget-horizon-*/*/campaign/source.json
+            artifacts/budget-horizon-*/*/campaign/identities-*.json
+            artifacts/budget-horizon-*/*/campaign/operations.sqlite
+            artifacts/budget-horizon-*/*/campaign/finished.json
+            artifacts/budget-horizon-*/*/campaign/failed.json
+            artifacts/budget-horizon-*/*/campaign/finalization.json
+            artifacts/budget-horizon-*/*/campaign/cleanup.json
+            artifacts/budget-horizon-*/*/campaign/samples/*.json
+            artifacts/budget-horizon-*/*/campaign/workers/*/attempt.json
+            artifacts/budget-horizon-*/*/campaign/workers/*/ready.json
+            artifacts/budget-horizon-*/*/campaign/workers/*/finished.json
+            artifacts/budget-horizon-*/*/campaign/workers/*/failed.json
+            artifacts/budget-horizon-*/*/campaign/workers/*/escalation.json
+            artifacts/budget-horizon-*/*/campaign/workers/*/preflight/*/*.json
+            artifacts/budget-horizon-*/*/campaign/workers/*/episode-*/*.json
+            artifacts/budget-horizon-*/*/campaign/workers/*/episode-*/evidence.jsonl
+          if-no-files-found: warn
+          retention-days: 14

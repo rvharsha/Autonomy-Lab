@@ -32,6 +32,22 @@ improving-operator objective remains incomplete. Test counts, successful deploym
 and source reviews support engineering quality; they are not measures of that
 objective's achievement.
 
+Program admission and per-operation withdrawal now have separately reproduced
+development evidence in [PR17](https://github.com/rvharsha/Autonomy-Lab/pull/17).
+That closes a control-path gap, not the useful-adaptation question. Its eight-case
+calibration contains no actual conditional API rejection; separate lifecycle cases
+exercise refresh for the maintained program. Calibration eligibility alone must
+not be presented as comparative validation of the refresh choice.
+
+Before a model-selection study, the [budget-horizon comparison](BUDGET_HORIZON.md)
+tests a concrete opportunity within the existing language: retrying a contended
+incident may consume dispatch slots needed for a later repair. It evaluates three
+authored policies over persistent workloads with identical authority and budgets.
+This is a development hypothesis, not a generated improvement or a general policy
+ranking. If it exposes a tradeoff, include the complementary stable-conflict
+context and fresh sequences before selecting a policy. Do not add a runtime,
+agents or broader permissions merely to make a model appear necessary.
+
 ## Next proof, in order
 
 1. **Retain the bounded operating foundation.** The declared
