@@ -58,7 +58,7 @@ SCENARIOS = {
     "observer_verifier",
     "observer_quote_verifier",
 }
-VARIANTS = {"runbook", "runbook_fallback", "basic", "structured", "no_agent"}
+VARIANTS = {"runbook", "runbook_fallback", "basic", "structured", "no_agent", "program", "program_adverse"}
 
 
 def validate_config(config: dict) -> None:
@@ -78,6 +78,17 @@ def validate_config(config: dict) -> None:
             or len(set(values)) != len(values)
         ):
             raise ValueError(f"Manifest {name} must contain unique supported values")
+    selected_programs = set(config['variants']) & {'program', 'program_adverse'}
+    if selected_programs or 'procedure_programs' in config:
+        from autonomy_lab.procedure import parse
+
+        programs = config.get('procedure_programs')
+        if type(programs) is not dict or set(programs) != selected_programs:
+            raise ValueError('Every selected program requires exact bytes')
+        for raw in programs.values():
+            if type(raw) is not str:
+                raise ValueError('Program must be UTF-8 text')
+            parse(raw.encode('utf-8'))
     integers = ["repetitions"]
     if set(config["variants"]) & {"basic", "structured"}:
         integers += ["max_turns", "max_tokens", "max_output_tokens"]
@@ -364,7 +375,7 @@ def run_trial(
                     kube.set_target_port(8080)
                     controller_event("external_actor_repaired_environment_control")
                 result["agent"] = {"status": "not_applicable", "terminal": None}
-            elif variant in {"runbook", "runbook_fallback"}:
+            elif variant in {"runbook", "runbook_fallback", "program", "program_adverse"}:
                 if scenario in {"concurrent_change", "dependency_changed", "lost_ack_changed"}:
                     original = tools.call
 
@@ -381,7 +392,15 @@ def run_trial(
                         return response
 
                     tools.call = change_after_read
-                terminal = runbook(tools, verification_fallback=variant == "runbook_fallback")
+                if variant in {'program', 'program_adverse'}:
+                    from autonomy_lab.procedure import freeze, run
+
+                    raw = config['procedure_programs'][variant].encode('utf-8')
+                    pin = freeze(raw)
+                    save(run_dir / 'program.json', {'at': time.time(), 'pin': pin})
+                    terminal = run(tools, raw, pin=pin)
+                else:
+                    terminal = runbook(tools, verification_fallback=variant == "runbook_fallback")
                 result["agent"] = {"status": "completed", "terminal": terminal}
             else:
                 client = GeminiClient(api_key=gemini_key(env_file), model=config["model"])

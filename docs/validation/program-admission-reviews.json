@@ -1,0 +1,231 @@
+{
+  "status": "completed",
+  "generation_estimate_usd": 2.59193,
+  "reviews": [
+    {
+      "kind": "logic",
+      "record_id": "20260925T160414.396000Z-mixed_state_gate.json",
+      "model": "claude-fable-5-1",
+      "started_at": "2026-09-25T16:04:14.396227+00:00",
+      "finished_at": "2026-09-25T16:05:57.626001+00:00",
+      "usage_cost_estimate_usd": 0.53162,
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/program_admission.py",
+            "sha256": "f23056522babe97cd4d60dfff23d08162507927aae2097c7da2c7038968b8e65"
+          },
+          {
+            "path": "src/autonomy_lab/procedures.py",
+            "sha256": "068706d1eec45b31e9d993092798cb3c957bf60994f6f0d5c7be1ee94fbba18d"
+          },
+          {
+            "path": "src/autonomy_lab/broker.py",
+            "sha256": "9711344e8f710cb38e7856850ac7513324269fa0a84ba3a10c51a80209d3e082"
+          },
+          {
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "88245997e64c3fe77c7eee0b935e8db6e2782d5928d9313c791ee29ef523d214"
+          },
+          {
+            "path": "docs/PROGRAM_ADMISSION.md",
+            "sha256": "2cb24b1c7db9a8d3bda2c270cb02110aef6ff0f75c119faf9c671a9ca1bd3745"
+          }
+        ],
+        "prompt_sha256": "84f1d8eedd493d6b0e49bdd81a9ddb9158ca8b47b76d0b3774b801ad019fd34a",
+        "review_kind": "program_admission_logic",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "4940aedf5c5c5b8ec53c1fe1a332becd43c4a4f24c2300ec0e333b0a8ad55785",
+        "source_bytes": 36500
+      }
+    },
+    {
+      "kind": "calibration",
+      "record_id": "20260925T160642.881660Z-mixed_state_gate.json",
+      "model": "claude-fable-5-1",
+      "started_at": "2026-09-25T16:06:42.881924+00:00",
+      "finished_at": "2026-09-25T16:08:03.186465+00:00",
+      "usage_cost_estimate_usd": 0.43163,
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/procedures.py",
+            "sha256": "068706d1eec45b31e9d993092798cb3c957bf60994f6f0d5c7be1ee94fbba18d"
+          },
+          {
+            "path": "src/autonomy_lab/program_admission.py",
+            "sha256": "f23056522babe97cd4d60dfff23d08162507927aae2097c7da2c7038968b8e65"
+          },
+          {
+            "path": "src/autonomy_lab/experiments.py",
+            "sha256": "cfeddb11cd4eed16a8f0fc4c62535dadc890809195eaff880a4f637787fae4c5"
+          },
+          {
+            "path": "tests/test_program_admission.py",
+            "sha256": "7db6662ef4d75881d58fa42b37f15174dfe431695aa79b8fe5778cb8a8ddd9aa"
+          }
+        ],
+        "prompt_sha256": "a0969ba599f776da17b11bc5e075e4fa0ec2ff90dc741074475646c65bd635e1",
+        "review_kind": "program_admission_calibration",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "2e03ef831673ca7644b709f8a7f2946fbbfa1c0f06d20017da9c750909e96921",
+        "source_bytes": 36977
+      }
+    },
+    {
+      "kind": "gate",
+      "record_id": "20260925T160921.247964Z-mixed_state_gate.json",
+      "model": "claude-fable-5-1",
+      "started_at": "2026-09-25T16:09:21.248096+00:00",
+      "finished_at": "2026-09-25T16:10:27.507184+00:00",
+      "usage_cost_estimate_usd": 0.3799,
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/program_lifecycle.py",
+            "sha256": "c1e2b2b1dda11790c4b02845acc25ea3ab7175be2aa894470128e859d82ea132"
+          },
+          {
+            "path": "scripts/check_program_lifecycle.py",
+            "sha256": "22a760a1341fc498d22ba10f6b917d91717da2377bc029e9b9eebd0b936e0fe0"
+          },
+          {
+            "path": "src/autonomy_lab/procedure.py",
+            "sha256": "6e508650c8a94a3339441278f3599f8e5f6aa1d245d4eb053837d1ca38eb299a"
+          }
+        ],
+        "prompt_sha256": "e62c37283fb68751d61cf9e94f5365a6c84e9def16dc7173cc220e05b42ae7af",
+        "review_kind": "program_admission_gate",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "1f02d618f75b085450ecf0c98562fb73ac30c857f8c30ca0823fd9e4a0b777a7",
+        "source_bytes": 37275
+      }
+    },
+    {
+      "kind": "followup",
+      "record_id": "20260925T161238.820528Z-mixed_state_gate.json",
+      "model": "claude-fable-5-1",
+      "started_at": "2026-09-25T16:12:38.820791+00:00",
+      "finished_at": "2026-09-25T16:14:41.328117+00:00",
+      "usage_cost_estimate_usd": 0.55216,
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/program_admission.py",
+            "sha256": "7515b67d2d9e16424aec8d8eb728bcff948d193caa68ffd2c0b47472ebb9ab48"
+          },
+          {
+            "path": "src/autonomy_lab/procedures.py",
+            "sha256": "068706d1eec45b31e9d993092798cb3c957bf60994f6f0d5c7be1ee94fbba18d"
+          },
+          {
+            "path": "src/autonomy_lab/broker.py",
+            "sha256": "9711344e8f710cb38e7856850ac7513324269fa0a84ba3a10c51a80209d3e082"
+          },
+          {
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "cdb7bf2f5cd93765fe5f1544d5849ae29345742ed8d412d4e147f418f8ae6f31"
+          }
+        ],
+        "prompt_sha256": "db1137ac0c73d726a6530dedae37d22a3dd3d13cab6f8840832ec0163cdff99f",
+        "review_kind": "program_admission_followup",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "1979d3b5a3771ef5cc8a23ec25f11941819e863a0d9cbcedcaeda7d50c3d91e7",
+        "source_bytes": 34690
+      }
+    },
+    {
+      "kind": "final",
+      "record_id": "20260925T161731.035269Z-mixed_state_gate.json",
+      "model": "claude-fable-5-1",
+      "started_at": "2026-09-25T16:17:31.035459+00:00",
+      "finished_at": "2026-09-25T16:19:54.474617+00:00",
+      "usage_cost_estimate_usd": 0.69662,
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/program_admission.py",
+            "sha256": "42162838287b4f34a7485ae8608bedf319a7eabd20902671a3021bd141c452b6"
+          },
+          {
+            "path": "src/autonomy_lab/procedures.py",
+            "sha256": "ab197102f740d4a0c8d591c70a875c243dd4aa8919e168c311c2a48507325fb2"
+          },
+          {
+            "path": "src/autonomy_lab/broker.py",
+            "sha256": "c982d74c79842988091c1d79cb4a8c1f13e976c1592eb2b951d7314af263e888"
+          },
+          {
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "a8824469a4e1b871a11af135619218fc181eb4ceea401d5c63890c83897469c5"
+          }
+        ],
+        "prompt_sha256": "71f243827e405a47a309d8114774e4eb46553c7d371cea942967d58deb041733",
+        "review_kind": "program_admission_final",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "c0288830b1e5c2314ca1d7af76690f59bbb290e3a471406fdb23a9b3122ba282",
+        "source_bytes": 37675
+      }
+    }
+  ],
+  "final_source_sha256": {
+    ".github/workflows/checks.yml": "995caab6c2ba4e8d65c8283039540ea826701968ccfe8f9930032c7ce666f4e0",
+    "docs/PROGRAM_ADMISSION.md": "d9bc75b7defad0b7ecd8af6bee547218e27ef7202c3f7add253114662c7383b5",
+    "scenarios/campaign-admitted-program-uncertain.json": "1e2c23b33cca4a2637a1bb3c527852659226f52b16d2f9524441ee20bb7c6dee",
+    "scenarios/campaign-admitted-program.json": "56c9d07a1065200e60dd08b86f624b1b3f6793f74641935c36e8aa1610b9be9c",
+    "scripts/check_program_lifecycle.py": "22a760a1341fc498d22ba10f6b917d91717da2377bc029e9b9eebd0b936e0fe0",
+    "scripts/check_refresh.py": "50e939c4df9d5c83d368d472292f5de7d1e531546ca1506c8c09eb6e131b9c45",
+    "src/autonomy_lab/broker.py": "c982d74c79842988091c1d79cb4a8c1f13e976c1592eb2b951d7314af263e888",
+    "src/autonomy_lab/campaign.py": "a8824469a4e1b871a11af135619218fc181eb4ceea401d5c63890c83897469c5",
+    "src/autonomy_lab/experiments.py": "cfeddb11cd4eed16a8f0fc4c62535dadc890809195eaff880a4f637787fae4c5",
+    "src/autonomy_lab/procedure.py": "6e508650c8a94a3339441278f3599f8e5f6aa1d245d4eb053837d1ca38eb299a",
+    "src/autonomy_lab/procedures.py": "ab197102f740d4a0c8d591c70a875c243dd4aa8919e168c311c2a48507325fb2",
+    "src/autonomy_lab/program_admission.py": "42162838287b4f34a7485ae8608bedf319a7eabd20902671a3021bd141c452b6",
+    "src/autonomy_lab/program_lifecycle.py": "c1e2b2b1dda11790c4b02845acc25ea3ab7175be2aa894470128e859d82ea132",
+    "src/autonomy_lab/scoring.py": "b03d31bfc5d85086f80029351a2bf8dcf7515db4ab10bc4006728273b8eb14f5",
+    "tests/test_program_admission.py": "c3f5607efcb0a66d1cec8fc099d6e9673e926dc964ec789e4e3b0efe58a3a08f",
+    "tests/test_program_lifecycle.py": "7ecf7f34ed9dcc789605388bfa701978d8581a87a5af5b5e4908506fb9d39693"
+  },
+  "dispositions": [
+    {
+      "finding": "Promotion must enforce the adverse calibration control itself.",
+      "resolution": "Fixed: require exact task and environment misses in routing/lost_ack; bind reproduced control receipt digest. Direct promotion refusal is tested."
+    },
+    {
+      "finding": "Pre-ledger validation failures lacked registry provenance.",
+      "resolution": "Fixed: retain safe operation/digest/error-class refusal before rejecting unsent dispatch. Storage failure remains fail-closed."
+    },
+    {
+      "finding": "Adapter guard failures were indistinguishable from transport uncertainty.",
+      "resolution": "Fixed: trusted pretransport guards emit explicit known-unsent rejection, preserve the claimed slot, and identify refusal-storage unavailability. Actual HTTP remains outside the guard catch."
+    },
+    {
+      "finding": "Gate pass depends on exception absence from omitted helpers.",
+      "resolution": "No production defect: both refresh and ambiguity helpers persist evaluation and require passed status before returning. Existing failure-export tests pass. Raising from the evaluator before export was not adopted."
+    },
+    {
+      "finding": "Read-only registry may need writable WAL support.",
+      "resolution": "Not applicable to this registry: it never enables WAL and uses the default rollback journal. BEGIN IMMEDIATE does not enable WAL. Broker WAL is separate."
+    },
+    {
+      "finding": "Adverse mode records the wrong candidate identity.",
+      "resolution": "Intentional explicit control selection, clarified and tested. adverse=True selects the fixed adverse program, and the receipt configuration already binds both exact byte strings. Final review found no defect."
+    },
+    {
+      "finding": "Diagnostic pins must not create executable program selections.",
+      "resolution": "Self-review fix: program pin lookup is read-only; fresh start_episode alone creates a selection, and the known registry refuses cross-kind new pins."
+    }
+  ],
+  "validation": {
+    "local_tests": 1459,
+    "lint": "passed",
+    "live_ci": "pending at source freeze"
+  },
+  "limits": [
+    "Five bounded source reviews, not a human approval or whole-repository certification. No report review is claimed here.",
+    "First logic excerpt accidentally omitted broker.resume_prepared; both follow-up reviews include it. Excerpt hashes refer to whole files, not a claim that every line was submitted.",
+    "AST excerpts omit decorators; actual contextmanager/staticmethod declarations were checked locally. _finish, start_episode and manifest integration are covered by local tests and forthcoming real qualification, not independently certified by Fable.",
+    "Two oversized count-only preflights made no generation call; scope was narrowed without expanding the review budget.",
+    "Unit fixtures are authored counterexamples, never workload outcomes. The pending real cohort is development calibration, not a sealed holdout or model-value comparison."
+  ]
+}

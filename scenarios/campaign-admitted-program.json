@@ -1,0 +1,16 @@
+{
+  "duration_seconds": 120,
+  "sample_interval_seconds": 10,
+  "sample_window_seconds": 1,
+  "sample_lateness_seconds": 2,
+  "request_timeout_seconds": 2,
+  "operator_interval_seconds": 5,
+  "max_operator_starts": 2,
+  "max_dispatches": 2,
+  "max_restart_downtime_seconds": 45,
+  "lease_seconds": 1800,
+  "test_pause_before_dispatch": true,
+  "bounded_refresh": false,
+  "procedure_program": "{\n  \"schema_version\": 1,\n  \"backend_unavailable\": \"verify\",\n  \"repairable_routing\": \"repair\",\n  \"conditional_rejection\": \"refresh\"\n}\n",
+  "admit_program": true
+}

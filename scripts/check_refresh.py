@@ -34,7 +34,8 @@ def await_new_barrier(repair, seen, deadline):
     raise TimeoutError('Prepared operation barrier not reached')
 
 
-def run_case(gate, spec):
+def run_case(gate, spec, *, calibration=None, at_preflight=None, evaluator=None):
+    evaluator = evaluator or evaluate
     directory = gate / 'campaign'
     result = {'status': 'failed', 'started_at': time.time(), 'declaration': spec}
     children, record, owner = [], {'attempts': []}, None
@@ -42,7 +43,9 @@ def run_case(gate, spec):
     try:
         with (gate / 'owner.log').open('ab') as log:
             owner = subprocess.Popen([sys.executable, '-m', 'autonomy_lab.campaign', 'own',
-                str(ROOT / spec['manifest']), str(directory)], stdout=log, stderr=log, start_new_session=True,
+                str(ROOT / spec['manifest']), str(directory),
+                *(['--calibration', str(calibration)] if calibration is not None else [])],
+                stdout=log, stderr=log, start_new_session=True,
                 env={'PATH': os.environ.get('PATH', '/usr/bin:/bin'), 'PYTHONPATH': str(ROOT / 'src')})
         window = await_file(directory / 'window.json', time.monotonic() + 900)
         record['run_id'] = read(directory / 'owner.json')['run_id']
@@ -66,6 +69,7 @@ def run_case(gate, spec):
         save(gate / 'record.json', record)
         wait_ready(repair, process, timeout=20)
         seen = set()
+        cancelled = False
         for index in range(2):
             deadline = (window['start'] + spec['barrier_deadline_offset'] if index == 0 else
                         record['attempts'][0]['release_requested_at'] + spec['second_barrier_deadline_seconds'])
@@ -80,7 +84,8 @@ def run_case(gate, spec):
                        'before': kube.get_service(kube.namespace, 'inventory'), 'read_at': time.time()}
             record['attempts'].append(attempt)
             save(gate / 'record.json', record)
-            if index == 0 or spec['refresh_case'] == 'continuing':
+            cancelled = bool(at_preflight and at_preflight(gate, record, index))
+            if not cancelled and (index == 0 or spec['refresh_case'] == 'continuing'):
                 change = {'requested_at': time.time(), 'patch': annotation_patch(attempt['before'], barrier['operation_id'])}
                 attempt['change'] = change
                 save(gate / 'record.json', record)
@@ -97,9 +102,11 @@ def run_case(gate, spec):
             attempt['release'] = {'operation_id': barrier['operation_id']}
             save(gate / 'record.json', record)
             save(path.parent / 'preflight-release.json', attempt['release'])
+            if cancelled:
+                break
         deadline = record['attempts'][0]['release_requested_at'] + spec['escalation_deadline_seconds']
         await_file(repair_episode / 'outcome.json', time.monotonic() + max(0, deadline - time.time()))
-        if spec['refresh_case'] == 'continuing':
+        if spec['refresh_case'] == 'continuing' or cancelled:
             require(process.wait(timeout=max(1, deadline - time.time())) == 0, 'Operator failed instead of escalating')
         record['after_operations'] = kube.get_service(kube.namespace, 'inventory')
         record['after_operations_at'] = time.time()
@@ -122,7 +129,7 @@ def run_case(gate, spec):
                     capture_audit(gate)
                     for suffix in ('a', 'b'):
                         save(gate / f'scorecard-{suffix}.json', scorecard(directory))
-                        save(gate / f'evaluation-{suffix}.json', evaluate(gate))
+                        save(gate / f'evaluation-{suffix}.json', evaluator(gate))
                     for name in ('scorecard', 'evaluation'):
                         require((gate / f'{name}-a.json').read_bytes() == (gate / f'{name}-b.json').read_bytes(), 'Offline export differs')
                     assessment = read(gate / 'evaluation-a.json')

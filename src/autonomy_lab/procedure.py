@@ -84,7 +84,7 @@ def run(toolbox, raw: bytes, *, pin: dict) -> dict:
     return execute(toolbox, decisions)
 
 
-def verify_bindings(directory, spec, card, evidence, journal, audit):
+def verify_bindings(directory, spec, card, evidence, journal, audit, *, refused_operations=()):
     """Independently bind every actual dispatch to its prior frozen episode."""
     from autonomy_lab.campaign import read
     from autonomy_lab.procedures import require
@@ -95,6 +95,12 @@ def verify_bindings(directory, spec, card, evidence, journal, audit):
     validate_pin(raw, spec['program_pin'])
     validate_pin(raw, read(directory / 'program-definition.json'))
     operations = {op['operation_id']: op for op in card['operations']}
+    for operation_id in refused_operations:
+        require(operation_id in operations and operations[operation_id]['status'] == 'rejected'
+                and operations[operation_id]['reason'] == 'dispatch_authorization_refused'
+                and operations[operation_id]['budget_reserved'] == 0,
+                'Only a refused unsent authorization can lack a dispatch binding')
+        del operations[operation_id]
     seen = set()
     for worker in card['workers']:
         for episode in worker['episodes']:

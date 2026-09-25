@@ -24,7 +24,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from autonomy_lab.broker import ActionBroker, BrokerPolicy
+from autonomy_lab.broker import ActionBroker, BrokerPolicy, DispatchNotSent, Proposal
 from autonomy_lab.environment import provision, service_identity
 from autonomy_lab.harness import save
 from autonomy_lab.janitor import cleanup, process_identity
@@ -34,6 +34,7 @@ from autonomy_lab.procedure import parse as parse_program
 from autonomy_lab.procedure import run as run_program
 from autonomy_lab.procedure import validate_pin
 from autonomy_lab.procedures import Refused, Registry, require
+from autonomy_lab.program_admission import ProgramRegistry
 from autonomy_lab.runbook import run as runbook
 from autonomy_lab.toolbox import ObservationTools
 from autonomy_lab.verifier import verify
@@ -63,6 +64,8 @@ class Contract(BaseModel):
     bounded_refresh: bool = False
     # Exact UTF-8 JSON, experimental only; not eligible through known-variant admission.
     procedure_program: Annotated[str, Field(max_length=4096)] | None = None
+    # Opt-in empirical admission of this exact program; requires raw calibration.
+    admit_program: bool = False
 
     @model_validator(mode='after')
     def valid_schedule(self):
@@ -71,7 +74,7 @@ class Contract(BaseModel):
                 or self.max_restart_downtime_seconds >= self.duration_seconds
                 or self.operator_interval_seconds >= self.duration_seconds):
             raise ValueError('Invalid campaign schedule')
-        if self.test_pause_before_finish and self.admitted_procedure is None:
+        if self.test_pause_before_finish and self.admitted_procedure is None and not self.admit_program:
             raise ValueError('Finish barrier requires an admitted procedure')
         if self.test_pause_before_dispatch and (self.test_pause_after_dispatch or self.test_pause_before_finish):
             raise ValueError('Pre-dispatch barrier cannot be combined with other barriers')
@@ -81,6 +84,8 @@ class Contract(BaseModel):
             parse_program(self.procedure_program.encode('utf-8'))
             if self.bounded_refresh or self.admitted_procedure is not None:
                 raise ValueError('Experimental programs cannot combine with legacy flags or admission')
+        if self.admit_program and (self.procedure_program is None or self.admitted_procedure is not None):
+            raise ValueError('Program admission requires only an exact restricted program')
         return self
 
 
@@ -266,7 +271,8 @@ def preflight_barrier(stage, directory, workspace, broker, *, per_operation=Fals
 
 def operator(directory, workspace, contract, kube, verification):
     broker_kube = Kubernetes(directory / 'broker-kubeconfig', kube.cluster_name)
-    registry = Registry(directory / 'admission.sqlite') if contract.admitted_procedure else None
+    registry = (ProgramRegistry(directory / 'admission.sqlite') if contract.admit_program else
+                Registry(directory / 'admission.sqlite') if contract.admitted_procedure else None)
     pin = None
     program_raw = contract.procedure_program.encode('utf-8') if contract.procedure_program is not None else None
     program_pin = read(directory / 'program-definition.json') if program_raw is not None else None
@@ -278,31 +284,62 @@ def operator(directory, workspace, contract, kube, verification):
             return broker_kube.get_service(namespace, name)
 
         def patch_service(self, namespace, name, patch):
-            active(directory)  # Recheck immediately before the bounded API write.
-            dispatching = [row for row in operation_rows(directory)
-                           if row['status'] == 'dispatching' and row['owner'] == broker.owner]
-            if len(dispatching) != 1:
-                raise RuntimeError('Cannot attribute campaign dispatch to one operation')
-            if registry is not None:
-                require(pin is not None, 'Dispatch has no admitted episode')
-                # Durable before the API write, even if its acknowledgement is lost.
-                binding = episode / 'operation.json'
-                require(not binding.exists(), 'Episode already attempted a dispatch')
-                save(binding, {'at': time.time(), 'operation_id': dispatching[0]['operation_id'], 'pin': pin})
-            if program_raw is not None:
-                validate_pin(program_raw, program_pin)
-                validate_pin(program_raw, read(episode / 'program.json')['pin'])
-                binding = episode / ('operation-' + dispatching[0]['operation_id'] + '.json')
-                require(not binding.exists(), 'Program operation already dispatched')
-                save(binding, {'at': time.time(), 'operation_id': dispatching[0]['operation_id'],
-                               'episode': episode.name, 'program_version': program_pin['version']})
+            proposal = None
+            try:
+                active(directory)  # Recheck immediately before the bounded API write.
+                dispatching = [row for row in operation_rows(directory)
+                               if row['status'] == 'dispatching' and row['owner'] == broker.owner]
+                if len(dispatching) != 1:
+                    raise RuntimeError('Cannot attribute campaign dispatch to one operation')
+                proposal = Proposal.model_validate(json.loads(dispatching[0]['request'])) if contract.admit_program else None
+                if registry is not None and not contract.admit_program:
+                    require(pin is not None, 'Dispatch has no admitted episode')
+                    # Durable before the API write, even if its acknowledgement is lost.
+                    binding = episode / 'operation.json'
+                    require(not binding.exists(), 'Episode already attempted a dispatch')
+                    save(binding, {'at': time.time(), 'operation_id': dispatching[0]['operation_id'], 'pin': pin})
+                if program_raw is not None:
+                    validate_pin(program_raw, program_pin)
+                    validate_pin(program_raw, read(episode / 'program.json')['pin'])
+                    binding = episode / ('operation-' + dispatching[0]['operation_id'] + '.json')
+                    require(not binding.exists(), 'Program operation already dispatched')
+                    if contract.admit_program:
+                        registry.authorization(pin, proposal)
+                    save(binding, {'at': time.time(), 'operation_id': dispatching[0]['operation_id'],
+                                   'episode': episode.name, 'program_version': program_pin['version']})
+            except Exception as error:
+                if not contract.admit_program:
+                    raise
+                refusal_unavailable = False
+                try:
+                    if proposal is None:
+                        registry.record_refusal('dispatch_guard', None, error)
+                    else:
+                        registry.record_dispatch_refusal(proposal, error)
+                except Exception:
+                    refusal_unavailable = True
+                raise DispatchNotSent(refusal_unavailable=refusal_unavailable) from error
             broker_kube.audit_operation_id = dispatching[0]['operation_id']
             return broker_kube.patch_service(namespace, name, patch)
 
     policy = BrokerPolicy(read(directory / 'owner.json')['run_id'], kube.namespace, 'inventory',
                           read(directory / 'identities-before.json')['Service/inventory'],
                           max_dispatches=contract.max_dispatches)
-    broker = ActionBroker(directory / 'operations.sqlite', policy, Adapter())
+    def authorize(proposal):
+        try:
+            active(directory)
+            validate_pin(program_raw, program_pin)
+            validate_pin(program_raw, read(episode / 'program.json')['pin'])
+        except Exception as error:
+            registry.record_dispatch_refusal(proposal, error)
+            raise PermissionError('Program validation refused dispatch') from error
+        try:
+            registry.authorize(pin, proposal, program_raw)
+        except Refused as error:
+            raise PermissionError('Program admission refused dispatch') from error
+
+    broker = ActionBroker(directory / 'operations.sqlite', policy, Adapter(),
+                          **({'authorize_dispatch': authorize} if contract.admit_program else {}))
     if contract.test_pause_after_dispatch:
         broker.hook = lambda stage: dispatch_barrier(stage, directory, workspace, broker)
     elif contract.test_pause_before_dispatch:
@@ -329,7 +366,10 @@ def operator(directory, workspace, contract, kube, verification):
         if registry is not None:
             try:
                 pin = registry.start_episode(episode.name)
-                require(pin['variant'] == contract.admitted_procedure, 'Admitted variant differs from contract')
+                if contract.admit_program:
+                    require(pin['program_version'] == program_pin['version'], 'Admitted program differs from contract')
+                else:
+                    require(pin['variant'] == contract.admitted_procedure, 'Admitted variant differs from contract')
             except Refused as error:
                 save(workspace / 'escalation.json', {'reason': 'procedure_admission_refused',
                      'detail': str(error), 'episode': episode.name, 'at': time.time()})
@@ -447,7 +487,7 @@ def finalize_owner(directory, run_id, processes):
 
 def own(manifest, directory, *, calibration=None):
     contract = Contract.model_validate(read(manifest))
-    if (calibration is not None) != (contract.admitted_procedure is not None):
+    if (calibration is not None) != (contract.admitted_procedure is not None or contract.admit_program):
         raise ValueError('Admitted campaigns require calibration; fixed campaigns cannot consume it')
     directory.mkdir(mode=0o700)  # Existing campaigns cannot be resumed as owners.
     run_id = uuid.uuid4().hex[:8]
@@ -470,8 +510,12 @@ def own(manifest, directory, *, calibration=None):
     processes = []
     try:
         if calibration is not None:
-            registry = Registry(directory / 'admission.sqlite')
-            decision = registry.promote(calibration, contract.admitted_procedure, expected_revision=0)
+            if contract.admit_program:
+                registry = ProgramRegistry(directory / 'admission.sqlite')
+                decision = registry.promote(calibration, contract.procedure_program.encode('utf-8'), expected_revision=0)
+            else:
+                registry = Registry(directory / 'admission.sqlite')
+                decision = registry.promote(calibration, contract.admitted_procedure, expected_revision=0)
             save(directory / 'admission.json', decision)
             require(decision['kind'] == 'promoted', 'Campaign procedure failed admission')
         kube = provision(directory, run_id, lease_seconds=contract.lease_seconds)

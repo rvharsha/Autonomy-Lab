@@ -89,6 +89,14 @@ class OperationConflict(ValueError):
     """An operation ID was previously bound to different request contents."""
 
 
+class DispatchNotSent(Exception):
+    """Trusted adapter guard proved that it never called the transport."""
+
+    def __init__(self, *, refusal_unavailable=False):
+        self.reason = 'dispatch_not_sent_refusal_unavailable' if refusal_unavailable else 'dispatch_not_sent'
+        super().__init__(self.reason)
+
+
 class ActionBroker:
     def __init__(
         self,
@@ -96,6 +104,8 @@ class ActionBroker:
         policy: BrokerPolicy,
         adapter: KubernetesAdapter,
         hook: Callable[[str], None] | None = None,
+        *,
+        authorize_dispatch: Callable[[Proposal], None] | None = None,
     ) -> None:
         self.journal_path = str(journal_path)
         if self.journal_path == ":memory:":
@@ -103,6 +113,7 @@ class ActionBroker:
         self.policy = policy
         self.adapter = adapter
         self.hook = hook
+        self.authorize_dispatch = authorize_dispatch
         self.owner = str(uuid.uuid4())
         Path(journal_path).parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as db:
@@ -258,9 +269,22 @@ class ActionBroker:
         self._call_hook("before_dispatch")
         with self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
+            # Only the winner of this journal claim may request authorization.
+            # The callback commits against the withdrawal ledger before dispatch.
+            # An abrupt death leaves the original reserved intent for reconciliation.
+            current = db.execute('SELECT status FROM operations WHERE operation_id=?', (operation_id,)).fetchone()
+            if current['status'] != 'prepared':
+                return self.lookup(operation_id)
             reason = self._policy_reason(proposal)
             if reason is None and self._used(db, proposal.run_id) > self.policy.max_dispatches:
                 reason = "budget_revoked"
+            if reason is None and self.authorize_dispatch is not None:
+                try:
+                    self.authorize_dispatch(proposal)
+                except PermissionError:
+                    reason = 'dispatch_authorization_refused'
+                except Exception:
+                    reason = 'dispatch_authorization_unavailable'
             state = "rejected" if reason else "dispatching"
             changed = db.execute(
                 """UPDATE operations SET status=?,reason=?,budget_reserved=?,owner=?,updated_at=?
@@ -277,6 +301,10 @@ class ActionBroker:
         try:
             result = self.adapter.patch_service(proposal.namespace, proposal.service_name, patch)
         except Exception as error:
+            if isinstance(error, DispatchNotSent):
+                # The dispatch claim already consumed its slot. Keep it spent,
+                # but do not manufacture transport ambiguity or a retry token.
+                return self._finish(operation_id, 'rejected', error.reason)
             if isinstance(error, PatchRejected):
                 return self._finish(operation_id, "rejected", error.reason)
             code = getattr(error, "status_code", None) or getattr(error, "status", None)
