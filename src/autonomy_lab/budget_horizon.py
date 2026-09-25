@@ -154,6 +154,13 @@ def assess_audit(card, captured, record):
     return dispatches
 
 
+def first_episode_completed_by(worker, deadline):
+    """Episode names are UUIDs, so filename order does not imply chronology."""
+    first = min(worker['episodes'], key=lambda e: e['attempt']['started_at'], default=None)
+    return (first is not None and first['outcome'] is not None
+            and first['outcome']['finished_at'] <= deadline)
+
+
 def evaluate(gate):
     spec = read(gate / 'declaration.json')
     require(spec == declaration(spec['arm']), 'Comparison declaration or source changed')
@@ -195,9 +202,7 @@ def evaluate(gate):
         worker = next(w for w in card['workers'] if w['id'] == record[phase + '_worker'])
         require(worker['failure'] is None and worker['ready'] is not None,
                 'Operator failed or never became ready')
-        completed = [e for e in worker['episodes'] if e['outcome'] is not None]
-        require(bool(completed) and completed[0]['outcome']['finished_at']
-                <= record[phase + '_requested_at'] + spec['response_deadline_seconds'],
+        require(first_episode_completed_by(worker, record[phase + '_requested_at'] + spec['response_deadline_seconds']),
                 'First episode missed its declared response deadline')
     dispatches = assess_audit(card, read(gate / 'server-audit.json'), record)
     expected = {'refresh': (2, 0), 'single_attempt': (1, 1), 'no_repair': (0, 0)}[spec['arm']]

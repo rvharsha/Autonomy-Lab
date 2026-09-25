@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from autonomy_lab.budget_horizon import ARMS, assess_audit, declaration
+from autonomy_lab.budget_horizon import ARMS, assess_audit, declaration, first_episode_completed_by
 from autonomy_lab.conflict import annotation_patch, repair_patch
 
 
@@ -173,3 +173,24 @@ def test_false_conditional_rejection_evidence_is_refused(rejected_dispatch, chan
         op['updated_at'] = stamp(14.05)
     with pytest.raises(ValueError):
         assess_audit(card, audit, record)
+
+
+def test_first_episode_deadline_uses_recorded_chronology_not_uuid_filename():
+    worker = {'episodes': [
+        {'id': 'episode-aaa', 'attempt': {'started_at': 50}, 'outcome': {'finished_at': 55}},
+        {'id': 'episode-zzz', 'attempt': {'started_at': 10}, 'outcome': {'finished_at': 15}},
+    ]}
+    assert first_episode_completed_by(worker, 20)
+
+
+@pytest.mark.parametrize('first_outcome', [None, {'finished_at': 21}])
+def test_a_later_episode_cannot_hide_a_missing_or_late_first_completion(first_outcome):
+    worker = {'episodes': [
+        {'id': 'episode-aaa', 'attempt': {'started_at': 12}, 'outcome': {'finished_at': 14}},
+        {'id': 'episode-zzz', 'attempt': {'started_at': 10}, 'outcome': first_outcome},
+    ]}
+    assert not first_episode_completed_by(worker, 20)
+
+
+def test_empty_episode_population_cannot_satisfy_a_response_deadline():
+    assert not first_episode_completed_by({'episodes': []}, 20)

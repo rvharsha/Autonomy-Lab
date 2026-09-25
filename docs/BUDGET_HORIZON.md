@@ -63,3 +63,20 @@ fresh incident sequences before choosing a policy. A fixed two-dispatch campaign
 is an experimental operating contract, not a claim that production operators
 should retain a lifetime budget of two writes. No broader permission or language
 feature is needed to test this question.
+
+## Original failed cohort
+
+Source `3d475aaf155146d5166151bfeb67da5bdc46e2a7`, workflow
+[36177645304](https://github.com/rvharsha/Autonomy-Lab/actions/runs/36177645304),
+completed all three calendars and cleanup, but the single-attempt evaluator
+failed. It treated UUID filename order as episode chronology and checked a later
+completion (65.94 seconds after start) against the first-episode deadline. The
+actual first completion took 2.27 seconds, within the original 20-second limit.
+
+The original failed result and all scorecard exports reproduce on original
+source. The correction selects the earliest recorded attempt, including an
+incomplete attempt; a later completion cannot hide a missing first outcome.
+No policy, authority, budget, schedule or outcome expectation changes. A fresh
+cohort is required. Original measured windows remain retained: refresh 7 healthy /
+14 failed / 0 unknown, single attempt 13 / 8 / 0, no-repair control 7 / 14 / 0.
+These observations do not retrospectively qualify the failed comparison.
