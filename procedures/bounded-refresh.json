@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "backend_unavailable": "verify",
+  "repairable_routing": "repair",
+  "conditional_rejection": "refresh"
+}

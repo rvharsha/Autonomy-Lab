@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "purpose": "Restricted procedure language and interpreted baseline source review; not live results or empirical program admission.",
+  "reviews": [
+    {
+      "started_at": "2026-09-25T14:50:12.794900+00:00",
+      "finished_at": "2026-09-25T14:52:03.893595+00:00",
+      "requested_model": "claude-fable-5-1",
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.54851,
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/procedure.py",
+            "sha256": "fc4e4d2ddce350e95cbfa6a6daad9580f35df051c19560032ab4b731f726a4f7"
+          },
+          {
+            "path": "src/autonomy_lab/runbook.py",
+            "sha256": "e03607b33e9b0f30dc032af6aedccb6567e3265e43fc36970418a9ad56fd2819"
+          },
+          {
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "49ae443ca869c8f707d91fa73b1bd4d18576c46f1907477f5bf160ef333b8100"
+          },
+          {
+            "path": "docs/RESTRICTED_PROCEDURES.md",
+            "sha256": "3df2140474d8012f1679324c130e1fc2fc29dfd1f91d4426ccdb60effef2e6cd"
+          }
+        ],
+        "prompt_sha256": "22c0bf1df8a43fdbe5ad10dedb58606093528c6e8d2b8d698a44f481b9a6d70a",
+        "review_kind": "restricted_program_logic",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "c56d0019bd51b6836b2f338b2b1ad753eb4917a671c53c30e3fd5f3ff00e0f3b",
+        "source_bytes": 38563
+      },
+      "scope": "logic"
+    },
+    {
+      "started_at": "2026-09-25T14:51:05.010730+00:00",
+      "finished_at": "2026-09-25T14:52:22.269946+00:00",
+      "requested_model": "claude-fable-5-1",
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.42796,
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/procedure.py",
+            "sha256": "fc4e4d2ddce350e95cbfa6a6daad9580f35df051c19560032ab4b731f726a4f7"
+          },
+          {
+            "path": "src/autonomy_lab/refresh.py",
+            "sha256": "9a159729174d0f4f08e546e6a275bfb250f1a56a3894901792865b0d29485b11"
+          },
+          {
+            "path": "scripts/check_refresh.py",
+            "sha256": "28775cc2e38a4166b0f53633fb9941739c7213744b0f8162db1fa7717d2233fa"
+          },
+          {
+            "path": "tests/test_program.py",
+            "sha256": "1806cadfc3e27b2468cc8ef252a24559bc57b81af4f9f5c801ec3373ef6aa66b"
+          },
+          {
+            "path": "scenarios/campaign-program-refresh.json",
+            "sha256": "87d4259e2ce61e234d4e1310ead1938837f5cb74fa61eb70e4318ca0efe39ff7"
+          },
+          {
+            "path": "scenarios/campaign-program-refresh-uncertain.json",
+            "sha256": "be327d22847980c95faf843592c63ed988f06dc730c3ce0f2c9b4c5c73e2f6d1"
+          },
+          {
+            "path": ".github/workflows/checks.yml",
+            "sha256": "8df0cde3208329e646f83b95cde8e7ce31ac7da731d9836a1aa96e5ee812c03d"
+          }
+        ],
+        "prompt_sha256": "882a3ba4cfaabfc91dc6ea7b9e55baa306db4e7193834273b35ff46998f7ff04",
+        "review_kind": "restricted_program_gate",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "3325791d176fdace03d4f780157ff84eb225e241aeafa3b90b55c9f17e6b288e",
+        "source_bytes": 33472
+      },
+      "scope": "gate"
+    },
+    {
+      "started_at": "2026-09-25T14:54:23.343938+00:00",
+      "finished_at": "2026-09-25T14:56:02.732992+00:00",
+      "requested_model": "claude-fable-5-1",
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.46041,
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/procedure.py",
+            "sha256": "c39a9d58bc204a2e748bf15a04c93aa0c2cf8f943fe90cc0ff59091222dc62b1"
+          },
+          {
+            "path": "src/autonomy_lab/refresh.py",
+            "sha256": "4987c581ebc2fd5959376e8651ac73f1aaed2c0cc743162606a17dfb9aac5a20"
+          },
+          {
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "c23c9b1db4d72a61aea93bf129fc14bb974f9406ee03bce5f5e68d3c7ead54eb"
+          },
+          {
+            "path": "tests/test_program.py",
+            "sha256": "4be8d01ef802544234a358d07dad2de6ba2bfe33049a7320edf266d190f68fdc"
+          }
+        ],
+        "prompt_sha256": "f2769383bbaed85de65cae7cbb1ca7b576d5bc23a45e63c420249088c5bb18e2",
+        "review_kind": "restricted_program_followup",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "de9103f86d4b31ae38d354ea3f2db7876e8facd71bc9fb9d294e12ceafe1e6c2",
+        "source_bytes": 24206
+      },
+      "scope": "followup"
+    }
+  ],
+  "generation_estimate_usd": 1.43688,
+  "preflight_only_attempts": [
+    "20260925T145014.885404Z",
+    "20260925T145035.209984Z"
+  ],
+  "dispositions": [
+    {
+      "scope": "logic",
+      "finding": "No substantiated actionable defect",
+      "resolution": "Traced finite refresh, fresh-workspace refusal, source pins and binding-before-write ordering. Source review only."
+    },
+    {
+      "scope": "gate",
+      "finding": "Binding failure could prevent export of the already-computed base assessment",
+      "resolution": "Binding validation now records a failed check and safe error class while preserving the base result and uncommitted evidence. Corrupt contents and OS paths are not copied."
+    },
+    {
+      "scope": "gate",
+      "finding": "Malformed records indexed before structural validation",
+      "resolution": "Pin, binding and request shapes are checked before indexing. Authored malformed-record tests cover null, lists, missing fields and invalid evidence IDs."
+    },
+    {
+      "scope": "followup",
+      "finding": "Deep binding JSON can raise an exception outside the initial catch list",
+      "resolution": "The narrow binding-assessment boundary catches Exception and fails closed with the original base result retained. RecursionError and AttributeError cases are tested; interruptions derived from BaseException still propagate. The suggested malformed audit-user trigger would already fail earlier base parsing, not this new boundary."
+    },
+    {
+      "scope": "followup",
+      "finding": "Missing uncommitted-tail keys could fail after binding success",
+      "resolution": "The production episode_records loader always supplies both keys; the proposed missing-key path cannot arise through it. The empty-attempt exception was nevertheless tightened to require an explicit integer zero byte count, with a missing-metadata negative test."
+    },
+    {
+      "scope": "self-review",
+      "finding": "Scheduled kill may precede the episode pin write",
+      "resolution": "Only an empty, unclaimed attempt with no committed or partial tool bytes and no operation bindings may lack its pin. No operation can use this exception."
+    },
+    {
+      "scope": "self-review",
+      "finding": "Episode pin dictionary equality tolerates bool/int equivalence",
+      "resolution": "Dispatch uses strict validate_pin serialization comparison, consistent with initial program validation."
+    }
+  ],
+  "final_source_sha256": {
+    ".github/workflows/checks.yml": "8df0cde3208329e646f83b95cde8e7ce31ac7da731d9836a1aa96e5ee812c03d",
+    "docs/RESTRICTED_PROCEDURES.md": "6fafff33c3f53ebf4f012bed39401fe10b9afe0a9537f6f4b8770ba810027981",
+    "docs/GOAL_ALIGNMENT.md": "62d50731ac4202c1911c37c8ac483684db598032c6ba441dc76085d5e004f41c",
+    "procedures/bounded-refresh.json": "a776a53e49079b8af77a6567dbc3c80e829c2bc3f509c9c23f8a92e21d9b3790",
+    "scenarios/campaign-program-refresh.json": "87d4259e2ce61e234d4e1310ead1938837f5cb74fa61eb70e4318ca0efe39ff7",
+    "scenarios/campaign-program-refresh-uncertain.json": "be327d22847980c95faf843592c63ed988f06dc730c3ce0f2c9b4c5c73e2f6d1",
+    "scripts/check_refresh.py": "28775cc2e38a4166b0f53633fb9941739c7213744b0f8162db1fa7717d2233fa",
+    "src/autonomy_lab/campaign.py": "c23c9b1db4d72a61aea93bf129fc14bb974f9406ee03bce5f5e68d3c7ead54eb",
+    "src/autonomy_lab/procedure.py": "4dc77e633db4e3a23b6c75c22747edff8294db6ed7ca01ef96d0b2c75e86067f",
+    "src/autonomy_lab/refresh.py": "79061e806c7b99e7e004df51b7b7b96d3d5d21fac486501fb1550a6b11b7a3ae",
+    "src/autonomy_lab/runbook.py": "e03607b33e9b0f30dc032af6aedccb6567e3265e43fc36970418a9ad56fd2819",
+    "tests/test_program.py": "969eff3add1d56fd2e35bfc7d4b9636f9c1ea64bf3658a44e9315d89729dc7f2",
+    "tests/test_refresh_runbook.py": "c66481e66f6415b3566e22a92a3850d1b62a47ad9a19ed99a0e50d7a4f3f6076"
+  },
+  "validation": {
+    "local_tests": 1370,
+    "lint": "passed",
+    "retained_observation_replay": {
+      "source_commit": "f80d2e55dba653d0d77b14b3712230b166c2e419",
+      "completed_episodes": 22,
+      "tool_calls": 119,
+      "interrupted_unreplayed": 4,
+      "kind": "Compatibility replay, not fresh execution or an independent holdout"
+    },
+    "real_ci": "Required separately on the frozen PR revision; no live success claimed by this receipt."
+  },
+  "review_limits": "Scoped excerpts, with full-file hashes for identity. Omitted code and tests were not independently reviewed. Final small exception-handling/metadata changes follow the review recommendations and were self-reviewed and tested, not submitted as an additional model review. Authored fixture corrections create missing directories and explicit empty-tail metadata."
+}

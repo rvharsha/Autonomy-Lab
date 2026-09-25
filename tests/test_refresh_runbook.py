@@ -1,6 +1,8 @@
 """Authored decision counterexamples, never live experiment evidence."""
 
 import copy
+import json
+import sys
 
 import pytest
 from test_runbook import ScriptedTools
@@ -8,6 +10,21 @@ from test_runbook import ScriptedTools
 from autonomy_lab.campaign import Contract
 from autonomy_lab.conflict import declaration
 from autonomy_lab.runbook import run
+
+
+@pytest.fixture(params=['legacy', 'program'], autouse=True)
+def decision_engine(request, monkeypatch):
+    if request.param == 'program':
+        from autonomy_lab.procedure import freeze
+        from autonomy_lab.procedure import run as interpret
+
+        def interpreted(tools, *, verification_fallback=False, bounded_refresh=False):
+            raw = json.dumps({'schema_version': 1,
+                'backend_unavailable': 'verify' if verification_fallback else 'escalate',
+                'repairable_routing': 'repair',
+                'conditional_rejection': 'refresh' if bounded_refresh else 'escalate'}).encode()
+            return interpret(tools, raw, pin=freeze(raw))
+        monkeypatch.setattr(sys.modules[__name__], 'run', interpreted)
 
 
 class RefreshTools(ScriptedTools):

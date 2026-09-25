@@ -1,5 +1,6 @@
 """Run each declared authored refresh case once against real disposable Kubernetes."""
 
+import argparse
 import os
 import subprocess
 import sys
@@ -141,10 +142,10 @@ def evaluate_uncertain(gate):
     return evaluate(gate)
 
 
-def run():
-    gate = ROOT / 'artifacts' / ('refresh-gate-' + uuid.uuid4().hex[:8])
+def run(*, interpreted=False):
+    gate = ROOT / 'artifacts' / (('program-refresh-gate-' if interpreted else 'refresh-gate-') + uuid.uuid4().hex[:8])
     gate.mkdir(parents=True, mode=0o700)
-    specs = [declaration(case) for case in CASES]
+    specs = [declaration(case, interpreted=interpreted) for case in CASES]
     save(gate / 'declaration.json', {'cases': specs})
     ledger = {'status': 'running', 'started_at': time.time(), 'cases': {case: {'status': 'unrun'} for case in CASES}}
     save(gate / 'result.json', ledger)
@@ -180,4 +181,6 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--interpreted', action='store_true')
+    run(interpreted=parser.parse_args().interpreted)

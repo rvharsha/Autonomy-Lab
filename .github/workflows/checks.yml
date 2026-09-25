@@ -9,6 +9,58 @@ permissions:
   contents: read
 
 jobs:
+  restricted-procedure:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: make setup
+      - name: Compare bounded refresh, continued contention and unknown effects
+        run: PYTHONPATH=src .venv/bin/python scripts/check_refresh.py --interpreted
+      - name: Retain credential-free raw evidence, including failed attempts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: restricted-procedure-results
+          path: |
+            artifacts/program-refresh-gate-*/declaration.json
+            artifacts/program-refresh-gate-*/result.json
+            artifacts/program-refresh-gate-*/*/declaration.json
+            artifacts/program-refresh-gate-*/*/record.json
+            artifacts/program-refresh-gate-*/*/result.json
+            artifacts/program-refresh-gate-*/*/before-kill.json
+            artifacts/program-refresh-gate-*/*/scorecard-*.json
+            artifacts/program-refresh-gate-*/*/evaluation-*.json
+            artifacts/program-refresh-gate-*/*/server-audit.json
+            artifacts/program-refresh-gate-*/*/campaign/contract.json
+            artifacts/program-refresh-gate-*/*/campaign/program-definition.json
+            artifacts/program-refresh-gate-*/*/campaign/window.json
+            artifacts/program-refresh-gate-*/*/campaign/source.json
+            artifacts/program-refresh-gate-*/*/campaign/identities-*.json
+            artifacts/program-refresh-gate-*/*/campaign/operations.sqlite
+            artifacts/program-refresh-gate-*/*/campaign/finished.json
+            artifacts/program-refresh-gate-*/*/campaign/failed.json
+            artifacts/program-refresh-gate-*/*/campaign/finalization.json
+            artifacts/program-refresh-gate-*/*/campaign/cleanup.json
+            artifacts/program-refresh-gate-*/*/campaign/samples/*.json
+            artifacts/program-refresh-gate-*/*/campaign/workers/*/attempt.json
+            artifacts/program-refresh-gate-*/*/campaign/workers/*/ready.json
+            artifacts/program-refresh-gate-*/*/campaign/workers/*/finished.json
+            artifacts/program-refresh-gate-*/*/campaign/workers/*/failed.json
+            artifacts/program-refresh-gate-*/*/campaign/workers/*/escalation.json
+            artifacts/program-refresh-gate-*/*/campaign/workers/*/dispatch-barrier.json
+            artifacts/program-refresh-gate-*/*/campaign/workers/*/preflight/*/*.json
+            artifacts/program-refresh-gate-*/*/campaign/workers/*/episode-*/*.json
+            artifacts/program-refresh-gate-*/*/campaign/workers/*/episode-*/evidence.jsonl
+          if-no-files-found: warn
+          retention-days: 14
   bounded-refresh:
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest

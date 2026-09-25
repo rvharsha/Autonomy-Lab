@@ -29,6 +29,10 @@ from autonomy_lab.environment import provision, service_identity
 from autonomy_lab.harness import save
 from autonomy_lab.janitor import cleanup, process_identity
 from autonomy_lab.kubernetes import ROOT, Kubernetes
+from autonomy_lab.procedure import freeze as freeze_program
+from autonomy_lab.procedure import parse as parse_program
+from autonomy_lab.procedure import run as run_program
+from autonomy_lab.procedure import validate_pin
 from autonomy_lab.procedures import Refused, Registry, require
 from autonomy_lab.runbook import run as runbook
 from autonomy_lab.toolbox import ObservationTools
@@ -57,6 +61,8 @@ class Contract(BaseModel):
     test_pause_before_dispatch: bool = False
     # Reviewed experimental baseline; not eligible for known-variant admission.
     bounded_refresh: bool = False
+    # Exact UTF-8 JSON, experimental only; not eligible through known-variant admission.
+    procedure_program: Annotated[str, Field(max_length=4096)] | None = None
 
     @model_validator(mode='after')
     def valid_schedule(self):
@@ -71,6 +77,10 @@ class Contract(BaseModel):
             raise ValueError('Pre-dispatch barrier cannot be combined with other barriers')
         if self.bounded_refresh and self.admitted_procedure is not None:
             raise ValueError('Bounded refresh has no admitted procedure definition')
+        if self.procedure_program is not None:
+            parse_program(self.procedure_program.encode('utf-8'))
+            if self.bounded_refresh or self.admitted_procedure is not None:
+                raise ValueError('Experimental programs cannot combine with legacy flags or admission')
         return self
 
 
@@ -258,6 +268,10 @@ def operator(directory, workspace, contract, kube, verification):
     broker_kube = Kubernetes(directory / 'broker-kubeconfig', kube.cluster_name)
     registry = Registry(directory / 'admission.sqlite') if contract.admitted_procedure else None
     pin = None
+    program_raw = contract.procedure_program.encode('utf-8') if contract.procedure_program is not None else None
+    program_pin = read(directory / 'program-definition.json') if program_raw is not None else None
+    if program_raw is not None:
+        validate_pin(program_raw, program_pin)
 
     class Adapter:
         def get_service(self, namespace, name):
@@ -275,6 +289,13 @@ def operator(directory, workspace, contract, kube, verification):
                 binding = episode / 'operation.json'
                 require(not binding.exists(), 'Episode already attempted a dispatch')
                 save(binding, {'at': time.time(), 'operation_id': dispatching[0]['operation_id'], 'pin': pin})
+            if program_raw is not None:
+                validate_pin(program_raw, program_pin)
+                validate_pin(program_raw, read(episode / 'program.json')['pin'])
+                binding = episode / ('operation-' + dispatching[0]['operation_id'] + '.json')
+                require(not binding.exists(), 'Program operation already dispatched')
+                save(binding, {'at': time.time(), 'operation_id': dispatching[0]['operation_id'],
+                               'episode': episode.name, 'program_version': program_pin['version']})
             broker_kube.audit_operation_id = dispatching[0]['operation_id']
             return broker_kube.patch_service(namespace, name, patch)
 
@@ -286,7 +307,7 @@ def operator(directory, workspace, contract, kube, verification):
         broker.hook = lambda stage: dispatch_barrier(stage, directory, workspace, broker)
     elif contract.test_pause_before_dispatch:
         broker.hook = lambda stage: preflight_barrier(stage, directory, workspace, broker,
-                                                          per_operation=contract.bounded_refresh)
+                                                          per_operation=contract.bounded_refresh or program_raw is not None)
     unresolved = reconcile_pending(broker, directory)
     if unresolved:
         save(workspace / 'escalation.json', {'reason': 'unresolved_prior_operations', 'operation_ids': unresolved})
@@ -301,6 +322,9 @@ def operator(directory, workspace, contract, kube, verification):
         episode = workspace / ('episode-' + uuid.uuid4().hex)
         episode.mkdir()
         save(episode / 'attempt.json', {'started_at': time.time()})
+        if program_raw is not None:
+            validate_pin(program_raw, program_pin)
+            save(episode / 'program.json', {'at': time.time(), 'pin': program_pin})
         pin = None
         if registry is not None:
             try:
@@ -327,8 +351,9 @@ def operator(directory, workspace, contract, kube, verification):
 
         tools = EpisodeTools(observer_kube, broker, verification['quote_url'],
                              verification['inventory_control_url'], verify_current, episode, policy.run_id)
-        outcome = runbook(tools, verification_fallback=pin['variant'] == 'runbook_fallback' if pin else True,
-                          bounded_refresh=contract.bounded_refresh)
+        outcome = (run_program(tools, program_raw, pin=program_pin) if program_raw is not None else
+                   runbook(tools, verification_fallback=pin['variant'] == 'runbook_fallback' if pin else True,
+                           bounded_refresh=contract.bounded_refresh))
         save(episode / 'outcome.json', {'finished_at': time.time(), 'claim': outcome})
         # An escalation requires explicit follow-up; do not create new IDs forever.
         if outcome.get('outcome') == 'escalated':
@@ -432,6 +457,8 @@ def own(manifest, directory, *, calibration=None):
     save(directory / 'owner.json', {'pid': os.getpid(), 'identity': identity, 'run_id': run_id,
                                    'expires_at': time.time() + contract.lease_seconds})
     save(directory / 'contract.json', contract.model_dump())
+    if contract.procedure_program is not None:
+        save(directory / 'program-definition.json', freeze_program(contract.procedure_program.encode('utf-8')))
     sources = [*sorted((ROOT / 'src/autonomy_lab').glob('*.py')), ROOT / 'fixtures/expectations.json',
                ROOT / 'fixtures/database.sql', ROOT / 'infra/toolchain.json']
     save(directory / 'source.json', {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sources})
