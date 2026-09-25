@@ -83,7 +83,82 @@
           "resolution": "Record evidence/stale promotion and withdrawal refusals in a separate SQLite table without advancing admission revision. Gate retains stage, safe refusal reason and incremental receipts."
         }
       ]
+    },
+    {
+      "status": "completed",
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/procedures.py",
+            "sha256": "acf8abc262bdfe153f76bfe837ded298366a5f08ec85d819e13da0c0b2ab4dbe"
+          },
+          {
+            "path": "scripts/check_procedures.py",
+            "sha256": "2c32020fe66036eed5516bed312d52080a28e86f6e00b4cc25d418fa1d45e402"
+          },
+          {
+            "path": "tests/test_procedures.py",
+            "sha256": "0224da3ec2ff864453fee8e7d3be71966b6fe7ff81ebe81df2403bcc515fe036"
+          },
+          {
+            "path": "docs/PROCEDURE_ADMISSION.md",
+            "sha256": "fb7ad41f98e498da301c962255e84ad36dd44fd0aae54d0d90f12aa4eaa58723"
+          }
+        ],
+        "prompt_sha256": "240c9e61c0990919ff7cbac2e7af0bd588ade065cce66a70123cb006ea9d15f6",
+        "review_kind": "procedure_admission_calibration",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "a73ab90a63ff2f870de8098f96067e3b0f6fc6f21ce8d3f991d11f5831304aa9",
+        "source_bytes": 27561
+      },
+      "usage_cost_estimate_usd": 0.44432,
+      "requested_model": "claude-fable-5-1",
+      "coverage_note": "Final packet contains module, checker and protocol. Unit-test file hash is recorded; test body omitted after an over-budget preflight. No model generation occurred for the rejected full packet.",
+      "dispositions": [
+        {
+          "finding": "New-pin refusals lack a durable ledger record",
+          "status": "addressed",
+          "resolution": "Pin refusals use the same separate refusal log. Storage-unavailable errors cannot promise durable records; this qualification is explicit. Both promotion and withdrawal still fail without changing authority if SQLite cannot write."
+        },
+        {
+          "finding": "executescript implicitly commits before schema initialization",
+          "status": "addressed",
+          "resolution": "Execute schema statements individually within BEGIN IMMEDIATE. Actual SQLite authorization failure during table creation now rolls all tables back; a retry initializes fully. Concurrent initialization test also passes."
+        }
+      ]
     }
   ],
-  "followup": "Final correction review pending; real source cohorts retained separately."
+  "followup": "All six findings investigated and addressed or clarified. Final pin-refusal and schema-transaction corrections have focused tests; the last Fable snapshot precedes those two corrections. No admission bypass found in the last model review. Live results remain separate.",
+  "preflight_stops": [
+    {
+      "status": "failed",
+      "generation_attempts": 0,
+      "error": "Token preflight exceeds 14,999 input tokens or returned an invalid count",
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/procedures.py",
+            "sha256": "acf8abc262bdfe153f76bfe837ded298366a5f08ec85d819e13da0c0b2ab4dbe"
+          },
+          {
+            "path": "scripts/check_procedures.py",
+            "sha256": "2c32020fe66036eed5516bed312d52080a28e86f6e00b4cc25d418fa1d45e402"
+          },
+          {
+            "path": "tests/test_procedures.py",
+            "sha256": "0224da3ec2ff864453fee8e7d3be71966b6fe7ff81ebe81df2403bcc515fe036"
+          },
+          {
+            "path": "docs/PROCEDURE_ADMISSION.md",
+            "sha256": "fb7ad41f98e498da301c962255e84ad36dd44fd0aae54d0d90f12aa4eaa58723"
+          }
+        ],
+        "prompt_sha256": "d991c3d2eae0d32750f517cddb1a99478e21af9a93ea9733921b15c7deab6b1b",
+        "review_kind": "procedure_admission_calibration",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "a73ab90a63ff2f870de8098f96067e3b0f6fc6f21ce8d3f991d11f5831304aa9",
+        "source_bytes": 42899
+      }
+    }
+  ]
 }

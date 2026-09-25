@@ -33,6 +33,7 @@ jobs:
             artifacts/procedure-gate-*/declaration.json
             artifacts/procedure-gate-*/result.json
             artifacts/procedure-gate-*/receipts.json
+            artifacts/procedure-gate-*/admission.sqlite
             artifacts/experiment-*/manifest.json
             artifacts/experiment-*/release.json
             artifacts/experiment-*/accounting.json

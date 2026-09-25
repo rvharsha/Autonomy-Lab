@@ -193,7 +193,8 @@ def test_withdrawal_is_durable_and_does_not_rebind_existing_work(evidence, tmp_p
         registry.promote(evidence, 'runbook_fallback', expected_revision=3)
     assert registry.state()['revision'] == 3
     with closing(sqlite3.connect(path)) as db:
-        assert db.execute('SELECT action FROM refusals ORDER BY sequence').fetchall() == [('withdraw',), ('promote',)]
+        assert db.execute('SELECT action FROM refusals ORDER BY sequence').fetchall() == [
+            ('withdraw',), ('pin',), ('promote',)]
 
 
 def test_failed_candidate_preserves_active_version(evidence, tmp_path):
@@ -277,6 +278,33 @@ def test_concurrent_promotions_cannot_both_use_same_revision(evidence, tmp_path)
     with ThreadPoolExecutor(max_workers=2) as pool:
         assert sorted(pool.map(attempt, range(2))) == ['promoted', 'refused']
     assert registry.state()['revision'] == 1
+
+
+def test_failed_schema_initialization_rolls_back_every_table(tmp_path, monkeypatch):
+    original_connect = sqlite3.connect
+
+    def fail_during_schema(*args, **kwargs):
+        db = original_connect(*args, **kwargs)
+        db.set_authorizer(lambda action, name, *rest:
+                          sqlite3.SQLITE_DENY if action == sqlite3.SQLITE_CREATE_TABLE and name == 'pins'
+                          else sqlite3.SQLITE_OK)
+        return db
+
+    path = tmp_path / 'registry.sqlite'
+    with monkeypatch.context() as context:
+        context.setattr(p.sqlite3, 'connect', fail_during_schema)
+        with pytest.raises(sqlite3.DatabaseError):
+            p.Registry(path)
+    with closing(original_connect(path)) as db:
+        assert db.execute('SELECT name FROM sqlite_master WHERE type="table"').fetchall() == []
+    assert p.Registry(path).state() == {'revision': 0, 'active': None}
+
+
+def test_concurrent_initialization_is_complete_and_idempotent(tmp_path):
+    path = tmp_path / 'registry.sqlite'
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        states = list(pool.map(lambda _: p.Registry(path).state(), range(4)))
+    assert states == [{'revision': 0, 'active': None}] * 4
 
 
 @pytest.mark.parametrize('revision', [True, -1, None, '0'])

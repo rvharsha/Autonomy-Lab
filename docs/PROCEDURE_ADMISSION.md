@@ -44,7 +44,7 @@ trial worker with separate broker/verifier processes; the model-agent image is
 built release metadata, not an executed runbook container. SQLite commits
 the decision, active version and revision together. Failed behavioral candidates
 remain recorded and cannot replace the active version. Stale administrative
-decisions are refused. Evidence and stale administrative refusals get a separate
+decisions are refused. Evidence, stale administrative and new-pin refusals get a separate
 durable record without advancing the admission revision (assuming writable
 registry storage). Each activation retains its own complete evidence receipt
 in the decision ledger. Pins name the activating revision, even if a subsequent

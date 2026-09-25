@@ -178,7 +178,7 @@ class Registry:
     def __init__(self, path):
         self.path = Path(path)
         with self.transaction() as db:
-            db.executescript('''
+            schema = '''
                 CREATE TABLE IF NOT EXISTS state (id INTEGER PRIMARY KEY CHECK(id=1),
                     revision INTEGER NOT NULL, active TEXT, active_revision INTEGER);
                 INSERT OR IGNORE INTO state VALUES (1, 0, NULL, NULL);
@@ -190,7 +190,12 @@ class Registry:
                     version TEXT NOT NULL, revision INTEGER NOT NULL);
                 CREATE TABLE IF NOT EXISTS refusals (sequence INTEGER PRIMARY KEY,
                     action TEXT NOT NULL, details TEXT NOT NULL);
-            ''')
+            '''
+            # executescript would implicitly commit before these statements.
+            # Initialization must roll back as a unit if any table fails.
+            for statement in schema.split(';'):
+                if statement.strip():
+                    db.execute(statement)
 
     @contextmanager
     def transaction(self):
@@ -259,6 +264,13 @@ class Registry:
             return {'revision': revision, 'kind': 'withdrawn', **receipt}
 
     def pin(self, episode):
+        try:
+            return self._pin(episode)
+        except Refused as error:
+            self.record_refusal('pin', None, error)
+            raise
+
+    def _pin(self, episode):
         require(isinstance(episode, str) and 0 < len(episode) <= 128, 'Invalid episode identity')
         with self.transaction() as db:
             existing = db.execute('SELECT * FROM pins WHERE episode=?', (episode,)).fetchone()
