@@ -38,14 +38,15 @@ def change_routing(kube, directory, gate, record, name, expected, target):
     save(gate / 'record.json', record)
 
 
-def run_case(gate, spec):
+def run_case(gate, spec, *, manifest=None, calibration=None, at_barrier=None, evaluator=evaluate):
     directory = gate / 'campaign'
     result = {'status': 'failed', 'started_at': time.time(), 'declaration': spec}
     children = []
     record = {}
     with (gate / 'owner.log').open('ab') as log:
         owner = subprocess.Popen([sys.executable, '-m', 'autonomy_lab.campaign', 'own',
-                                  str(ROOT / 'scenarios/campaign-ambiguity.json'), str(directory)],
+                                  str(manifest or ROOT / 'scenarios/campaign-ambiguity.json'), str(directory),
+                                  *(['--calibration', str(calibration)] if calibration is not None else [])],
                                  stdout=log, stderr=log, start_new_session=True,
                                  env={'PATH': os.environ.get('PATH', '/usr/bin:/bin'), 'PYTHONPATH': str(ROOT / 'src')})
     try:
@@ -75,6 +76,8 @@ def run_case(gate, spec):
         save(gate / 'before-kill.json', before)
         if len(before) != 1 or before[0]['status'] != 'dispatching' or before[0]['result'] is not None or before[0]['operation_id'] != barrier['operation_id']:
             raise AssertionError('Real effect did not stop before durable acknowledgement')
+        if at_barrier is not None:
+            at_barrier(gate, record)
         record['kill_requested_at'] = time.time()
         save(gate / 'record.json', record)
         record['stopped_at'] = stop_and_reap(repair, children)
@@ -97,7 +100,7 @@ def run_case(gate, spec):
             raise RuntimeError('Campaign owner failed')
         for suffix in ('a', 'b'):
             save(gate / f'scorecard-{suffix}.json', scorecard(directory))
-            save(gate / f'evaluation-{suffix}.json', evaluate(gate))
+            save(gate / f'evaluation-{suffix}.json', evaluator(gate))
         for name in ('scorecard', 'evaluation'):
             if (gate / f'{name}-a.json').read_bytes() != (gate / f'{name}-b.json').read_bytes():
                 raise AssertionError('Export is not reproducible')
@@ -112,12 +115,19 @@ def run_case(gate, spec):
         raise
     finally:
         try:
-            if (directory / 'window.json').exists():
-                save(gate / 'scorecard-final.json', scorecard(directory))
-                save(gate / 'evaluation-final.json', evaluate(gate))
-        except Exception as error:
-            result['export_error_type'] = type(error).__name__
-        finalize_gate(owner, children, directory, gate, result)
+            finalize_gate(owner, children, directory, gate, result)
+        finally:
+            try:
+                if (directory / 'window.json').exists():
+                    save(gate / 'scorecard-final.json', scorecard(directory))
+                    save(gate / 'evaluation-final.json', evaluator(gate))
+            except Exception as error:
+                result['export_error_type'] = type(error).__name__
+                if result['status'] == 'passed':
+                    result['status'] = 'failed'
+                    raise
+            finally:
+                save(gate / 'result.json', result)
 
 
 def run():
@@ -127,24 +137,33 @@ def run():
     save(gate / 'declaration.json', {'cases': specs})
     ledger = {'status': 'running', 'started_at': time.time(), 'cases': {case: {'status': 'unrun'} for case in CASES}}
     save(gate / 'result.json', ledger)
-    for spec in specs:
-        case = gate / spec['case']
-        case.mkdir()
-        save(case / 'declaration.json', spec)
-        try:
-            run_case(case, spec)
-        except Exception as error:
-            ledger['cases'][spec['case']] = {'status': 'failed', 'error_type': type(error).__name__}
+    try:
+        for spec in specs:
+            case = gate / spec['case']
+            case.mkdir()
+            save(case / 'declaration.json', spec)
+            ledger['cases'][spec['case']] = {'status': 'running'}
             save(gate / 'result.json', ledger)
-            # Keep the second independently declared case; never retry a failed identity.
-        else:
-            ledger['cases'][spec['case']] = {'status': 'passed'}
+            try:
+                run_case(case, spec)
+            except BaseException as error:
+                ledger['cases'][spec['case']] = {'status': 'failed', 'error_type': type(error).__name__}
+                if not isinstance(error, Exception):
+                    raise
+                # Keep the second independently declared case; never retry a failed identity.
+            else:
+                ledger['cases'][spec['case']] = {'status': 'passed'}
             save(gate / 'result.json', ledger)
-    ledger.update(status='passed' if all(r['status'] == 'passed' for r in ledger['cases'].values()) else 'failed', finished_at=time.time())
-    save(gate / 'result.json', ledger)
-    print(gate, flush=True)
-    if ledger['status'] != 'passed':
-        raise AssertionError('One or more declared ambiguity campaigns failed')
+        ledger['status'] = 'passed' if all(r['status'] == 'passed' for r in ledger['cases'].values()) else 'failed'
+        if ledger['status'] != 'passed':
+            raise AssertionError('One or more declared ambiguity campaigns failed')
+    except BaseException as error:
+        ledger.update(status='failed', error_type=type(error).__name__)
+        raise
+    finally:
+        ledger['finished_at'] = time.time()
+        save(gate / 'result.json', ledger)
+        print(gate, flush=True)
     return gate
 
 

@@ -168,7 +168,7 @@ def evaluate(directory, variant):
 
 
 class Registry:
-    """Durable controller-owned admission ledger; no broker/execution authority.
+    """Durable controller-owned admission ledger; never broker authority.
 
     Revisions serialize administrative decisions. Pins are idempotent records,
     not permission to execute/replay an action. Withdrawal is terminal for that
@@ -270,11 +270,24 @@ class Registry:
             self.record_refusal('pin', None, error)
             raise
 
-    def _pin(self, episode):
+    def start_episode(self, episode):
+        """Select a procedure once for a fresh, bounded episode on this source.
+
+        Historical pins cannot restart execution. Withdrawal closes new starts;
+        an already running episode keeps its selection and broker limits.
+        """
+        try:
+            return self._pin(episode, fresh=True)
+        except Refused as error:
+            self.record_refusal('start_episode', None, error)
+            raise
+
+    def _pin(self, episode, *, fresh=False):
         require(isinstance(episode, str) and 0 < len(episode) <= 128, 'Invalid episode identity')
         with self.transaction() as db:
             existing = db.execute('SELECT * FROM pins WHERE episode=?', (episode,)).fetchone()
             if existing:
+                require(not fresh, 'Episode already pinned; execution cannot be resumed')
                 return dict(existing)
             state = db.execute('SELECT * FROM state WHERE id=1').fetchone()
             require(state['active'] is not None, 'No admitted procedure')
@@ -283,4 +296,5 @@ class Registry:
             require(not version['withdrawn'] and definition['source_files']
                     == release_manifest(calibration_config())['files'], 'Admitted source changed')
             db.execute('INSERT INTO pins VALUES (?,?,?)', (episode, state['active'], state['active_revision']))
-            return {'episode': episode, 'version': state['active'], 'revision': state['active_revision']}
+            pin = {'episode': episode, 'version': state['active'], 'revision': state['active_revision']}
+            return {**pin, 'variant': definition['variant']} if fresh else pin

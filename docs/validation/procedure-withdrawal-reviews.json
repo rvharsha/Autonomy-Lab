@@ -1,0 +1,145 @@
+{
+  "dispositions": [
+    {
+      "disposition": "Preserved intentionally; main already called runbook with verification_fallback=True. The claimed regression was disproven by source history.",
+      "finding": "Fixed mode uses fallback"
+    },
+    {
+      "disposition": "Preserved original API; docs distinguish diagnostic reservation from one-time episode start. Reserved identities cannot execute; extra pins fail the exact live ledger comparison.",
+      "finding": "Diagnostic pin API reserves new bindings"
+    },
+    {
+      "disposition": "Fixed: compare the full expected campaign capture set exactly; calibration separately reproduces the broader release manifest. Added missing and partial source counterexamples.",
+      "finding": "Partial campaign source sets could pass"
+    },
+    {
+      "disposition": "Fixed: nested finally exports after teardown, even when cleanup raises; preserve original failure. Audit closure is explicit. Both controller paths have failure-order tests.",
+      "finding": "Early failure could freeze audit before teardown"
+    },
+    {
+      "disposition": "Fixed: collect every episode and flag evidence, claims or operation bindings without a procedure record. Added authored counterexamples and full healthy-evaluator reproduction.",
+      "finding": "Unpinned executed episodes omitted from evaluator"
+    },
+    {
+      "disposition": "Fixed: both study ledgers retain the attempted case, terminal failed status and finish time on KeyboardInterrupt/SystemExit; unattempted cases stay unrun.",
+      "finding": "Standalone ambiguity study remained running after interruption"
+    }
+  ],
+  "review_limits": [
+    "Focused source packets omitted established helper bodies and test bodies as documented in the review prompts.",
+    "Final unpinned-episode and interrupted-ledger fixes follow the last Fable snapshot and were self-reviewed with adversarial regression tests.",
+    "Authored tests are not live experimental outcomes. Real calibration and canary acceptance remains a separate CI gate.",
+    "Two oversized packets were rejected at token preflight with zero generation attempts; no review completion is claimed for them."
+  ],
+  "reviews": [
+    {
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "cb68d2920d4defafa2f42b69ecaef4c465c7125b59b81c7f8818d0b3f88c93c7"
+          },
+          {
+            "path": "src/autonomy_lab/procedures.py",
+            "sha256": "901fa31dd4713a49600b3488af77c3a55efcefb58014938fbcef20d4c43a8afb"
+          },
+          {
+            "path": "src/autonomy_lab/runbook.py",
+            "sha256": "7be131c242eb440c000afcca1e2623b9cfa5310ee0fa3e5bb8907e19a172f973"
+          },
+          {
+            "path": "docs/PROCEDURE_WITHDRAWAL.md",
+            "sha256": "efe9e5db450acc0778832a1ab29ee81aa6c4a72a84a14d4ba26033120fdb08e7"
+          }
+        ],
+        "prompt_sha256": "b77789aec4303cc4c63eeaf3a9c3810002ad0a1013bc4ff258082b64dbafeef4",
+        "review_kind": "live_withdrawal_execution",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "9096a48a131c6f81e25fb895045161a01c3d77397595e0f874a46f65ffcf69c5",
+        "source_bytes": 35592
+      },
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.37108
+    },
+    {
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/withdrawal.py",
+            "sha256": "525271f4d2e84cf70c5753c9de2dc843664a41fa48f8d03c77d41761f9737411"
+          },
+          {
+            "path": "scripts/check_withdrawal.py",
+            "sha256": "833c810caa6090e125870096c379e373802ede48fd88060ec90050748abadcb7"
+          },
+          {
+            "path": "scripts/check_ambiguity.py",
+            "sha256": "829cc96f07d8f3186be3cbad20ad2308af6b0957bb9f27bd5e075e52960edfb8"
+          },
+          {
+            "path": "src/autonomy_lab/ambiguity.py",
+            "sha256": "65cd0203103ebebea7ea504a00acce04abe1b10959221a304bc01bc6586d81be"
+          },
+          {
+            "path": "src/autonomy_lab/campaign_report.py",
+            "sha256": "97be3b05182fa48d280d6dce597e4ee4e6a4b18066df1dd58bbe4ea25f7241fc"
+          },
+          {
+            "path": "docs/PROCEDURE_WITHDRAWAL.md",
+            "sha256": "efe9e5db450acc0778832a1ab29ee81aa6c4a72a84a14d4ba26033120fdb08e7"
+          }
+        ],
+        "prompt_sha256": "ba20308cd880faf7b1358e18da60dcb8019b1fa04f11ac5947d54bbc9594d09e",
+        "review_kind": "live_withdrawal_evaluator",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "217421ae859d2fa0ae9c0d52f84796fd004fd128f0b5bea2c65de5c938b912fb",
+        "source_bytes": 36061
+      },
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.54954
+    },
+    {
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/withdrawal.py",
+            "sha256": "b91f6eceeb5b6ec0be6a7bf4f21fe0a7fd36a1449e2e04dd984ff2610be182f9"
+          },
+          {
+            "path": "scripts/check_withdrawal.py",
+            "sha256": "b18aee2b433f8955beb104e6c33c0cdfa07976514131b967fffc22231b86e0c6"
+          },
+          {
+            "path": "scripts/check_ambiguity.py",
+            "sha256": "b71427c130fbe3e0e485bd632a5e9faddfc510bf107f551f3d7658825f70e9ee"
+          },
+          {
+            "path": "src/autonomy_lab/ambiguity.py",
+            "sha256": "65cd0203103ebebea7ea504a00acce04abe1b10959221a304bc01bc6586d81be"
+          },
+          {
+            "path": "src/autonomy_lab/campaign_report.py",
+            "sha256": "97be3b05182fa48d280d6dce597e4ee4e6a4b18066df1dd58bbe4ea25f7241fc"
+          },
+          {
+            "path": "docs/PROCEDURE_WITHDRAWAL.md",
+            "sha256": "5bc524fa76c8240b6c05ad11dda7874944fb445ab743d74d6932d3f6e1921408"
+          }
+        ],
+        "prompt_sha256": "d879d31626344a9fdd486df28dac8409205d3cf43df792ec2f4a295bb115085f",
+        "review_kind": "live_withdrawal_followup",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "d64d7c7d2f4e99273615e9aa8bb5102531b343d47b983184babe2f798b5a5251",
+        "source_bytes": 38513
+      },
+      "status": "completed",
+      "usage_cost_estimate_usd": 0.56292
+    }
+  ],
+  "schema_version": 1,
+  "scope": "Live procedure withdrawal integration and independent gate",
+  "self_review_addition": "The post-release healthy claim must exactly match terminal tool evidence at a time after release; stale, absent and contradictory claims fail."
+}
