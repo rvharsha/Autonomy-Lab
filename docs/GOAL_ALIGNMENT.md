@@ -66,8 +66,10 @@ objective's achievement.
    Known-procedure admission and live withdrawal are now implemented and exercised;
    the [restricted procedure language](RESTRICTED_PROCEDURES.md) now represents
    the maintained baseline as three finite policy decisions under the same trusted
-   execution boundary. Candidate generation, independent sealed cases, evaluated
-   program admission and comparison with the maintained baseline remain ahead. Development incidents must
+   execution boundary. The [program admission protocol](PROGRAM_ADMISSION.md)
+   adds empirical admission and withdrawal before new operation authorizations.
+   Candidate generation, independent sealed cases and a measured comparison with
+   maintained automation and exhaustive finite selection remain ahead. Development incidents must
    not be relabeled as hidden tests after they inform the proposal.
 
 3. **Test whether the improvement is worth operating.** Preregister a comparison

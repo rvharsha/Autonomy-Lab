@@ -3,7 +3,9 @@
 This slice makes an authored operating policy representable as bounded data. It
 resolves a prerequisite for candidate evaluation: the maintained baseline and a
 future proposer use the same representation and trusted execution boundary.
-It does not generate a candidate, admit one, or establish a model advantage.
+It does not generate a candidate or establish a model advantage. The separate
+[program admission protocol](PROGRAM_ADMISSION.md) evaluates exact definitions
+and governs each new dispatch authorization.
 
 ## Exact degrees of freedom
 
@@ -47,10 +49,10 @@ bindings to the same definition and their original cumulative budget.
 
 `procedure_program` is an explicit experimental campaign contract field. It
 cannot combine with legacy `bounded_refresh` or `admitted_procedure`. These
-records are execution provenance, not an admission registry. Promotion,
-withdrawal and rollout of arbitrary programs remain unimplemented. Current
-known-variant admission still supports only its two reviewed single-dispatch
-procedures. No actor receives a new cloud permission or action family.
+records alone are execution provenance. Opt-in `admit_program` additionally
+requires raw calibration, a program admission ledger and per-operation authorization
+serialized with withdrawal. Known-variant admission remains separate and supports
+only its two reviewed single-dispatch procedures. No actor receives a new cloud permission or action family.
 
 The processes and evidence storage share a trusted host. Hashes detect drift;
 they do not authenticate a hostile host or prove which machine instructions ran.
@@ -88,7 +90,7 @@ artifacts; test doubles are never experiment outcomes.
 Commit fresh independent cases outside a bounded proposer's context before its
 request. Retain actual model identity, exact input/output bytes, parse decision
 and costs. Compare the immutable candidate with this maintained baseline and an
-authored syntactically valid adverse control. Then implement evaluated admission
-and withdrawal for the complete multi-operation definition before any rollout.
+authored syntactically valid adverse control. The separate admission/withdrawal gate must qualify the complete multi-operation
+definition before any rollout.
 A tie can establish the selection mechanism; repeated fresh incident families and
 measured costs are needed to justify operating a model-assisted improvement loop.

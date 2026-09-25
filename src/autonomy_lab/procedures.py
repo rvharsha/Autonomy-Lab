@@ -85,6 +85,11 @@ def evaluate(directory, variant):
     behavioral failure returns eligible=False. Neither can authorize promotion.
     """
     require(variant in VARIANTS, 'Unsupported procedure')
+    return evaluate_evidence(directory, variant, calibration_config())
+
+
+def evaluate_evidence(directory, variant, config, *, program=None):
+    """Shared raw-evidence checks for a controller-owned, fixed protocol."""
     directory = Path(directory)
     hashes = {}
 
@@ -93,12 +98,11 @@ def evaluate(directory, variant):
         hashes[name] = hashlib.sha256(data).hexdigest()
         return [json.loads(line) for line in data.splitlines()] if lines else json.loads(data)
 
-    config = calibration_config()
     release = read('release.json')
     declared = release['configuration']
     # The frozen runner adds only the actual image ID to this exact protocol.
     require(set(declared) == set(config) | {'agent_image_id'}
-            and all(declared[k] == v for k, v in config.items()), 'Calibration protocol differs')
+            and encoded({k: declared[k] for k in config}) == encoded(config), 'Calibration protocol differs')
     require(isinstance(declared['agent_image_id'], str)
             and re.fullmatch(r'sha256:[a-f0-9]{64}', declared['agent_image_id']), 'Missing frozen image identity')
     require(release == release_manifest(declared), 'Evaluation source differs from current release')
@@ -133,6 +137,17 @@ def evaluate(directory, variant):
         observations = (read(prefix + 'evidence.jsonl', lines=True)
                         if result['variant'] != 'no_agent' or (directory / prefix / 'evidence.jsonl').exists()
                         else [])
+        if expected['variant'] in config.get('procedure_programs', {}):
+            from autonomy_lab.procedure import validate_pin
+            from autonomy_lab.recurrence import epoch
+
+            pinned = read(prefix + 'program.json')
+            raw = config['procedure_programs'][expected['variant']].encode('utf-8')
+            validate_pin(raw, pinned['pin'])
+            require(type(pinned['at']) in {int, float} and math.isfinite(pinned['at'])
+                    and epoch(result['started_at']) <= pinned['at']
+                    and bool(observations) and all(pinned['at'] <= epoch(o['timestamp']) for o in observations),
+                    'Program pin must precede calibration observations')
         score = score_trial(config['expected_behavior'][result['scenario']], result['variant'],
                             result['agent']['terminal'], verification, operations, observations)
         require(score == result['score'], 'Score does not reproduce')
@@ -161,6 +176,10 @@ def evaluate(directory, variant):
     definition = {'schema_version': 1, 'variant': variant, 'source_files': release['files'],
                   'config': config, 'release_id': release['release_id'],
                   'agent_image_id': declared['agent_image_id']}
+    if program is not None:
+        from autonomy_lab.procedure import freeze
+
+        definition.update(schema_version=2, kind='restricted_program', program=freeze(program))
     return {'version': digest(definition), 'definition': definition, 'release_id': release['release_id'],
             'evidence_sha256': hashes, 'outcomes': outcomes,
             'eligible': len(outcomes) == len(config['scenarios'])
@@ -201,6 +220,7 @@ class Registry:
     def transaction(self):
         with closing(sqlite3.connect(self.path, timeout=10)) as db, db:
             db.row_factory = sqlite3.Row
+            db.execute('PRAGMA synchronous=FULL')
             db.execute('BEGIN IMMEDIATE')
             yield db
 
@@ -227,6 +247,9 @@ class Registry:
     def _promote(self, directory, variant, *, expected_revision):
         # A caller cannot provide an accepted boolean/receipt in place of evidence.
         receipt = evaluate(directory, variant)
+        return self._record_promotion(receipt, expected_revision)
+
+    def _record_promotion(self, receipt, expected_revision):
         with self.transaction() as db:
             state = db.execute('SELECT * FROM state WHERE id=1').fetchone()
             require(type(expected_revision) is int and state['revision'] == expected_revision,
@@ -295,6 +318,12 @@ class Registry:
             definition = json.loads(version['definition'])
             require(not version['withdrawn'] and definition['source_files']
                     == release_manifest(calibration_config())['files'], 'Admitted source changed')
+            selection = self._selection(definition)
             db.execute('INSERT INTO pins VALUES (?,?,?)', (episode, state['active'], state['active_revision']))
             pin = {'episode': episode, 'version': state['active'], 'revision': state['active_revision']}
-            return {**pin, 'variant': definition['variant']} if fresh else pin
+            return {**pin, **selection} if fresh else pin
+
+    def _selection(self, definition):
+        require(definition.get('variant') in VARIANTS and 'program' not in definition,
+                'Admission is not a known procedure')
+        return {'variant': definition['variant']}
