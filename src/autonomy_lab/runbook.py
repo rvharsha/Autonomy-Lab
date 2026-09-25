@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 
+from autonomy_lab.procedure import Decisions
 from autonomy_lab.toolbox import ObservationTools
 
 
@@ -122,6 +123,11 @@ def _refresh_proposal(call, evidence, original, operation):
 
 def run(toolbox: ObservationTools, *, verification_fallback: bool = False,
         bounded_refresh: bool = False) -> dict:
+    return execute(toolbox, Decisions('verify' if verification_fallback else 'escalate',
+                                     'repair', 'refresh' if bounded_refresh else 'escalate'))
+
+
+def execute(toolbox: ObservationTools, decisions: Decisions) -> dict:
     """Run once in a fresh workspace; mid-run resumption is unsupported.
 
     Existing terminal claims may be read again. Reusing nonterminal observations
@@ -155,7 +161,7 @@ def run(toolbox: ObservationTools, *, verification_fallback: bool = False,
     scoped_service = scope is not None
     metadata, port = scope if scope else ({}, {})
     if not scoped_service or not _backend_works(backend):
-        if verification_fallback and scoped_service and backend.get("kind") == "error":
+        if decisions.backend_unavailable == 'verify' and scoped_service and backend.get("kind") == "error":
             verification = call("verify_recovery")
             if verification.get("verdict") == "verified_success":
                 return finish(
@@ -189,6 +195,9 @@ def run(toolbox: ObservationTools, *, verification_fallback: bool = False,
             "The observations do not identify a Service target-port repair that can resolve the failure.",
         )
 
+    if decisions.repairable_routing != 'repair':
+        return finish('escalated', 'The procedure declines this diagnosed routing repair.')
+
     operation_id = str(uuid.uuid4())
     proposal = {
         "run_id": service_observation["run_id"],
@@ -205,7 +214,7 @@ def run(toolbox: ObservationTools, *, verification_fallback: bool = False,
     operation = call("propose_repair", proposal)
     # Only the original received rejection can enter this path. A later read of
     # an unknown outcome cannot retrospectively authorize another mutation.
-    if bounded_refresh:
+    if decisions.conditional_rejection == 'refresh':
         refreshed = _refresh_proposal(call, evidence, proposal, operation)
         if refreshed is not None:
             operation_id = refreshed["operation_id"]

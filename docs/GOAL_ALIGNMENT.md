@@ -64,8 +64,10 @@ objective's achievement.
    demonstrating a beneficial accepted proposal is a separate improvement claim.
    If none qualifies, report that result and do not manufacture a learning success.
    Known-procedure admission and live withdrawal are now implemented and exercised;
-   candidate generation, a restricted interpreter, independent sealed cases and
-   comparison with a maintained baseline remain ahead. Development incidents must
+   the [restricted procedure language](RESTRICTED_PROCEDURES.md) now represents
+   the maintained baseline as three finite policy decisions under the same trusted
+   execution boundary. Candidate generation, independent sealed cases, evaluated
+   program admission and comparison with the maintained baseline remain ahead. Development incidents must
    not be relabeled as hidden tests after they inform the proposal.
 
 3. **Test whether the improvement is worth operating.** Preregister a comparison

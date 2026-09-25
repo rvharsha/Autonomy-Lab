@@ -7,6 +7,7 @@ from autonomy_lab import ambiguity, conflict
 from autonomy_lab.campaign import Contract, read
 from autonomy_lab.harness import client_path_failed
 from autonomy_lab.kubernetes import ROOT
+from autonomy_lab.procedure import freeze, verify_bindings
 from autonomy_lab.procedures import require
 from autonomy_lab.recurrence import epoch, routing_only
 from autonomy_lab.runbook import _backend_works, _service_scope
@@ -14,14 +15,20 @@ from autonomy_lab.runbook import _backend_works, _service_scope
 CASES = ('stable', 'continuing', 'uncertain_external_change')
 
 
-def declaration(case):
+def declaration(case, *, interpreted=False):
     require(case in CASES, 'Unknown refresh case')
     spec = conflict.declaration()
     if case == 'uncertain_external_change':
         spec.update(ambiguity.declaration('external_change'))
-    manifest = 'scenarios/campaign-refresh' + ('-uncertain' if case == 'uncertain_external_change' else '') + '.json'
+    manifest = 'scenarios/campaign-' + ('program-refresh' if interpreted else 'refresh') + ('-uncertain' if case == 'uncertain_external_change' else '') + '.json'
     paths = [*spec['gate_sources'], 'scripts/check_refresh.py', manifest]
-    return {**spec, 'refresh_case': case, 'evidence_use': 'development',
+    program = {}
+    if interpreted:
+        paths.append('procedures/bounded-refresh.json')
+        raw = (ROOT / paths[-1]).read_bytes()
+        require(read(ROOT / manifest)['procedure_program'].encode('utf-8') == raw, 'Baseline bytes differ')
+        program = {'execution': 'restricted_program', 'program_pin': freeze(raw)}
+    return {**spec, **program, 'refresh_case': case, 'evidence_use': 'development',
             'manifest': manifest, 'second_barrier_deadline_seconds': 10,
             'contract': Contract.model_validate(read(ROOT / manifest)).model_dump(),
             'gate_sources': {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in paths}}
@@ -223,7 +230,8 @@ def assess_case(card, spec, record, journal, captured, evidence, raw_samples):
 
 def evaluate(gate):
     spec = read(gate / 'declaration.json')
-    require(spec == declaration(spec['refresh_case']), 'Protocol or release changed')
+    require(spec == declaration(spec['refresh_case'], interpreted=spec.get('execution') == 'restricted_program'),
+            'Protocol or release changed')
     card, samples, evidence = conflict.load_evidence(gate, spec)
     directory = gate / 'campaign'
     captured, record = read(gate / 'server-audit.json'), read(gate / 'record.json')
@@ -252,6 +260,16 @@ def evaluate(gate):
             require(read(base / 'preflight-barrier.json') == attempt['barrier'], 'Barrier differs')
             require(read(base / 'preflight-release.json') == attempt['release'], 'Release differs')
         result = assess_case(card, spec, record, journal, captured, evidence, samples)
+    if spec.get('execution') == 'restricted_program':
+        try:
+            valid_bindings = verify_bindings(directory, spec, card, evidence, journal, captured)
+        except Exception as error:
+            valid_bindings = False
+            # Keep the base assessment without copying corrupt contents or OS paths.
+            result['program_binding_error'] = {'type': type(error).__name__,
+                                              'reason': 'Program binding evidence unavailable or invalid'}
+        result['checks']['frozen_program_before_every_dispatch'] = valid_bindings
+        result['status'] = 'passed' if result['status'] == 'passed' and all(result['checks'].values()) else 'failed'
     result['uncommitted_evidence'] = [
         {'worker': worker, 'episode': e['id'], 'bytes': e['uncommitted_bytes'], 'sha256': e['uncommitted_sha256']}
         for worker, episodes in evidence.items() for e in episodes if e['uncommitted_bytes']]
