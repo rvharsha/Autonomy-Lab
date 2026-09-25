@@ -9,6 +9,44 @@ permissions:
   contents: read
 
 jobs:
+  procedure-admission:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: make setup
+      - name: Calibrate admission against complete real evaluation evidence
+        run: PYTHONPATH=src .venv/bin/python scripts/check_procedures.py --execute
+      - name: Retain allowlisted calibration evidence, including failed attempts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: procedure-admission-results
+          path: |
+            artifacts/procedure-gate-*/declaration.json
+            artifacts/procedure-gate-*/result.json
+            artifacts/procedure-gate-*/receipts.json
+            artifacts/procedure-gate-*/admission.sqlite
+            artifacts/experiment-*/manifest.json
+            artifacts/experiment-*/release.json
+            artifacts/experiment-*/accounting.json
+            artifacts/experiment-*/cleanup.json
+            artifacts/experiment-*/results.json
+            artifacts/experiment-*/trial-*/trial.json
+            artifacts/experiment-*/trial-*/worker-request.json
+            artifacts/experiment-*/trial-*/operations.json
+            artifacts/experiment-*/trial-*/final-verification.json
+            artifacts/experiment-*/trial-*/evidence.jsonl
+            artifacts/experiment-*/trial-*/server-audit.json
+          if-no-files-found: warn
+          retention-days: 14
   telemetry-loss:
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
