@@ -27,6 +27,15 @@ def declaration(case):
             'gate_sources': {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in paths}}
 
 
+def service_read_matches_response(observed, response):
+    # kubectl get omits managedFields by default; the structured API response
+    # retains them. Compare every other field, including annotations and version.
+    if 'managedFields' not in observed['metadata']:
+        response = {**response, 'metadata': {k: v for k, v in response['metadata'].items()
+                                             if k != 'managedFields'}}
+    return observed == response
+
+
 def assess_case(card, spec, record, journal, captured, evidence, raw_samples):
     """Check actual requests, causal observations, two distinct intents and the full calendar."""
     window = card['window']
@@ -130,7 +139,14 @@ def assess_case(card, spec, record, journal, captured, evidence, raw_samples):
                 and op['reconciliation'] is None and bool(op['owner'])
                 and (op['reason'] == 'api_rejected_' + str(api['responseStatus']['code'])
                      and json.loads(op['result'] or 'null') is None if rejection
-                     else json.loads(op['result']) == api['responseObject']))
+                     else op['reason'] == 'api_acknowledged'
+                     and json.loads(op['result']) == {
+                         'service_uid': api['responseObject']['metadata']['uid'],
+                         'resource_version': api['responseObject']['metadata']['resourceVersion']}
+                     and api['responseObject']['metadata']['uid'] == request['service_uid']
+                     and api['responseObject']['metadata']['resourceVersion'] != request['resource_version']
+                     and api['responseObject']['spec'] == {**before['spec'], 'ports': [
+                         {**before['spec']['ports'][0], 'targetPort': request['target_port']}] }))
             checks[key + '_causal_dispatch'] = (
                 epoch(op['created_at']) <= barrier['at'] <= attempt['read_at'] <= attempt['release_requested_at']
                 <= epoch(history[1]['timestamp']) <= epoch(api['requestReceivedTimestamp'])
@@ -190,7 +206,7 @@ def assess_case(card, spec, record, journal, captured, evidence, raw_samples):
             and s['finished_at'] <= record['repair_requested_at'] and client_path_failed(s['verification']) for s in raw_samples)
         post = [s for s in card['samples'] if s['scheduled_at'] > episode['outcome']['finished_at']]
         checks['customer_outcome_retained'] = bool(post) and all(s['verdict'] == ('verified_success' if stable else 'verified_failure') for s in post)
-        checks['controller_final_read_matches_api'] = (record['after_operations'] == previous_service
+        checks['controller_final_read_matches_api'] = (service_read_matches_response(record['after_operations'], previous_service)
             and episode['outcome']['finished_at'] <= record['after_operations_at'] <= window['end'])
         detail = {'operation_ids': ids, 'api_statuses': [a['responseStatus']['code'] for a in api_operations],
                   'budget_spent': 2, 'budget_remaining': 0, 'outcome': claim['outcome'],

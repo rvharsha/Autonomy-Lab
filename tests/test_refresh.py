@@ -29,13 +29,13 @@ def authored(stable=True):
     second_request = {**request, 'operation_id': 'authored-second', 'resource_version': '3', 'evidence_ids': ['o' + str(i) for i in range(7)]}
     second = {**first, 'request': json.dumps(second_request), 'operation_id': 'authored-second',
               'created_at': stamp(1050.4), 'status': 'acknowledged' if stable else 'rejected',
-              'reason': None if stable else 'api_rejected_422'}
+              'reason': 'api_acknowledged' if stable else 'api_rejected_422'}
     second_prior = {**second, 'status': 'prepared', 'owner': None}
     final = copy.deepcopy(record['changed_service'])
     final['metadata']['resourceVersion'] = '4'
     if stable:
         final['spec']['ports'][0]['targetPort'] = 8080
-        second['result'] = json.dumps(final)
+        second['result'] = json.dumps({'service_uid': 'authored-uid', 'resource_version': '4'})
     else:
         final['metadata']['annotations'] = annotation_patch(record['changed_service'], 'authored-second')[-1]['value']
     card['operations'].append(second)
@@ -304,3 +304,40 @@ def test_uncertain_wrapper_counts_admin_fault_repair_and_external_change(tmp_pat
         monkeypatch.setattr(refresh.ambiguity, 'assess_case', lambda *_: {'status': 'failed', 'checks': {}})
     result = refresh.evaluate(tmp_path)
     assert result['status'] == ('passed' if defect == 'none' else 'failed'), [k for k,v in result['checks'].items() if not v]
+
+
+@pytest.mark.parametrize('defect', ['none', 'uid', 'version', 'annotations', 'spec', 'visible_managed_fields'])
+def test_controller_read_matches_api_except_omitted_managed_fields(defect):
+    from autonomy_lab.refresh import service_read_matches_response
+    observed = {'metadata': {'uid': 'u', 'resourceVersion': '2', 'annotations': {'x': 'y'}},
+                'spec': {'ports': [{'targetPort': 8080}]}}
+    response = copy.deepcopy(observed)
+    response['metadata']['managedFields'] = [{'manager': 'kube-controller'}]
+    if defect == 'uid':
+        response['metadata']['uid'] = 'other'
+    elif defect == 'version':
+        response['metadata']['resourceVersion'] = '3'
+    elif defect == 'annotations':
+        response['metadata']['annotations'] = {}
+    elif defect == 'spec':
+        response['spec']['ports'][0]['targetPort'] = 9999
+    elif defect == 'visible_managed_fields':
+        observed['metadata']['managedFields'] = []
+    assert service_read_matches_response(observed, response) is (defect == 'none')
+
+
+@pytest.mark.parametrize('defect', ['uid', 'version', 'wrong_target', 'full_response_as_receipt'])
+def test_acknowledged_receipt_must_match_api_identity_and_version(defect):
+    data = authored()
+    op = data['card']['operations'][1]
+    result = json.loads(op['result'])
+    if defect == 'uid':
+        result['service_uid'] = 'other'
+    elif defect == 'version':
+        result['resource_version'] = 'stale'
+    elif defect == 'full_response_as_receipt':
+        result = data['captured']['events'][-1]['responseObject']
+    else:
+        data['captured']['events'][-1]['responseObject']['spec']['ports'][0]['targetPort'] = 9998
+    op['result'] = json.dumps(result)
+    assert assess_case(**data)['status'] == 'failed'

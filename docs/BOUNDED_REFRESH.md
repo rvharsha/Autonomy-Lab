@@ -99,3 +99,20 @@ procedure. Next: freeze a restricted procedure representation and maintained
 baseline, isolate a single bounded proposer request from independently sealed
 cases, then compare the immutable candidate with this baseline. A tie supports
 bounded generation/selection, not novel discovery or a need for a model.
+
+## Retained first execution
+
+The first cohort at `75c21b6dc0b59f5da188959bc96eef149d7e662f`
+([run 36099505746](https://github.com/rvharsha/Autonomy-Lab/actions/runs/36099505746))
+failed the new gate: stable/continuing cases exposed two evaluator representation
+assumptions; the unknown-effect case passed. The broker's durable receipt holds
+only UID/version. The controller's `kubectl get` output omits `managedFields` by
+default, as documented in the [kubectl reference](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_get/).
+The corrected evaluator binds that receipt to the independent API response and
+compares all Service fields except specifically omitted `managedFields`. Identity,
+version, annotations, exact intended spec change, budgets and deadlines still
+must match. Operating behavior and fault schedules did not change.
+
+Original failed assessments and raw evidence remain retained and reproduce on
+that source. They are not retrospectively passed. A new frozen revision must run
+the complete declared cohort; these cases remain development feedback.
