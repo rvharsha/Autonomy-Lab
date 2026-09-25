@@ -1,0 +1,130 @@
+{
+  "scope": "Bounded conditional-rejection development gate, not live results or automatic approval",
+  "reviews": [
+    {
+      "started_at": "2026-09-25T04:17:49.641452+00:00",
+      "finished_at": "2026-09-25T04:19:17.763918+00:00",
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/conflict.py",
+            "sha256": "5b2241b766ad784a3f9e7c48a490eeb36c8b6b8167aef2b0b10660563e795d69"
+          },
+          {
+            "path": "scripts/check_conflict.py",
+            "sha256": "2cb4b3aff743c1334cd0be670a79278b2daef1521a56cf1efcd61702d3612be4"
+          },
+          {
+            "path": "docs/CONDITIONAL_REJECTION.md",
+            "sha256": "3c6096f53ceb8faf58c66a923e6ff68dda4076069f0b7cd7095e8ec782321694"
+          },
+          {
+            "path": "scenarios/campaign-conflict.json",
+            "sha256": "3e70f6d2b85dcba71249173fb86ab257d6d7c46e7c7b1f3da9ffb9a02a8ab70f"
+          },
+          {
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "1cc6f30fabacd16defc85dbbc7eed0f0c80a646f581fdc3d84a8922a64008813"
+          },
+          {
+            "path": "src/autonomy_lab/broker.py",
+            "sha256": "64b02b1e17171524fdc612aa8f520fec4c3eecda0782ef42a28f698ff4af812b"
+          },
+          {
+            "path": "src/autonomy_lab/kubernetes.py",
+            "sha256": "1812c19cb4cc63a723b06e085efab881bb548742573d20f42113c42b677f7730"
+          },
+          {
+            "path": "tests/test_conflict.py",
+            "sha256": "cb81a1f627965e05af79e926df77bd521e343e9b76a618fa002ef881777d97f0"
+          }
+        ],
+        "prompt_sha256": "25fef67177f0d6b0c64eff36262055cb16b3dee267b02b2a0c9760a649bef7f2",
+        "review_kind": "conditional_rejection",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "6996e8a44c5369304d2f47a0ab5f324daf756aa3693f0560a51e1153c12160e7",
+        "source_bytes": 40576
+      },
+      "usage_cost_estimate_usd": 0.47941,
+      "dispositions": [
+        {
+          "finding": "A fixed-time initial stop can interrupt a healthy episode before its terminal claim.",
+          "status": "fixed",
+          "resolution": "Retain at most one trailing interrupted attempt, require committed healthy work and the original healthy observation calendar, and retain uncommitted append bytes/hash without accepting them as claims. Authored counterexamples cover these boundaries."
+        },
+        {
+          "finding": "Multiple audit stages could create duplicate mutation counts.",
+          "status": "not_applicable",
+          "resolution": "The existing audit policy omits RequestReceived/ResponseStarted and read_events accepts only ResponseComplete. The follow-up review included that helper."
+        }
+      ]
+    },
+    {
+      "started_at": "2026-09-25T04:22:44.151270+00:00",
+      "finished_at": "2026-09-25T04:24:34.584074+00:00",
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/conflict.py",
+            "sha256": "6ea29fa5758e515edc477e25c602a721f654e95a559be5ac5bc15632937242e9"
+          },
+          {
+            "path": "scripts/check_conflict.py",
+            "sha256": "2cb4b3aff743c1334cd0be670a79278b2daef1521a56cf1efcd61702d3612be4"
+          },
+          {
+            "path": "docs/CONDITIONAL_REJECTION.md",
+            "sha256": "5e830b0912cc6a6f165ab562258c948c5c1ac93b93ae1cde4785e35bf3a6bd08"
+          },
+          {
+            "path": "scenarios/campaign-conflict.json",
+            "sha256": "3e70f6d2b85dcba71249173fb86ab257d6d7c46e7c7b1f3da9ffb9a02a8ab70f"
+          },
+          {
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "1cc6f30fabacd16defc85dbbc7eed0f0c80a646f581fdc3d84a8922a64008813"
+          },
+          {
+            "path": "src/autonomy_lab/broker.py",
+            "sha256": "64b02b1e17171524fdc612aa8f520fec4c3eecda0782ef42a28f698ff4af812b"
+          },
+          {
+            "path": "src/autonomy_lab/kubernetes.py",
+            "sha256": "1812c19cb4cc63a723b06e085efab881bb548742573d20f42113c42b677f7730"
+          },
+          {
+            "path": "tests/test_conflict.py",
+            "sha256": "63d94e84a5079b2950e5487b67176f4d97a8935909eef6643c1f9496dcab4287"
+          },
+          {
+            "path": "src/autonomy_lab/audit.py",
+            "sha256": "149b2721f6b67ecf8135ab50049c595af4871f837784c2b71b2db4db83e6d352"
+          }
+        ],
+        "prompt_sha256": "7a06b34368621c6cc5a9220c80d713c8489c9d9d744aad3946b02e41d9d30c86",
+        "review_kind": "conditional_rejection",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "01ccdbe4ef195492cdb4c5833b85e80bca41afda1efb436745a2673487b8e8d2",
+        "source_bytes": 35639
+      },
+      "usage_cost_estimate_usd": 0.5414,
+      "dispositions": [
+        {
+          "finding": "No actionable defects found in supplied final source.",
+          "status": "reviewed",
+          "resolution": "Missing audit timestamps fail closed as export errors. Shared audit-reader duplicate handling remains under the stated trusted-storage assumption; neither optional note requires a gate change."
+        }
+      ]
+    }
+  ],
+  "estimated_total_usd": 1.02081,
+  "limitations": [
+    "Source-only reviews; authored unit fixtures were omitted from review packets and tested separately.",
+    "Unchanged broker and Kubernetes adapter were reviewed in the first packet; the follow-up focused on the evaluator, checker, barrier and audit reader.",
+    "Three oversize count preflights sent no generation requests."
+  ]
+}

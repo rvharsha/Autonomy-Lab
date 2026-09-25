@@ -54,6 +54,7 @@ class Contract(BaseModel):
     test_pause_after_dispatch: bool = False
     admitted_procedure: Literal['runbook', 'runbook_fallback'] | None = None
     test_pause_before_finish: bool = False
+    test_pause_before_dispatch: bool = False
 
     @model_validator(mode='after')
     def valid_schedule(self):
@@ -64,6 +65,8 @@ class Contract(BaseModel):
             raise ValueError('Invalid campaign schedule')
         if self.test_pause_before_finish and self.admitted_procedure is None:
             raise ValueError('Finish barrier requires an admitted procedure')
+        if self.test_pause_before_dispatch and (self.test_pause_after_dispatch or self.test_pause_before_finish):
+            raise ValueError('Pre-dispatch barrier cannot be combined with other barriers')
         return self
 
 
@@ -221,6 +224,29 @@ def finish_barrier(directory, workspace, episode):
     require(read(release) == {'episode': episode.name}, 'Finish release differs from episode')
 
 
+def preflight_barrier(stage, directory, workspace, broker):
+    """Trusted controller pauses an already constructed conditional patch.
+
+    This is after the broker's fresh read and before its dispatch claim. Only a
+    release for this exact prepared operation may let the original patch proceed.
+    """
+    if stage != 'before_dispatch':
+        return
+    rows = [row for row in operation_rows(directory)
+            if row['status'] == 'prepared' and row['run_id'] == broker.policy.run_id]
+    require(len(rows) == 1, 'Cannot identify prepared dispatch')
+    operation_id = rows[0]['operation_id']
+    path = workspace / 'preflight-barrier.json'
+    require(not path.exists(), 'Preflight barrier already used')
+    save(path, {'at': time.time(), 'operation_id': operation_id})
+    release = workspace / 'preflight-release.json'
+    while not release.exists():
+        active(directory)
+        time.sleep(0.1)
+    active(directory)
+    require(read(release) == {'operation_id': operation_id}, 'Preflight release differs from operation')
+
+
 def operator(directory, workspace, contract, kube, verification):
     broker_kube = Kubernetes(directory / 'broker-kubeconfig', kube.cluster_name)
     registry = Registry(directory / 'admission.sqlite') if contract.admitted_procedure else None
@@ -251,6 +277,8 @@ def operator(directory, workspace, contract, kube, verification):
     broker = ActionBroker(directory / 'operations.sqlite', policy, Adapter())
     if contract.test_pause_after_dispatch:
         broker.hook = lambda stage: dispatch_barrier(stage, directory, workspace, broker)
+    elif contract.test_pause_before_dispatch:
+        broker.hook = lambda stage: preflight_barrier(stage, directory, workspace, broker)
     unresolved = reconcile_pending(broker, directory)
     if unresolved:
         save(workspace / 'escalation.json', {'reason': 'unresolved_prior_operations', 'operation_ids': unresolved})
