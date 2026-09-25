@@ -22,8 +22,9 @@ from autonomy_lab.procedures import require
 from autonomy_lab.withdrawal import capture_audit
 
 
-def run_case(gate, spec):
-    require(spec == declaration(spec['arm']), 'Frozen comparison changed before provisioning')
+def run_case(gate, spec, declared=None, evaluator=evaluate):
+    require(spec == (declared if declared is not None else declaration(spec['arm'])),
+            'Frozen comparison changed before provisioning')
     directory = gate / 'campaign'
     save(gate / 'declaration.json', spec)
     manifest = gate / 'manifest.json'
@@ -47,11 +48,17 @@ def run_case(gate, spec):
         wait_until(start + spec['fault_offset'])
         change_routing(kube, directory, gate, record, 'fault', 8080, 9999)
         for phase in ('first', 'second'):
-            if phase == 'second':
+            if phase == 'second' and spec.get('context', 'continuing') == 'continuing':
                 wait_until(start + spec['external_restore_offset'])
                 change_routing(kube, directory, gate, record, 'external_restore', 9999, 8080)
                 wait_until(start + spec['second_fault_offset'])
                 change_routing(kube, directory, gate, record, 'second_fault', 8080, 9999)
+            if phase == 'second' and 'first_stop_offset' in spec:
+                wait_until(start + spec['first_stop_offset'])
+                record['first_stop_requested_at'] = time.time()
+                save(gate / 'record.json', record)
+                record['first_stopped_at'] = stop_and_reap(directory / 'workers' / record['first_worker'], children)
+                save(gate / 'record.json', record)
             wait_until(start + spec[phase + '_start_offset'])
             record[phase + '_requested_at'] = time.time()
             worker, process = spawn_worker(directory, 'operator')
@@ -78,7 +85,7 @@ def run_case(gate, spec):
                            'before': kube.get_service(kube.namespace, 'inventory')}
                 record['attempts'].append(attempt)
                 save(gate / 'record.json', record)
-                if phase == 'first':
+                if phase == 'first' and (spec.get('context', 'continuing') == 'continuing' or len(seen) == 1):
                     change = {'requested_at': time.time(),
                               'patch': annotation_patch(attempt['before'], barrier['operation_id'])}
                     attempt['change'] = change
@@ -90,14 +97,14 @@ def run_case(gate, spec):
                 save(gate / 'record.json', record)
                 save(path.parent / 'preflight-release.json', {'operation_id': barrier['operation_id']})
             require(any(worker.glob('episode-*/outcome.json')), 'Operator did not finish its first episode')
-            if phase == 'first':
+            if phase == 'first' and 'first_stop_offset' not in spec:
                 require(process.wait(timeout=max(1, deadline - time.time())) == 0, 'First operator failed')
         owner.wait(timeout=max(1, window['end'] - time.time()) + 180)
         require(owner.returncode == 0, 'Campaign owner failed')
         capture_audit(gate)
         for label in ('a', 'b'):
             save(gate / f'scorecard-{label}.json', scorecard(directory))
-            save(gate / f'evaluation-{label}.json', evaluate(gate))
+            save(gate / f'evaluation-{label}.json', evaluator(gate))
         for name in ('scorecard', 'evaluation'):
             require((gate / f'{name}-a.json').read_bytes() == (gate / f'{name}-b.json').read_bytes(),
                     'Repeated offline export differs')

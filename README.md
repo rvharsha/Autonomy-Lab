@@ -6,9 +6,11 @@ Next phase: [continuous service ownership](docs/CONTINUOUS_OWNERSHIP_PLAN.md). I
 
 The [goal alignment check](docs/GOAL_ALIGNMENT.md) distinguishes execution control
 from useful adaptation. [Evaluated program admission](docs/PROGRAM_ADMISSION.md)
-now governs new operation authorizations and withdrawal. The next
+now governs new operation authorizations and withdrawal. The
 [budget-horizon comparison](docs/BUDGET_HORIZON.md) tests whether spending repair
 attempts on one incident worsens outcomes on a later one, under unchanged authority.
+The [finite policy comparison](docs/FINITE_POLICY_COMPARISON.md) adds the matched
+stable-conflict context and evaluates all eight configurations before selection.
 Generated improvement and model value remain unproved.
 
 The [80-trial fallback comparison](docs/RUNBOOK_FALLBACK_RESULTS.md) accounts for 79 finalized trials and one interrupted attempt. Original runbook: 14/16; verification fallback: 15/16 with one unknown; basic: 15/16; structured: 16/16, plus 16 unscored controls. The deterministic fallback closed both healthy observer-outage cases with zero model tokens, but a host service restart interrupted its final trial and automatic cleanup. Its promotion gate remains unmet; original evidence and manual cleanup are retained. The subsequent [service-recovery correction](docs/SERVICE_RECOVERY_RESULTS.md) passed real stop, restart and entire-group SIGKILL gates on GCP. Its separate model-free validation finalized **32/32 trials**, with **16/16 supported fallback completions**, complete scoped audits and automatic cleanup. The fallback is validated for that bounded policy and remains an explicit variant; the original runbook stays the default/control. The VM is stopped and both evidence archives are retained.

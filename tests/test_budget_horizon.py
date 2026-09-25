@@ -276,3 +276,58 @@ def test_completion_cannot_predate_its_attempt():
         first_episode_completed_by({'episodes': [
             {'attempt': {'started_at': 10}, 'outcome': {'finished_at': 9}},
         ]}, 20)
+
+
+@pytest.fixture
+def stable_dispatches(rejected_dispatch):
+    card, audit, record = rejected_dispatch
+    del record['external_restore'], record['second_fault']
+    record.update(first_stop_requested_at=135, second_requested_at=140)
+    audit['events'] = [e for e in audit['events'] if e['auditID'] not in {'controller-external_restore', 'controller-second_fault'}]
+    prior = record['attempts'][0]
+    request = json.loads(card['operations'][0]['request'])
+    request.update(operation_id='op-2', resource_version='3')
+    record['attempts'].append({'phase': 'first', 'operation_id': 'op-2',
+                               'before': copy.deepcopy(prior['changed_service']),
+                               'barrier': {'at': 20.1, 'operation_id': 'op-2'}, 'release_requested_at': 20.2})
+    card['operations'].append({'operation_id': 'op-2', 'request': json.dumps(request),
+                               'budget_reserved': 1, 'created_at': stamp(20), 'updated_at': stamp(20.5),
+                               'status': 'acknowledged', 'reason': 'api_acknowledged',
+                               'result': json.dumps({'service_uid': 'service-1', 'resource_version': '4'})})
+    event = copy.deepcopy(audit['events'][-1])
+    event.update(auditID='dispatch-2', userAgent='autonomy-lab-operation/op-2', requestObject=repair_patch(request),
+                 requestReceivedTimestamp=stamp(20.3), stageTimestamp=stamp(20.4), responseStatus={'code': 200},
+                 responseObject={'metadata': {'uid': 'service-1', 'resourceVersion': '4'}})
+    audit['events'].append(event)
+    return card, audit, record
+
+
+def test_stable_context_conflicts_only_first_actual_attempt_by_time(stable_dispatches):
+    card, audit, record = stable_dispatches
+    assert assess_audit(card, audit, record, 'stable') == card['operations']
+    record['attempts'].reverse()
+    assert assess_audit(card, audit, record, 'stable') == card['operations']
+
+
+def test_stable_context_cannot_hide_extra_controller_intervention(stable_dispatches):
+    card, audit, record = stable_dispatches
+    audit['events'].append(copy.deepcopy(audit['events'][0]))
+    with pytest.raises(ValueError):
+        assess_audit(card, audit, record, 'stable')
+
+
+@pytest.mark.parametrize('change', ['missing_conflict', 'later_conflict', 'phantom', 'wrong_phase', 'outside_phase'])
+def test_stable_context_rejects_invented_exposure_or_wrong_phase(stable_dispatches, change):
+    card, audit, record = stable_dispatches
+    if change == 'missing_conflict':
+        del record['attempts'][0]['change']
+    elif change == 'later_conflict':
+        record['attempts'][1]['change'] = copy.deepcopy(record['attempts'][0]['change'])
+    elif change == 'phantom':
+        record['attempts'].append({**copy.deepcopy(record['attempts'][1]), 'operation_id': 'phantom'})
+    elif change == 'wrong_phase':
+        record['attempts'][1]['phase'] = 'second'
+    else:
+        record['first_stop_requested_at'] = 20.35
+    with pytest.raises((ValueError, KeyError)):
+        assess_audit(card, audit, record, 'stable')
