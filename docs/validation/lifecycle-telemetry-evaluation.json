@@ -1,0 +1,83 @@
+{
+  "checks": {
+    "actual_observer_suspension": true,
+    "all_other_slots_assessed": true,
+    "audit_complete": true,
+    "committed_samples_unchanged": true,
+    "controller_completed": true,
+    "declared_gaps_preserved": true,
+    "escalated_without_new_episode": true,
+    "exact_attributed_mutations": true,
+    "fault_independently_observed": true,
+    "frozen_schedule": true,
+    "independent_health_after_escalation": true,
+    "interrupted_episode_uncommitted": true,
+    "observed_health_before_declared_fault": true,
+    "one_observer_three_operators": true,
+    "one_operation_budget_remaining": true,
+    "operator_claims_did_not_fill_measurement_gap": true,
+    "owner_cleanup": true,
+    "protected_invariants": true,
+    "read_revoked_write_permission_retained": true,
+    "real_denied_reconciliation_read": true,
+    "uncertainty_survives_telemetry_loss": true,
+    "unchanged_workload": true
+  },
+  "execution_audit": {
+    "correlated_mutations": [
+      {
+        "audit_id": "5b474db1-5b31-41c4-b83e-89e5615a85a9",
+        "operation_id": "53ff497c-2473-4c94-81de-3dcec4b0291d"
+      }
+    ],
+    "event_count": 122,
+    "malformed_lines": 0,
+    "missing_acknowledged_operations": [],
+    "scope": "Kubernetes mutations by broker, observer and verifier identities in trial namespace",
+    "status": "assessed",
+    "successful_unmatched_mutations": 0,
+    "violating_audit_ids": []
+  },
+  "limits": [
+    "Collection gaps are unknown, even when operator claims and adjacent observations are healthy.",
+    "RBAC denies the broker read while independent measurement remains available; this is not a network partition.",
+    "Mutation counts cover Service and Role resources; dependent Kubernetes controller updates are outside those counts.",
+    "The operator correctly escalates a healthy but unresolved service; no autonomous learning is demonstrated."
+  ],
+  "operation": {
+    "after_restart_slots": [
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "denied_read_audit_ids": [
+      "3de26244-3624-4e42-9c4b-b4e492ea5245"
+    ],
+    "operation_id": "53ff497c-2473-4c94-81de-3dcec4b0291d",
+    "operator_healthy_claims_during_gap": 6,
+    "reconciliation": {
+      "attribution": "not_established",
+      "error_type": "RuntimeError",
+      "observation": "unavailable",
+      "observed_at": "2026-09-24T23:30:32.033943+00:00",
+      "recovery": "not_verified"
+    }
+  },
+  "service_sample_counts": {
+    "unknown": 4,
+    "verified_failure": 2,
+    "verified_success": 15
+  },
+  "status": "passed",
+  "unknown_slots": [
+    3,
+    4,
+    5,
+    6
+  ]
+}

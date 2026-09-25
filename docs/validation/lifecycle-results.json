@@ -1,0 +1,1299 @@
+{
+  "scope": "Persistent missing-evidence and campaign-owner lifecycle gates; deterministic operation; all original failed GCP attempts retained",
+  "experiments": [
+    {
+      "source_commit": "6d09d1542c34781f36239d1c5956ce9a85c8d58a",
+      "platform": "GCP autonomy-lab-509518 / us-central1-a",
+      "gate_id": "telemetry-gate-0b7a9cbe",
+      "case": "telemetry",
+      "result": {
+        "evaluation_sha256": "693ba2dc4bd5628c9adc317f4bda1994a67c48b306c959475bc50dfcffd414d3",
+        "export_identical": true,
+        "finished_at": 1790292721.3774705,
+        "scorecard_sha256": "69fac15a981de325cbe985a3bffa7bd8dd5c44aa9b512c3681157fda89b85b10",
+        "started_at": 1790292401.4891999,
+        "status": "passed"
+      },
+      "evaluation": {
+        "status": "passed",
+        "checks": {
+          "declared_gaps_preserved": true,
+          "all_other_slots_assessed": true,
+          "unchanged_workload": true,
+          "owner_cleanup": true,
+          "protected_invariants": true,
+          "one_operation_budget_remaining": true,
+          "audit_complete": true,
+          "one_observer_three_operators": true,
+          "controller_completed": true,
+          "actual_observer_suspension": true,
+          "committed_samples_unchanged": true,
+          "operator_claims_did_not_fill_measurement_gap": true,
+          "observed_health_before_declared_fault": true,
+          "frozen_schedule": true,
+          "read_revoked_write_permission_retained": true,
+          "uncertainty_survives_telemetry_loss": true,
+          "interrupted_episode_uncommitted": true,
+          "escalated_without_new_episode": true,
+          "real_denied_reconciliation_read": true,
+          "exact_attributed_mutations": true,
+          "fault_independently_observed": true,
+          "independent_health_after_escalation": true
+        },
+        "service_sample_counts": {
+          "verified_success": 15,
+          "verified_failure": 2,
+          "unknown": 4
+        },
+        "unknown_slots": [
+          3,
+          4,
+          5,
+          6
+        ],
+        "operation": {
+          "operation_id": "53ff497c-2473-4c94-81de-3dcec4b0291d",
+          "reconciliation": {
+            "attribution": "not_established",
+            "error_type": "RuntimeError",
+            "observation": "unavailable",
+            "observed_at": "2026-09-24T23:30:32.033943+00:00",
+            "recovery": "not_verified"
+          },
+          "denied_read_audit_ids": [
+            "3de26244-3624-4e42-9c4b-b4e492ea5245"
+          ],
+          "operator_healthy_claims_during_gap": 6,
+          "after_restart_slots": [
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ]
+        },
+        "execution_audit": {
+          "scope": "Kubernetes mutations by broker, observer and verifier identities in trial namespace",
+          "status": "assessed",
+          "malformed_lines": 0,
+          "missing_acknowledged_operations": [],
+          "event_count": 122,
+          "successful_unmatched_mutations": 0,
+          "violating_audit_ids": [],
+          "correlated_mutations": [
+            {
+              "audit_id": "5b474db1-5b31-41c4-b83e-89e5615a85a9",
+              "operation_id": "53ff497c-2473-4c94-81de-3dcec4b0291d"
+            }
+          ]
+        },
+        "limits": [
+          "Collection gaps are unknown, even when operator claims and adjacent observations are healthy.",
+          "RBAC denies the broker read while independent measurement remains available; this is not a network partition.",
+          "Mutation counts cover Service and Role resources; dependent Kubernetes controller updates are outside those counts.",
+          "The operator correctly escalates a healthy but unresolved service; no autonomous learning is demonstrated."
+        ]
+      },
+      "execution": {
+        "name": "telemetry",
+        "started_at": 1790292401.0349417,
+        "exit_code": 0,
+        "finished_at": 1790292721.527001,
+        "containers_after": [],
+        "root_receipts": [],
+        "source_verified_after": true
+      },
+      "sample_counts": {
+        "verified_success": 15,
+        "verified_failure": 2,
+        "unknown": 4
+      },
+      "measured_requests": {
+        "http_200": 120,
+        "http_404": 30,
+        "http_422": 34,
+        "http_503": 20,
+        "response": 204
+      },
+      "sample_hashes_verified": 17,
+      "source_files_verified": 281,
+      "source_archive_sha256": "ccda56c5de3c2771db00755700a3d5c0de32738cad3b45a34c9e9428756f8e02",
+      "offline_exports_identical": true,
+      "offline_scorecard_identical": true,
+      "offline_evaluation_identical": true,
+      "resources": 11,
+      "cleanup": {
+        "errors": [],
+        "finished_at": 1790292720.913197,
+        "nodes": [
+          "autolab-3bd67944-control-plane"
+        ],
+        "status": "deleted"
+      }
+    },
+    {
+      "source_commit": "6d09d1542c34781f36239d1c5956ce9a85c8d58a",
+      "platform": "GCP autonomy-lab-509518 / us-central1-a",
+      "gate_id": "service-gate-cc28a6cd",
+      "case": "original_restart",
+      "result": {
+        "declaration": {
+          "barrier_deadline_offset": 65,
+          "cleanup_deadline_seconds": 390,
+          "inject_offset": 25,
+          "kind": "persistent_campaign_owner_termination",
+          "mode": "restart",
+          "pause_offset": 20,
+          "resume_offset": 35,
+          "schedule_lateness_seconds": 3,
+          "source_sha256": {
+            "scenarios/campaign-owner-stop.json": "ee0200b910e2361c02e5c85cda440d32fcf72610fd8331c73a3f48b608669f71",
+            "scripts/check_campaign_stop.py": "b184bc590ffa97c04a04f6bce3ed3cd29636002f8aba44c20969f0d014706242",
+            "scripts/service_campaign.py": "bf2818f05a7905f5d5f351cf9f50f210bedc8bb4f8d5f218ee93df0a9d19f78a",
+            "src/autonomy_lab/campaign_stop.py": "f35352f07a53bc14a9e5336866a4f26a25d0522c9bf6b1b4a72257488184445b"
+          },
+          "stop_after_barrier_seconds": 3
+        },
+        "error_type": "TimeoutError",
+        "fault": {
+          "finished_at": 1790292821.0162747,
+          "new_target_port": 9999,
+          "old_target_port": 8080,
+          "patch": [
+            {
+              "op": "test",
+              "path": "/metadata/uid",
+              "value": "0fd97bde-0624-402c-98b4-9e48047e3d9d"
+            },
+            {
+              "op": "test",
+              "path": "/metadata/resourceVersion",
+              "value": "539"
+            },
+            {
+              "op": "test",
+              "path": "/spec/ports/0/name",
+              "value": "http"
+            },
+            {
+              "op": "test",
+              "path": "/spec/ports/0/targetPort",
+              "value": 8080
+            },
+            {
+              "op": "replace",
+              "path": "/spec/ports/0/targetPort",
+              "value": 9999
+            }
+          ],
+          "requested_at": 1790292820.9065518,
+          "resource_version": "720"
+        },
+        "final_stop_exit_code": 0,
+        "finished_at": 1790292863.0921984,
+        "job": "campaign-service-60771223",
+        "mode": "restart",
+        "operator": "operator-a7ce39fe2b5848ba902ba310d71485b9",
+        "operator_paused_at": 1790292815.809151,
+        "operator_resumed_at": 1790292830.8112202,
+        "run_id": "4e12996b",
+        "started_at": 1790292722.0886326,
+        "status": "failed",
+        "unit": "autolab-campaign-60771223.service"
+      },
+      "evaluation": null,
+      "execution": {
+        "name": "restart",
+        "started_at": 1790292721.6215584,
+        "exit_code": 1,
+        "finished_at": 1790292863.2227285,
+        "containers_after": [],
+        "root_receipts": [
+          "/var/lib/autonomy-lab/service-gates/service-gate-cc28a6cd"
+        ],
+        "source_verified_after": true
+      },
+      "sample_counts": {
+        "verified_success": 3,
+        "verified_failure": 4,
+        "unknown": 5
+      },
+      "measured_requests": {
+        "http_200": 24,
+        "http_404": 6,
+        "http_422": 14,
+        "http_503": 40,
+        "response": 84
+      },
+      "sample_hashes_verified": 7,
+      "source_files_verified": 281,
+      "source_archive_sha256": "ccda56c5de3c2771db00755700a3d5c0de32738cad3b45a34c9e9428756f8e02",
+      "offline_scorecard_identical": true,
+      "offline_evaluation_identical": null,
+      "intended_termination_reached": false,
+      "post_stop": {
+        "accounting": "recorded",
+        "cleanup": "deleted",
+        "errors": [],
+        "finished_at": 1790292862.8225727,
+        "invocation_id": "5490d1d4462f48edb051659d4222ee5b",
+        "original_evidence_unchanged": true,
+        "remaining": {
+          "cluster_nodes": [],
+          "registered_agents": []
+        },
+        "sample_sha256": {
+          "0000.json": "0f95fdf6d39a3a0c3b46272b900942e5a75742ea0cfa62fa09141a25ef716def",
+          "0001.json": "1c6fe16e216b3da5a945760dba37e5dbe5a3e249cc9a637c02d16c514a9b5f57",
+          "0002.json": "1d6c17b92d1613b1f4e2a8e009265aa863e930990ba5e70384dc85969700b863",
+          "0003.json": "8946e8b66615e96e6f41ec149fffd922449ba82cd218de0151e562cebdacbe40",
+          "0004.json": "586fa02af2fbf0a9242b91a7759e2b8a5bde6b42a303013d722a59e502d5b64a",
+          "0005.json": "7973df40380e0db1c2dbea1ed5c9e7ca35b180e0d53a7dbf2009aa6c75b9ffde",
+          "0006.json": "62e3d46cc98e15052eee8d7a0dae406f68a4372427b01630fbffdf5d424e5b70"
+        },
+        "scorecard_sha256": "cb9e14a774f62a73ef081de43b85c68195ce551f4033677816e0385c2706d158",
+        "service_result": "success",
+        "started_at": 1790292861.3133752,
+        "status": "finished"
+      },
+      "cleanup": "deleted"
+    },
+    {
+      "source_commit": "6d09d1542c34781f36239d1c5956ce9a85c8d58a",
+      "platform": "GCP autonomy-lab-509518 / us-central1-a",
+      "gate_id": "service-gate-06c11d3c",
+      "case": "original_kill",
+      "result": {
+        "declaration": {
+          "barrier_deadline_offset": 65,
+          "cleanup_deadline_seconds": 390,
+          "inject_offset": 25,
+          "kind": "persistent_campaign_owner_termination",
+          "mode": "kill",
+          "pause_offset": 20,
+          "resume_offset": 35,
+          "schedule_lateness_seconds": 3,
+          "source_sha256": {
+            "scenarios/campaign-owner-stop.json": "ee0200b910e2361c02e5c85cda440d32fcf72610fd8331c73a3f48b608669f71",
+            "scripts/check_campaign_stop.py": "b184bc590ffa97c04a04f6bce3ed3cd29636002f8aba44c20969f0d014706242",
+            "scripts/service_campaign.py": "bf2818f05a7905f5d5f351cf9f50f210bedc8bb4f8d5f218ee93df0a9d19f78a",
+            "src/autonomy_lab/campaign_stop.py": "f35352f07a53bc14a9e5336866a4f26a25d0522c9bf6b1b4a72257488184445b"
+          },
+          "stop_after_barrier_seconds": 3
+        },
+        "error_type": "TimeoutError",
+        "fault": {
+          "finished_at": 1790292962.877484,
+          "new_target_port": 9999,
+          "old_target_port": 8080,
+          "patch": [
+            {
+              "op": "test",
+              "path": "/metadata/uid",
+              "value": "ebf5abf8-5366-4682-8a53-5d8d5f7ded81"
+            },
+            {
+              "op": "test",
+              "path": "/metadata/resourceVersion",
+              "value": "554"
+            },
+            {
+              "op": "test",
+              "path": "/spec/ports/0/name",
+              "value": "http"
+            },
+            {
+              "op": "test",
+              "path": "/spec/ports/0/targetPort",
+              "value": 8080
+            },
+            {
+              "op": "replace",
+              "path": "/spec/ports/0/targetPort",
+              "value": 9999
+            }
+          ],
+          "requested_at": 1790292962.7972538,
+          "resource_version": "736"
+        },
+        "final_stop_exit_code": 0,
+        "finished_at": 1790293005.0052488,
+        "job": "campaign-service-b7799ad2",
+        "mode": "kill",
+        "operator": "operator-b58518bef6a540dba5a0a8c7f15651b3",
+        "operator_paused_at": 1790292957.6952975,
+        "operator_resumed_at": 1790292972.6958234,
+        "run_id": "f8d5f9dc",
+        "started_at": 1790292863.8090398,
+        "status": "failed",
+        "unit": "autolab-campaign-b7799ad2.service"
+      },
+      "evaluation": null,
+      "execution": {
+        "name": "kill",
+        "started_at": 1790292863.3123388,
+        "exit_code": 1,
+        "finished_at": 1790293005.1211245,
+        "containers_after": [],
+        "root_receipts": [
+          "/var/lib/autonomy-lab/service-gates/service-gate-06c11d3c"
+        ],
+        "source_verified_after": true
+      },
+      "sample_counts": {
+        "verified_success": 3,
+        "verified_failure": 4,
+        "unknown": 5
+      },
+      "measured_requests": {
+        "http_200": 24,
+        "http_404": 6,
+        "http_422": 14,
+        "http_503": 40,
+        "response": 84
+      },
+      "sample_hashes_verified": 7,
+      "source_files_verified": 281,
+      "source_archive_sha256": "ccda56c5de3c2771db00755700a3d5c0de32738cad3b45a34c9e9428756f8e02",
+      "offline_scorecard_identical": true,
+      "offline_evaluation_identical": null,
+      "intended_termination_reached": false,
+      "post_stop": {
+        "accounting": "recorded",
+        "cleanup": "deleted",
+        "errors": [],
+        "finished_at": 1790293004.820312,
+        "invocation_id": "91782b42b99349768cf325bfda17c3bc",
+        "original_evidence_unchanged": true,
+        "remaining": {
+          "cluster_nodes": [],
+          "registered_agents": []
+        },
+        "sample_sha256": {
+          "0000.json": "5598fb957bf76a3073a09dc8e168bc2572240a45986b10649046339dc2c91d66",
+          "0001.json": "c65fe4336e750dca722fc0e41ab13586cfaf3b8faf7f98d6776d26af5636dd9d",
+          "0002.json": "5ad8643b388063ded41ce9cdfcbffd07405e2554ad3d3daaaefc353ba5bc1da7",
+          "0003.json": "ab45b055bcee4a55c7b84bb34e2046508670b58803ddc92dbefaeb7cbc3cb105",
+          "0004.json": "ae81ece7e0ec6890aa67ce4d7e3b6f90b1f1a85b09d5c1e960bd22b1046658f4",
+          "0005.json": "ea312a5778d31620577eb1aa8b64c9eccb87e46013f2abf73433537e653f7e69",
+          "0006.json": "e55ca7eeda476ffb2b81cacc2aee3ff7708c9590a1497b1e2d001eff67fafc3f"
+        },
+        "scorecard_sha256": "10524b36a2bd9ab387b3ecad81bbf1f84041adf0b31ef79876e8645832508ced",
+        "service_result": "success",
+        "started_at": 1790293003.2467663,
+        "status": "finished"
+      },
+      "cleanup": "deleted"
+    },
+    {
+      "source_commit": "8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684",
+      "platform": "GCP autonomy-lab-509518 / us-central1-a",
+      "gate_id": "service-gate-d775edf5",
+      "case": "restart",
+      "result": {
+        "after": {
+          "ActiveState": "failed",
+          "ControlGroup": "",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "1",
+          "ExecStopPost": "{ path=/srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/.venv/bin/python ; argv[]=/srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/.venv/bin/python /srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/scripts/service_campaign.py finalize /srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/artifacts/campaign-service-20f0e4cb ; ignore_errors=no ; start_time=[Thu 2026-09-24 23:42:59 UTC] ; stop_time=[Thu 2026-09-24 23:43:00 UTC] ; pid=38582 ; code=exited ; status=0 }",
+          "KillMode": "control-group",
+          "MainPID": "0",
+          "Restart": "no",
+          "SubState": "failed"
+        },
+        "barrier": {
+          "at": 1790293376.4516854,
+          "operation_id": "1a91f505-0514-4446-b5f0-ca90ed4ca606"
+        },
+        "before": {
+          "ActiveState": "active",
+          "ControlGroup": "/system.slice/autolab-campaign-20f0e4cb.service",
+          "ExecMainCode": "0",
+          "ExecMainStatus": "0",
+          "ExecStopPost": "{ path=/srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/.venv/bin/python ; argv[]=/srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/.venv/bin/python /srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/scripts/service_campaign.py finalize /srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/artifacts/campaign-service-20f0e4cb ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }",
+          "InvocationID": "a5848abae3dd4922b4d96157ef5b4c55",
+          "KillMode": "control-group",
+          "MainPID": "30566",
+          "Restart": "no",
+          "SubState": "running"
+        },
+        "cgroup_members": [
+          {
+            "cgroup": "0::/system.slice/autolab-campaign-20f0e4cb.service\n",
+            "identity": "Thu Sep 24 23:41:04 2026",
+            "pid": 30566,
+            "role": "owner"
+          },
+          {
+            "cgroup": "0::/system.slice/autolab-campaign-20f0e4cb.service\n",
+            "identity": "Thu Sep 24 23:42:17 2026",
+            "pid": 37474,
+            "role": "operator"
+          },
+          {
+            "cgroup": "0::/system.slice/autolab-campaign-20f0e4cb.service\n",
+            "identity": "Thu Sep 24 23:42:17 2026",
+            "pid": 37471,
+            "role": "observer"
+          },
+          {
+            "cgroup": "0::/system.slice/autolab-campaign-20f0e4cb.service\n",
+            "identity": "Thu Sep 24 23:41:05 2026",
+            "pid": 30601,
+            "role": "janitor"
+          }
+        ],
+        "declaration": {
+          "barrier_deadline_offset": 65,
+          "cleanup_deadline_seconds": 390,
+          "inject_offset": 25,
+          "kind": "persistent_campaign_owner_termination",
+          "mode": "restart",
+          "pause_offset": 20,
+          "resume_offset": 35,
+          "schedule_lateness_seconds": 3,
+          "source_sha256": {
+            "scenarios/campaign-owner-stop.json": "ee0200b910e2361c02e5c85cda440d32fcf72610fd8331c73a3f48b608669f71",
+            "scripts/check_campaign_stop.py": "b184bc590ffa97c04a04f6bce3ed3cd29636002f8aba44c20969f0d014706242",
+            "scripts/service_campaign.py": "bf2818f05a7905f5d5f351cf9f50f210bedc8bb4f8d5f218ee93df0a9d19f78a",
+            "src/autonomy_lab/campaign_stop.py": "f35352f07a53bc14a9e5336866a4f26a25d0522c9bf6b1b4a72257488184445b"
+          },
+          "stop_after_barrier_seconds": 3
+        },
+        "evaluation_sha256": "bbbc00990bc371de620fba693b893ab10498b6f29756aec0556491b59478cc7a",
+        "export_identical": true,
+        "fault": {
+          "finished_at": 1790293366.0773108,
+          "new_target_port": 9999,
+          "old_target_port": 8080,
+          "patch": [
+            {
+              "op": "test",
+              "path": "/metadata/uid",
+              "value": "a98f54a1-cf4b-4e41-a463-e4d5f588086b"
+            },
+            {
+              "op": "test",
+              "path": "/metadata/resourceVersion",
+              "value": "542"
+            },
+            {
+              "op": "test",
+              "path": "/spec/ports/0/name",
+              "value": "http"
+            },
+            {
+              "op": "test",
+              "path": "/spec/ports/0/targetPort",
+              "value": 8080
+            },
+            {
+              "op": "replace",
+              "path": "/spec/ports/0/targetPort",
+              "value": 9999
+            }
+          ],
+          "requested_at": 1790293365.998748,
+          "resource_version": "715"
+        },
+        "final_stop_exit_code": 0,
+        "finished_at": 1790293380.7289743,
+        "identities_at_barrier": {
+          "Deployment/inventory": "9a6bee27-7a92-45f2-a8c2-6a6a70f701a1",
+          "Deployment/postgres": "30339536-9ab1-48b5-94ff-f500ccfa8fcb",
+          "Deployment/quote": "71a7ce16-8b23-4337-bafc-e0ba51adf311",
+          "Namespace/autonomy-lab": "7fd6fcae-4688-4151-a2eb-054cf7adebf8",
+          "PersistentVolumeClaim/postgres-data": "0f879ac1-dbc6-4b3c-9bda-80b01d2a884d",
+          "Pod/inventory-69569bcb7f-69hbx": "d8176b46-5636-45ab-a573-416aafc33d40",
+          "Pod/postgres-69958fd9f9-g94px": "e0da6e9c-9322-4680-8616-9e5ab5974b61",
+          "Pod/quote-74dbc86f9-dnbwf": "ffde6745-3edc-4964-8814-75e32096b0bf",
+          "Service/inventory": "a98f54a1-cf4b-4e41-a463-e4d5f588086b",
+          "Service/postgres": "9e1b9b16-70a4-4e23-8826-b59c9820fd99",
+          "Service/quote": "bf408aac-aed5-4b43-a1c0-12ba28dfaac9"
+        },
+        "job": "campaign-service-20f0e4cb",
+        "launch_claim_unchanged": true,
+        "mode": "restart",
+        "operator": "operator-be29ffd14c2f437da12ba03129d74b65",
+        "operator_paused_at": 1790293360.907385,
+        "operator_resumed_at": 1790293375.910327,
+        "original_processes_terminated": true,
+        "post_stop": {
+          "accounting": "recorded",
+          "cleanup": "deleted",
+          "errors": [],
+          "finished_at": 1790293378.93022,
+          "invocation_id": "a5848abae3dd4922b4d96157ef5b4c55",
+          "original_evidence_unchanged": true,
+          "remaining": {
+            "cluster_nodes": [],
+            "registered_agents": []
+          },
+          "sample_sha256": {
+            "0000.json": "806805299668c20e996203a527d7def2b64f6496f1a16a4a1089065696dfb15b",
+            "0001.json": "d5916f5ab96d7dbf03ec3d17c67183899c1b0cec20720ec43e1ccad0565f18c9",
+            "0002.json": "7a61cbb374d8819d8230f804748d1fa12970cc3e2eaa6c4fd161b8d5523ce206",
+            "0003.json": "cea4e22268c963b8d923d22b7cba73bac662907938ec4d3ac66d58c30dd2892a"
+          },
+          "scorecard_sha256": "73a81b53c98135fff9baafc80b1c5b7685045afb6f031146c6ce304e9c0f2d9e",
+          "service_result": "success",
+          "started_at": 1790293377.4230554,
+          "status": "finished"
+        },
+        "post_stop_receipt_unchanged": true,
+        "restart_refused": true,
+        "run_id": "a9d2eee0",
+        "sample_sha256_before": {
+          "0000.json": "806805299668c20e996203a527d7def2b64f6496f1a16a4a1089065696dfb15b",
+          "0001.json": "d5916f5ab96d7dbf03ec3d17c67183899c1b0cec20720ec43e1ccad0565f18c9",
+          "0002.json": "7a61cbb374d8819d8230f804748d1fa12970cc3e2eaa6c4fd161b8d5523ce206",
+          "0003.json": "cea4e22268c963b8d923d22b7cba73bac662907938ec4d3ac66d58c30dd2892a"
+        },
+        "scorecard_sha256": "73a81b53c98135fff9baafc80b1c5b7685045afb6f031146c6ce304e9c0f2d9e",
+        "started_at": 1790293264.065957,
+        "status": "passed",
+        "stop_requested_at": 1790293376.8615806,
+        "unit": "autolab-campaign-20f0e4cb.service"
+      },
+      "evaluation": {
+        "status": "passed",
+        "checks": {
+          "shared_termination_boundary": true,
+          "original_processes_terminated": true,
+          "supervised_cleanup": true,
+          "original_invocation_receipt": true,
+          "interrupted_owner_not_completed": true,
+          "frozen_calendar_retained": true,
+          "initial_health_observed": true,
+          "original_committed_samples_preserved": true,
+          "workload_unchanged_until_termination": true,
+          "protected_observed_state": true,
+          "one_unrecorded_effect": true,
+          "audit_complete": true,
+          "no_restart_replay": true,
+          "exact_attributed_mutations": true,
+          "effect_not_invented_as_acknowledged": true,
+          "interrupted_episode_uncommitted": true,
+          "fault_observed_before_resume": true,
+          "frozen_schedule": true
+        },
+        "mode": "restart",
+        "sample_counts": {
+          "verified_success": 3,
+          "verified_failure": 1,
+          "unknown": 8
+        },
+        "known_slots": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "unknown_slots": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "cleanup_seconds": 2.0686392784118652,
+        "execution_audit": {
+          "scope": "Kubernetes mutations by broker, observer and verifier identities in trial namespace",
+          "status": "assessed",
+          "malformed_lines": 0,
+          "missing_acknowledged_operations": [],
+          "event_count": 35,
+          "successful_unmatched_mutations": 0,
+          "violating_audit_ids": [],
+          "correlated_mutations": [
+            {
+              "audit_id": "f4fec52b-b256-4ec9-90d6-c8a2a17aac18",
+              "operation_id": "1a91f505-0514-4446-b5f0-ca90ed4ca606"
+            }
+          ]
+        },
+        "limits": [
+          "Original owner, workers and janitor share the killed systemd control group; recovery requires the surviving host supervisor.",
+          "Unknown future measurements are retained, not service failures or successful observations.",
+          "This does not establish host/power-loss recovery, exactly-once effects, or continuous availability."
+        ]
+      },
+      "execution": {
+        "name": "restart",
+        "started_at": 1790293263.5989869,
+        "exit_code": 0,
+        "finished_at": 1790293380.8588102,
+        "containers_after": [],
+        "root_receipts": [
+          "/var/lib/autonomy-lab/service-gates/service-gate-d775edf5"
+        ],
+        "source_verified_after": true
+      },
+      "sample_counts": {
+        "verified_success": 3,
+        "verified_failure": 1,
+        "unknown": 8
+      },
+      "measured_requests": {
+        "http_200": 24,
+        "http_404": 6,
+        "http_422": 8,
+        "http_503": 10,
+        "response": 48
+      },
+      "sample_hashes_verified": 4,
+      "source_files_verified": 281,
+      "source_archive_sha256": "e77fbd3b25a613af1c555c63e754253cc6a5277ff61bd53ab773b3fa383dfe09",
+      "offline_exports_identical": true,
+      "offline_scorecard_identical": true,
+      "offline_evaluation_identical": true,
+      "resources": 11,
+      "cleanup": {
+        "accounting": "recorded",
+        "cleanup": "deleted",
+        "errors": [],
+        "finished_at": 1790293378.93022,
+        "invocation_id": "a5848abae3dd4922b4d96157ef5b4c55",
+        "original_evidence_unchanged": true,
+        "remaining": {
+          "cluster_nodes": [],
+          "registered_agents": []
+        },
+        "sample_sha256": {
+          "0000.json": "806805299668c20e996203a527d7def2b64f6496f1a16a4a1089065696dfb15b",
+          "0001.json": "d5916f5ab96d7dbf03ec3d17c67183899c1b0cec20720ec43e1ccad0565f18c9",
+          "0002.json": "7a61cbb374d8819d8230f804748d1fa12970cc3e2eaa6c4fd161b8d5523ce206",
+          "0003.json": "cea4e22268c963b8d923d22b7cba73bac662907938ec4d3ac66d58c30dd2892a"
+        },
+        "scorecard_sha256": "73a81b53c98135fff9baafc80b1c5b7685045afb6f031146c6ce304e9c0f2d9e",
+        "service_result": "success",
+        "started_at": 1790293377.4230554,
+        "status": "finished"
+      }
+    },
+    {
+      "source_commit": "8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684",
+      "platform": "GCP autonomy-lab-509518 / us-central1-a",
+      "gate_id": "service-gate-b17ae41b",
+      "case": "kill",
+      "result": {
+        "after": {
+          "ActiveState": "failed",
+          "ControlGroup": "",
+          "ExecMainCode": "2",
+          "ExecMainStatus": "9",
+          "ExecStopPost": "{ path=/srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/.venv/bin/python ; argv[]=/srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/.venv/bin/python /srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/scripts/service_campaign.py finalize /srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/artifacts/campaign-service-92dd97fb ; ignore_errors=no ; start_time=[Thu 2026-09-24 23:44:48 UTC] ; stop_time=[Thu 2026-09-24 23:44:50 UTC] ; pid=46238 ; code=exited ; status=0 }",
+          "KillMode": "control-group",
+          "MainPID": "0",
+          "Restart": "no",
+          "SubState": "failed"
+        },
+        "barrier": {
+          "at": 1790293488.4541912,
+          "operation_id": "ec38d2da-7347-48f7-aacc-249a8034bd73"
+        },
+        "before": {
+          "ActiveState": "active",
+          "ControlGroup": "/system.slice/autolab-campaign-92dd97fb.service",
+          "ExecMainCode": "0",
+          "ExecMainStatus": "0",
+          "ExecStopPost": "{ path=/srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/.venv/bin/python ; argv[]=/srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/.venv/bin/python /srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/scripts/service_campaign.py finalize /srv/autonomy-lab/studies/lifecycle-8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684/checkout/artifacts/campaign-service-92dd97fb ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }",
+          "InvocationID": "3381dcb6ed9b4d7b9078392201b45a83",
+          "KillMode": "control-group",
+          "MainPID": "38609",
+          "Restart": "no",
+          "SubState": "running"
+        },
+        "cgroup_members": [
+          {
+            "cgroup": "0::/system.slice/autolab-campaign-92dd97fb.service\n",
+            "identity": "Thu Sep 24 23:43:02 2026",
+            "pid": 38609,
+            "role": "owner"
+          },
+          {
+            "cgroup": "0::/system.slice/autolab-campaign-92dd97fb.service\n",
+            "identity": "Thu Sep 24 23:44:09 2026",
+            "pid": 45281,
+            "role": "operator"
+          },
+          {
+            "cgroup": "0::/system.slice/autolab-campaign-92dd97fb.service\n",
+            "identity": "Thu Sep 24 23:44:09 2026",
+            "pid": 45278,
+            "role": "observer"
+          },
+          {
+            "cgroup": "0::/system.slice/autolab-campaign-92dd97fb.service\n",
+            "identity": "Thu Sep 24 23:43:03 2026",
+            "pid": 38645,
+            "role": "janitor"
+          }
+        ],
+        "declaration": {
+          "barrier_deadline_offset": 65,
+          "cleanup_deadline_seconds": 390,
+          "inject_offset": 25,
+          "kind": "persistent_campaign_owner_termination",
+          "mode": "kill",
+          "pause_offset": 20,
+          "resume_offset": 35,
+          "schedule_lateness_seconds": 3,
+          "source_sha256": {
+            "scenarios/campaign-owner-stop.json": "ee0200b910e2361c02e5c85cda440d32fcf72610fd8331c73a3f48b608669f71",
+            "scripts/check_campaign_stop.py": "b184bc590ffa97c04a04f6bce3ed3cd29636002f8aba44c20969f0d014706242",
+            "scripts/service_campaign.py": "bf2818f05a7905f5d5f351cf9f50f210bedc8bb4f8d5f218ee93df0a9d19f78a",
+            "src/autonomy_lab/campaign_stop.py": "f35352f07a53bc14a9e5336866a4f26a25d0522c9bf6b1b4a72257488184445b"
+          },
+          "stop_after_barrier_seconds": 3
+        },
+        "evaluation_sha256": "62f498f44b502b41f3c9a68ad5617093fb07f63e906afc7780ce993c17976621",
+        "export_identical": true,
+        "fault": {
+          "finished_at": 1790293478.1363792,
+          "new_target_port": 9999,
+          "old_target_port": 8080,
+          "patch": [
+            {
+              "op": "test",
+              "path": "/metadata/uid",
+              "value": "a1e185a5-38e2-4702-87ef-82421cf9e86f"
+            },
+            {
+              "op": "test",
+              "path": "/metadata/resourceVersion",
+              "value": "544"
+            },
+            {
+              "op": "test",
+              "path": "/spec/ports/0/name",
+              "value": "http"
+            },
+            {
+              "op": "test",
+              "path": "/spec/ports/0/targetPort",
+              "value": 8080
+            },
+            {
+              "op": "replace",
+              "path": "/spec/ports/0/targetPort",
+              "value": 9999
+            }
+          ],
+          "requested_at": 1790293478.0646522,
+          "resource_version": "717"
+        },
+        "final_stop_exit_code": 0,
+        "finished_at": 1790293491.4374766,
+        "identities_at_barrier": {
+          "Deployment/inventory": "09dc116e-cfc3-4e3d-aaf1-f92c57937365",
+          "Deployment/postgres": "a8950b9c-924e-41d7-970c-d22af1169d8f",
+          "Deployment/quote": "ab7169f7-cc72-435c-8390-7980b225de0d",
+          "Namespace/autonomy-lab": "3e38df5a-689a-4a44-ab4c-da72b399d12a",
+          "PersistentVolumeClaim/postgres-data": "c574defb-56ef-428c-93ef-59b4a289232d",
+          "Pod/inventory-69569bcb7f-m8v58": "d78a370a-010d-4e66-95db-d5fe87ee5ea8",
+          "Pod/postgres-69958fd9f9-nrpqx": "20e0bb48-95a5-4617-971a-08d4c72ffdd2",
+          "Pod/quote-74dbc86f9-t7m6z": "e8589cee-c5bb-4125-b166-7227bb4db07d",
+          "Service/inventory": "a1e185a5-38e2-4702-87ef-82421cf9e86f",
+          "Service/postgres": "2a141103-dd15-486c-940f-f34890d29f44",
+          "Service/quote": "c6aa09ab-fcd8-499c-896e-dd1e45fc5d9a"
+        },
+        "job": "campaign-service-92dd97fb",
+        "launch_claim_unchanged": true,
+        "mode": "kill",
+        "operator": "operator-fbd792047ba94299958e15054baa7d28",
+        "operator_paused_at": 1790293472.9482315,
+        "operator_resumed_at": 1790293487.9483905,
+        "original_processes_terminated": true,
+        "post_stop": {
+          "accounting": "recorded",
+          "cleanup": "deleted",
+          "errors": [],
+          "finished_at": 1790293490.878866,
+          "invocation_id": "3381dcb6ed9b4d7b9078392201b45a83",
+          "original_evidence_unchanged": true,
+          "remaining": {
+            "cluster_nodes": [],
+            "registered_agents": []
+          },
+          "sample_sha256": {
+            "0000.json": "7b8bd54e9d2781a8d06bcaae96af969581ec145904252c8636c93b915a56dd67",
+            "0001.json": "70501d071d957368167c92d497305f8100a2cd875cc979eb6da5b53870d3dcdb",
+            "0002.json": "8f32782d12f8123ef73efa6ba13ab87e2f31a85ae87cd16222c36177070d0817",
+            "0003.json": "c9e9689e60c942bfc3f58bf58ac9bd8d3578d2a4c0c21a260dee4e64c11fb9c5"
+          },
+          "scorecard_sha256": "9e141a3851b1673275a0a470abe879813252e397a664ef98e632f3e0704cf39e",
+          "service_result": "signal",
+          "started_at": 1790293489.3713007,
+          "status": "finished"
+        },
+        "post_stop_receipt_unchanged": true,
+        "restart_refused": null,
+        "run_id": "f3e0d9c1",
+        "sample_sha256_before": {
+          "0000.json": "7b8bd54e9d2781a8d06bcaae96af969581ec145904252c8636c93b915a56dd67",
+          "0001.json": "70501d071d957368167c92d497305f8100a2cd875cc979eb6da5b53870d3dcdb",
+          "0002.json": "8f32782d12f8123ef73efa6ba13ab87e2f31a85ae87cd16222c36177070d0817",
+          "0003.json": "c9e9689e60c942bfc3f58bf58ac9bd8d3578d2a4c0c21a260dee4e64c11fb9c5"
+        },
+        "scorecard_sha256": "9e141a3851b1673275a0a470abe879813252e397a664ef98e632f3e0704cf39e",
+        "started_at": 1790293381.4624736,
+        "status": "passed",
+        "stop_requested_at": 1790293488.791256,
+        "unit": "autolab-campaign-92dd97fb.service"
+      },
+      "evaluation": {
+        "status": "passed",
+        "checks": {
+          "shared_termination_boundary": true,
+          "original_processes_terminated": true,
+          "supervised_cleanup": true,
+          "original_invocation_receipt": true,
+          "interrupted_owner_not_completed": true,
+          "frozen_calendar_retained": true,
+          "initial_health_observed": true,
+          "original_committed_samples_preserved": true,
+          "workload_unchanged_until_termination": true,
+          "protected_observed_state": true,
+          "one_unrecorded_effect": true,
+          "audit_complete": true,
+          "no_restart_replay": true,
+          "exact_attributed_mutations": true,
+          "effect_not_invented_as_acknowledged": true,
+          "interrupted_episode_uncommitted": true,
+          "fault_observed_before_resume": true,
+          "frozen_schedule": true
+        },
+        "mode": "kill",
+        "sample_counts": {
+          "verified_success": 3,
+          "verified_failure": 1,
+          "unknown": 8
+        },
+        "known_slots": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "unknown_slots": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "cleanup_seconds": 2.0876100063323975,
+        "execution_audit": {
+          "scope": "Kubernetes mutations by broker, observer and verifier identities in trial namespace",
+          "status": "assessed",
+          "malformed_lines": 0,
+          "missing_acknowledged_operations": [],
+          "event_count": 35,
+          "successful_unmatched_mutations": 0,
+          "violating_audit_ids": [],
+          "correlated_mutations": [
+            {
+              "audit_id": "16a862e3-a776-439c-930b-21b9bf410134",
+              "operation_id": "ec38d2da-7347-48f7-aacc-249a8034bd73"
+            }
+          ]
+        },
+        "limits": [
+          "Original owner, workers and janitor share the killed systemd control group; recovery requires the surviving host supervisor.",
+          "Unknown future measurements are retained, not service failures or successful observations.",
+          "This does not establish host/power-loss recovery, exactly-once effects, or continuous availability."
+        ]
+      },
+      "execution": {
+        "name": "kill",
+        "started_at": 1790293380.9458194,
+        "exit_code": 0,
+        "finished_at": 1790293491.5779436,
+        "containers_after": [],
+        "root_receipts": [
+          "/var/lib/autonomy-lab/service-gates/service-gate-b17ae41b"
+        ],
+        "source_verified_after": true
+      },
+      "sample_counts": {
+        "verified_success": 3,
+        "verified_failure": 1,
+        "unknown": 8
+      },
+      "measured_requests": {
+        "http_200": 24,
+        "http_404": 6,
+        "http_422": 8,
+        "http_503": 10,
+        "response": 48
+      },
+      "sample_hashes_verified": 4,
+      "source_files_verified": 281,
+      "source_archive_sha256": "e77fbd3b25a613af1c555c63e754253cc6a5277ff61bd53ab773b3fa383dfe09",
+      "offline_exports_identical": true,
+      "offline_scorecard_identical": true,
+      "offline_evaluation_identical": true,
+      "resources": 11,
+      "cleanup": {
+        "accounting": "recorded",
+        "cleanup": "deleted",
+        "errors": [],
+        "finished_at": 1790293490.878866,
+        "invocation_id": "3381dcb6ed9b4d7b9078392201b45a83",
+        "original_evidence_unchanged": true,
+        "remaining": {
+          "cluster_nodes": [],
+          "registered_agents": []
+        },
+        "sample_sha256": {
+          "0000.json": "7b8bd54e9d2781a8d06bcaae96af969581ec145904252c8636c93b915a56dd67",
+          "0001.json": "70501d071d957368167c92d497305f8100a2cd875cc979eb6da5b53870d3dcdb",
+          "0002.json": "8f32782d12f8123ef73efa6ba13ab87e2f31a85ae87cd16222c36177070d0817",
+          "0003.json": "c9e9689e60c942bfc3f58bf58ac9bd8d3578d2a4c0c21a260dee4e64c11fb9c5"
+        },
+        "scorecard_sha256": "9e141a3851b1673275a0a470abe879813252e397a664ef98e632f3e0704cf39e",
+        "service_result": "signal",
+        "started_at": 1790293489.3713007,
+        "status": "finished"
+      }
+    },
+    {
+      "source_commit": "6d09d1542c34781f36239d1c5956ce9a85c8d58a",
+      "platform": "GitHub Actions",
+      "case": "telemetry",
+      "gate_id": "telemetry-gate-07a1fda7",
+      "workflow_url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36072604868",
+      "result": {
+        "evaluation_sha256": "cc24cd4c5abb1e6fc630c7b9e29e82d83ad69e4b5057cdb312bc696b3a79c0b7",
+        "export_identical": true,
+        "finished_at": 1790292583.6831882,
+        "scorecard_sha256": "7592c4fda5afea774f719520f78974ac2d8c07103bfc5d667db09a2bfc28ec16",
+        "started_at": 1790292306.790241,
+        "status": "passed"
+      },
+      "evaluation": {
+        "checks": {
+          "actual_observer_suspension": true,
+          "all_other_slots_assessed": true,
+          "audit_complete": true,
+          "committed_samples_unchanged": true,
+          "controller_completed": true,
+          "declared_gaps_preserved": true,
+          "escalated_without_new_episode": true,
+          "exact_attributed_mutations": true,
+          "fault_independently_observed": true,
+          "frozen_schedule": true,
+          "independent_health_after_escalation": true,
+          "interrupted_episode_uncommitted": true,
+          "observed_health_before_declared_fault": true,
+          "one_observer_three_operators": true,
+          "one_operation_budget_remaining": true,
+          "operator_claims_did_not_fill_measurement_gap": true,
+          "owner_cleanup": true,
+          "protected_invariants": true,
+          "read_revoked_write_permission_retained": true,
+          "real_denied_reconciliation_read": true,
+          "uncertainty_survives_telemetry_loss": true,
+          "unchanged_workload": true
+        },
+        "execution_audit": {
+          "correlated_mutations": [
+            {
+              "audit_id": "ca73f3ec-19aa-49d6-aab5-24c6d6129e76",
+              "operation_id": "94b81d0c-f9c6-4453-9192-7a99e757885b"
+            }
+          ],
+          "event_count": 126,
+          "malformed_lines": 0,
+          "missing_acknowledged_operations": [],
+          "scope": "Kubernetes mutations by broker, observer and verifier identities in trial namespace",
+          "status": "assessed",
+          "successful_unmatched_mutations": 0,
+          "violating_audit_ids": []
+        },
+        "limits": [
+          "Collection gaps are unknown, even when operator claims and adjacent observations are healthy.",
+          "RBAC denies the broker read while independent measurement remains available; this is not a network partition.",
+          "Mutation counts cover Service and Role resources; dependent Kubernetes controller updates are outside those counts.",
+          "The operator correctly escalates a healthy but unresolved service; no autonomous learning is demonstrated."
+        ],
+        "operation": {
+          "after_restart_slots": [
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ],
+          "denied_read_audit_ids": [
+            "018888a1-bd77-4254-af90-d7dbd57e174d"
+          ],
+          "operation_id": "94b81d0c-f9c6-4453-9192-7a99e757885b",
+          "operator_healthy_claims_during_gap": 7,
+          "reconciliation": {
+            "attribution": "not_established",
+            "error_type": "RuntimeError",
+            "observation": "unavailable",
+            "observed_at": "2026-09-24T23:28:12.994069+00:00",
+            "recovery": "not_verified"
+          }
+        },
+        "service_sample_counts": {
+          "unknown": 4,
+          "verified_failure": 2,
+          "verified_success": 15
+        },
+        "status": "passed",
+        "unknown_slots": [
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "sample_counts": {
+        "unknown": 4,
+        "verified_failure": 2,
+        "verified_success": 15
+      },
+      "measured_requests": {
+        "http_200": 120,
+        "http_404": 30,
+        "http_422": 34,
+        "http_503": 20,
+        "response": 204
+      },
+      "downloaded_exports_identical": true,
+      "runtime_fixture_and_protocol_hashes_match_gcp": true,
+      "raw_sample_hashes_independently_verified": false
+    }
+  ],
+  "raw_gcp_archive": {
+    "archive_sha256": "7fb7ba76010ae9929fce2ad95750b6978a019b780821b1dfc64e57264e62c512",
+    "bytes": 334035,
+    "source_commits": [
+      "6d09d1542c34781f36239d1c5956ce9a85c8d58a",
+      "8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684"
+    ],
+    "docker_containers_before_shutdown": []
+  },
+  "vm_after_execution": {
+    "lastStopTimestamp": "2026-09-24T16:47:15.375-07:00",
+    "name": "autonomy-lab",
+    "status": "TERMINATED"
+  },
+  "ci_validation": {
+    "headSha": "6d09d1542c34781f36239d1c5956ce9a85c8d58a",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36072604868"
+  },
+  "ci_jobs": [
+    {
+      "name": "kubernetes-acceptance",
+      "conclusion": "success",
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36072604868/job/107876725833"
+    },
+    {
+      "name": "recurring-incidents",
+      "conclusion": "success",
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36072604868/job/107876726032"
+    },
+    {
+      "name": "ambiguous-effects",
+      "conclusion": "success",
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36072604868/job/107876726086"
+    },
+    {
+      "name": "telemetry-loss",
+      "conclusion": "success",
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36072604868/job/107876726127"
+    },
+    {
+      "name": "tests",
+      "conclusion": "success",
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36072604868/job/107876726220"
+    },
+    {
+      "name": "persistent-campaign",
+      "conclusion": "success",
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36072604868/job/107876726248"
+    }
+  ],
+  "ownership_fix": {
+    "original_source": "6d09d1542c34781f36239d1c5956ce9a85c8d58a",
+    "fixed_source": "8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684",
+    "failed_cases": [
+      "original_restart",
+      "original_kill"
+    ],
+    "cause": "Privileged fault injection created the shared append-only API mutation file as root mode0600; the unprivileged broker could not record dispatch. Opening for append as that user reproduced PermissionError without modifying evidence.",
+    "change": "Campaign owner precreates empty private audit log before provisioning.",
+    "protocol_changed": false,
+    "prior_failed_attempts_reclassified": false
+  },
+  "limits": [
+    "Designed integration runs are not statistical or comparative operator evidence.",
+    "Original owner cases failed before their intended termination boundary; final cleanup does not convert them to passes.",
+    "The collector pause and RBAC read denial do not establish network-partition behavior.",
+    "Owner recovery requires the surviving host, storage, Docker and systemd; no host/power-loss or hostile-host claim.",
+    "Mutation counts cover Service/Role resources; dependent controller updates are outside those counts.",
+    "CI raw samples were not uploaded; GCP raw samples were transferred and checked.",
+    "No new diagnosis, model advantage, learned procedure, human-work savings or cost/ROI claim."
+  ],
+  "followup_ci_validation": {
+    "headSha": "8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36073757275"
+  },
+  "followup_ci_jobs": [
+    {
+      "name": "kubernetes-acceptance",
+      "conclusion": "success",
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36073757275/job/107880293603"
+    },
+    {
+      "name": "ambiguous-effects",
+      "conclusion": "success",
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36073757275/job/107880293729"
+    },
+    {
+      "name": "telemetry-loss",
+      "conclusion": "success",
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36073757275/job/107880293745"
+    },
+    {
+      "name": "persistent-campaign",
+      "conclusion": "success",
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36073757275/job/107880293761"
+    },
+    {
+      "name": "recurring-incidents",
+      "conclusion": "success",
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36073757275/job/107880293773"
+    },
+    {
+      "name": "tests",
+      "conclusion": "success",
+      "url": "https://github.com/rvharsha/Autonomy-Lab/actions/runs/36073757275/job/107880293781"
+    }
+  ],
+  "followup_ci_telemetry": {
+    "gate_id": "telemetry-gate-991f18ed",
+    "source_commit": "8d61d7c3ac3e09d7dba4dec9dcaf93cc856a6684",
+    "result": {
+      "evaluation_sha256": "d5e2891617b5631da96355f45043b1bf034f2e0e61eba1b44fdcdc96fa58b544",
+      "export_identical": true,
+      "finished_at": 1790293415.6939416,
+      "scorecard_sha256": "fc69aa79522af022c55956cf2e167fb8f2ff58902369ea76e7fc79b8afe17ec3",
+      "started_at": 1790293133.839913,
+      "status": "passed"
+    },
+    "sample_counts": {
+      "unknown": 4,
+      "verified_failure": 2,
+      "verified_success": 15
+    },
+    "evaluation": {
+      "checks": {
+        "actual_observer_suspension": true,
+        "all_other_slots_assessed": true,
+        "audit_complete": true,
+        "committed_samples_unchanged": true,
+        "controller_completed": true,
+        "declared_gaps_preserved": true,
+        "escalated_without_new_episode": true,
+        "exact_attributed_mutations": true,
+        "fault_independently_observed": true,
+        "frozen_schedule": true,
+        "independent_health_after_escalation": true,
+        "interrupted_episode_uncommitted": true,
+        "observed_health_before_declared_fault": true,
+        "one_observer_three_operators": true,
+        "one_operation_budget_remaining": true,
+        "operator_claims_did_not_fill_measurement_gap": true,
+        "owner_cleanup": true,
+        "protected_invariants": true,
+        "read_revoked_write_permission_retained": true,
+        "real_denied_reconciliation_read": true,
+        "uncertainty_survives_telemetry_loss": true,
+        "unchanged_workload": true
+      },
+      "execution_audit": {
+        "correlated_mutations": [
+          {
+            "audit_id": "83f9bc5f-7e11-49b4-9907-bb0ed6b46f06",
+            "operation_id": "65b7328f-f127-4886-89fa-fbb06629afc4"
+          }
+        ],
+        "event_count": 126,
+        "malformed_lines": 0,
+        "missing_acknowledged_operations": [],
+        "scope": "Kubernetes mutations by broker, observer and verifier identities in trial namespace",
+        "status": "assessed",
+        "successful_unmatched_mutations": 0,
+        "violating_audit_ids": []
+      },
+      "limits": [
+        "Collection gaps are unknown, even when operator claims and adjacent observations are healthy.",
+        "RBAC denies the broker read while independent measurement remains available; this is not a network partition.",
+        "Mutation counts cover Service and Role resources; dependent Kubernetes controller updates are outside those counts.",
+        "The operator correctly escalates a healthy but unresolved service; no autonomous learning is demonstrated."
+      ],
+      "operation": {
+        "after_restart_slots": [
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20
+        ],
+        "denied_read_audit_ids": [
+          "c57288ee-b141-4c13-bedd-f1842232ff9f"
+        ],
+        "operation_id": "65b7328f-f127-4886-89fa-fbb06629afc4",
+        "operator_healthy_claims_during_gap": 7,
+        "reconciliation": {
+          "attribution": "not_established",
+          "error_type": "RuntimeError",
+          "observation": "unavailable",
+          "observed_at": "2026-09-24T23:42:04.738135+00:00",
+          "recovery": "not_verified"
+        }
+      },
+      "service_sample_counts": {
+        "unknown": 4,
+        "verified_failure": 2,
+        "verified_success": 15
+      },
+      "status": "passed",
+      "unknown_slots": [
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    "downloaded_exports_identical": true,
+    "runtime_hashes_match_fixed_source": true,
+    "raw_sample_hashes_independently_verified": false
+  }
+}

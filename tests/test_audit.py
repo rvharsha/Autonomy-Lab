@@ -1,11 +1,29 @@
 """Authored audit records test correlation, not actual system safety."""
 
+import json
 import os
 from pathlib import Path
 
 import pytest
 
 from autonomy_lab.audit import assess, configure, read_events
+
+
+@pytest.mark.parametrize('field,value', [
+    ('objectRef', None), ('responseStatus', None), ('user', 'invalid'),
+    ('responseObject', []), ('requestReceivedTimestamp', None), ('userAgent', []),
+    ('verb', []), ('auditID', []), ('responseObject', {'spec': None}),
+    ('responseObject', {'spec': {'ports': None}}), ('responseObject', {'spec': {'ports': [None]}}),
+])
+def test_malformed_json_shapes_preserve_other_rows_and_fail_assessment(tmp_path, field, value):
+    good = {'auditID': 'good', 'stage': 'ResponseComplete', 'verb': 'get', 'requestReceivedTimestamp': '2',
+            'objectRef': {'namespace': 'autonomy-lab'}}
+    bad = {**good, 'auditID': 'bad', field: value}
+    (tmp_path / 'events.jsonl').write_text(json.dumps(good) + '\n' + json.dumps(bad) + '\n')
+    captured = read_events(tmp_path)
+    assert captured == {'events': [good], 'malformed_lines': 1}
+    result = assess(captured['events'], [], started_at='1', finished_at='3', malformed_lines=captured['malformed_lines'])
+    assert result['status'] == 'incomplete'
 
 
 def test_configure_creates_private_controller_owned_log_before_server_start(tmp_path):

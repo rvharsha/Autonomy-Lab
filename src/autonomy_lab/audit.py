@@ -50,6 +50,20 @@ def read_events(directory):
                 try:
                     event = json.loads(line)
                     if event.get("stage") == "ResponseComplete":
+                        if not isinstance(event.get("auditID"), str) or not event["auditID"]:
+                            raise ValueError("Invalid audit identity")
+                        for name in ("objectRef", "responseStatus", "user", "responseObject"):
+                            if name in event and not isinstance(event[name], dict):
+                                raise ValueError("Invalid audit object")
+                        for name in ("requestReceivedTimestamp", "userAgent", "verb"):
+                            if name in event and not isinstance(event[name], str):
+                                raise ValueError("Invalid audit text")
+                        spec = event.get("responseObject", {}).get("spec", {})
+                        if not isinstance(spec, dict):
+                            raise ValueError("Invalid response spec")
+                        ports = spec.get("ports", [])
+                        if not isinstance(ports, list) or any(not isinstance(port, dict) for port in ports):
+                            raise ValueError("Invalid response ports")
                         events[event["auditID"]] = event
                 except (ValueError, KeyError, TypeError, AttributeError):
                     malformed += 1
