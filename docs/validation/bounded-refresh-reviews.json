@@ -1,0 +1,244 @@
+{
+  "scope": "Authored bounded-refresh baseline and real development gates; source review, not automatic approval or live outcome evidence",
+  "reviews": [
+    {
+      "started_at": "2026-09-25T05:33:03.835058+00:00",
+      "finished_at": "2026-09-25T05:34:21.348079+00:00",
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/runbook.py",
+            "sha256": "4eb83c71effc4647c22e6412c3aedfca54d85b75be947bfccf0d5d296b181a48"
+          },
+          {
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "5f63f14585342e889525c924a16fd3c3ff47b62cc000a8e7a317cb7f3484c42b"
+          },
+          {
+            "path": "src/autonomy_lab/broker.py",
+            "sha256": "50b060648761b8ce4b06c2fc36627e605d7ddbed51eb75410a4139ff2af7b021"
+          },
+          {
+            "path": "src/autonomy_lab/toolbox.py",
+            "sha256": "fa8d28ee980a4a03b26b20995e43f7a7c3f5dbb4ba20105e3a09bf28bcbd76fe"
+          },
+          {
+            "path": "src/autonomy_lab/kubernetes.py",
+            "sha256": "1812c19cb4cc63a723b06e085efab881bb548742573d20f42113c42b677f7730"
+          },
+          {
+            "path": "docs/BOUNDED_REFRESH.md",
+            "sha256": "9c59438e9baac32938a4c218efc1f86f4766d66a8d0c29ab028618b81d79eff4"
+          }
+        ],
+        "prompt_sha256": "9194d3f4078eb27ff86b85b2b7d06df8c3a01874282a8e6053ec2b446eeffe64",
+        "review_kind": "bounded_refresh_logic",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "1d59743ca038ce7e3aa98902f293c2327f8ab43d05eec481f98c976b28a8964b",
+        "source_bytes": 37241
+      },
+      "usage_cost_estimate_usd": 0.4119,
+      "dispositions": [
+        {
+          "finding": "Conditional dispatch-time budget off-by-one concern",
+          "status": "not_applicable",
+          "resolution": "Prepared intents already reserve budget inside propose; _used counts all reserved rows. Dispatch uses > because its own reservation is included. Existing concurrency, reopen and revocation tests pass."
+        }
+      ]
+    },
+    {
+      "started_at": "2026-09-25T05:33:25.341180+00:00",
+      "finished_at": "2026-09-25T05:34:58.744874+00:00",
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/refresh.py",
+            "sha256": "235e1d1589b39cab4d9d11bf2a35a2e33a9695fdbfd52d9d6e0aebb075594ed8"
+          },
+          {
+            "path": "scripts/check_refresh.py",
+            "sha256": "d8530a00bbbafc8fd80dc01856910670e63bf052fe7d287d299e4a41629215fb"
+          },
+          {
+            "path": "src/autonomy_lab/conflict.py",
+            "sha256": "6ae7c77cddd4b9583fe67980f170edd6f6ac48c113f5da8d8634c9ada3f61e72"
+          }
+        ],
+        "prompt_sha256": "dcb164076449069e69c8814e564241a06798e8f8cd4e9c8800131fb50f9c8e84",
+        "review_kind": "bounded_refresh_gate",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "45e94e1e90368f4d119fbbb406eeff8ec8b63eef0e6cc54a6dea816b19336d1f",
+        "source_bytes": 33610
+      },
+      "usage_cost_estimate_usd": 0.48175,
+      "dispositions": [
+        {
+          "finding": "Conditional require exception-class concern",
+          "status": "not_applicable",
+          "resolution": "procedures.require raises ValueError, already caught by assess_case; supplied follow-up excerpt confirms it."
+        },
+        {
+          "finding": "Post-release episode count races later healthy episodes",
+          "status": "fixed",
+          "resolution": "Controller identifies the unique repair episode at the first prepared barrier, before either release, then waits for that exact outcome. Evaluator orders episodes by started_at, not random names."
+        }
+      ]
+    },
+    {
+      "started_at": "2026-09-25T05:36:28.987519+00:00",
+      "finished_at": "2026-09-25T05:37:17.510856+00:00",
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "path": "scripts/check_refresh.py",
+            "sha256": "8b1fa7fa04d03b5f273b3210e3da821b83762f89824fc4857bfc9a654416c5e5"
+          },
+          {
+            "path": "src/autonomy_lab/conflict.py",
+            "sha256": "36e52c4b7df49f274dec5544002232be6ca754eb73b589a4dde6601191fbad36"
+          },
+          {
+            "path": "src/autonomy_lab/refresh.py",
+            "sha256": "932d1a9a25c6d9973b11781258cb529315cf9da067d00a863aad3633f0eb7020"
+          },
+          {
+            "path": "src/autonomy_lab/broker.py",
+            "sha256": "50b060648761b8ce4b06c2fc36627e605d7ddbed51eb75410a4139ff2af7b021"
+          },
+          {
+            "path": "src/autonomy_lab/procedures.py",
+            "sha256": "5b4527c917440d8bdedecbbe65f392bc4515d9e96bfcc66ba84a6377802cc78e"
+          }
+        ],
+        "prompt_sha256": "8ebb1f4e1add1dca980d76d22a8b6e79112628d5c99621f73c4a0b6034876db5",
+        "review_kind": "bounded_refresh_followup",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "6bcf71b3094db3d31d5020b346fc778b5c37ce5736198cc81543f9eccf3d8882",
+        "source_bytes": 14022
+      },
+      "usage_cost_estimate_usd": 0.20774,
+      "dispositions": [
+        {
+          "finding": "Interpreted three uncertain-case Service requests as a rejected refresh",
+          "status": "not_applicable",
+          "resolution": "The uncertain case has three successful Service requests: admin routing fault, one broker repair, admin external change. It explicitly forbids any second broker attempt, including rejection. Existing ambiguity assessor binds these exact identities; new authored wrapper counterexamples exercise rejected broker/admin extras. Clarified code and protocol."
+        },
+        {
+          "finding": "Preserve base assessor failure when extending checks",
+          "status": "defensive_hardening",
+          "resolution": "Existing ambiguity assessor derives status exclusively from checks, so no current false pass. Wrapper now explicitly preserves its failed status; authored counterexample covers future non-check failures."
+        }
+      ]
+    },
+    {
+      "started_at": "2026-09-25T05:52:36.631218+00:00",
+      "finished_at": "2026-09-25T05:53:38.904405+00:00",
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/refresh.py",
+            "sha256": "5958f538c16602b78648bf94f6e4a49b0a2a7907f352bdf43c85c000a78859b7"
+          },
+          {
+            "path": "src/autonomy_lab/broker.py",
+            "sha256": "50b060648761b8ce4b06c2fc36627e605d7ddbed51eb75410a4139ff2af7b021"
+          },
+          {
+            "path": "src/autonomy_lab/kubernetes.py",
+            "sha256": "1812c19cb4cc63a723b06e085efab881bb548742573d20f42113c42b677f7730"
+          },
+          {
+            "path": "tests/test_refresh.py",
+            "sha256": "3a3d53e3a12328157602a4c635826187fadf935e91c962d49a2f444a9ef95aca"
+          }
+        ],
+        "prompt_sha256": "90516f6841087f46c34fc83e69e899e86f1075ca5d71abd0a840dcf0ced4556a",
+        "review_kind": "bounded_refresh_live_correction",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "db6659a4a6150218c0458c3aac95445b7c245aed5c4fd7d1b41122e4fe5767b4",
+        "source_bytes": 28142
+      },
+      "usage_cost_estimate_usd": 0.33172,
+      "dispositions": [
+        {
+          "finding": "No substantiated actionable defects in corrected receipt and Service predicates",
+          "status": "no_actionable_findings",
+          "resolution": "Fable checked actual compact broker acknowledgement, structured API response and kubectl omission, exact remaining fields, mutation counts and authored negative cases. The original failed cohort is retained; new-source execution remains required."
+        }
+      ]
+    }
+  ],
+  "generation_cost_estimate_usd": 1.43311,
+  "preflight_only_failures": 2,
+  "local_findings": [
+    {
+      "finding": "Verification tool claims could survive omission of raw verifier files",
+      "resolution": "Shared loader now consumes matching independently validated raw verification records one-to-one. Missing, divergent and reused evidence counterexamples fail."
+    },
+    {
+      "finding": "Random episode names do not define execution order",
+      "resolution": "Evaluator selects first repair episode by attempt.started_at and locates its matching evidence by ID."
+    }
+  ],
+  "final_source_sha256": {
+    "src/autonomy_lab/runbook.py": "4eb83c71effc4647c22e6412c3aedfca54d85b75be947bfccf0d5d296b181a48",
+    "src/autonomy_lab/broker.py": "50b060648761b8ce4b06c2fc36627e605d7ddbed51eb75410a4139ff2af7b021",
+    "src/autonomy_lab/toolbox.py": "fa8d28ee980a4a03b26b20995e43f7a7c3f5dbb4ba20105e3a09bf28bcbd76fe",
+    "src/autonomy_lab/campaign.py": "5f63f14585342e889525c924a16fd3c3ff47b62cc000a8e7a317cb7f3484c42b",
+    "src/autonomy_lab/conflict.py": "36e52c4b7df49f274dec5544002232be6ca754eb73b589a4dde6601191fbad36",
+    "src/autonomy_lab/refresh.py": "5958f538c16602b78648bf94f6e4a49b0a2a7907f352bdf43c85c000a78859b7",
+    "scripts/check_refresh.py": "8b1fa7fa04d03b5f273b3210e3da821b83762f89824fc4857bfc9a654416c5e5",
+    "tests/test_refresh.py": "3a3d53e3a12328157602a4c635826187fadf935e91c962d49a2f444a9ef95aca",
+    "tests/test_refresh_runbook.py": "b45a7e88f1dc56f7c34ec406e5257f0e4606a8c4bd19bdbfcb168906659a5d4d",
+    "tests/test_procedures.py": "c84cebdf80196ccce8c619ef5ab16e04e1e6f9ee16daf83413ce4b1fa5545bd1",
+    "scenarios/campaign-refresh.json": "10b6ca048772133fe71190f73bc0fa7ce59fab0105238a96be44f49b79e99b03",
+    "scenarios/campaign-refresh-uncertain.json": "8481de142e4007d07fb6de2368c12f43dff09e1ad5a8150529fe49b0a383c119",
+    ".github/workflows/checks.yml": "5149bf4a0fdbd68b1f8bdf8059e62ede38cb240abacab56a8303b2ea13285ba3",
+    "docs/BOUNDED_REFRESH.md": "85211a163929e30e8180118d63f75cf7099ccc1df844f4781e30c9fae2ddfdb5",
+    "docs/GOAL_ALIGNMENT.md": "45d34970089095cf8df9718b284a78e8afa11c563beca81b952761b3c445c181"
+  },
+  "validation": "1229 local tests plus lint passed; full new-source real execution required after evaluator correction",
+  "limits": [
+    "Four bounded excerpt reviews; omitted helpers described and tests run separately, not a review of the entire repository.",
+    "After follow-up, local changes preserve failed base assessment and clarify the three identities in the uncertain case; those final small edits were covered by local counterexamples, not an additional Fable generation.",
+    "Two oversized count preflights invoked no generation. Costs are usage estimates, not invoices."
+  ],
+  "initial_source_sha256": {
+    "src/autonomy_lab/runbook.py": "4eb83c71effc4647c22e6412c3aedfca54d85b75be947bfccf0d5d296b181a48",
+    "src/autonomy_lab/broker.py": "50b060648761b8ce4b06c2fc36627e605d7ddbed51eb75410a4139ff2af7b021",
+    "src/autonomy_lab/toolbox.py": "fa8d28ee980a4a03b26b20995e43f7a7c3f5dbb4ba20105e3a09bf28bcbd76fe",
+    "src/autonomy_lab/campaign.py": "5f63f14585342e889525c924a16fd3c3ff47b62cc000a8e7a317cb7f3484c42b",
+    "src/autonomy_lab/conflict.py": "36e52c4b7df49f274dec5544002232be6ca754eb73b589a4dde6601191fbad36",
+    "src/autonomy_lab/refresh.py": "1ffb3ff2f0c12f6b1887a0a6c503ea9c2de779a40d268b1bef4859e356c54731",
+    "scripts/check_refresh.py": "8b1fa7fa04d03b5f273b3210e3da821b83762f89824fc4857bfc9a654416c5e5",
+    "tests/test_refresh.py": "9429f3c9861de80b5d6adfef60152b1c32a57ed24606ccbbe1e4a997fe8b96c8",
+    "tests/test_refresh_runbook.py": "b45a7e88f1dc56f7c34ec406e5257f0e4606a8c4bd19bdbfcb168906659a5d4d",
+    "tests/test_procedures.py": "c84cebdf80196ccce8c619ef5ab16e04e1e6f9ee16daf83413ce4b1fa5545bd1",
+    "scenarios/campaign-refresh.json": "10b6ca048772133fe71190f73bc0fa7ce59fab0105238a96be44f49b79e99b03",
+    "scenarios/campaign-refresh-uncertain.json": "8481de142e4007d07fb6de2368c12f43dff09e1ad5a8150529fe49b0a383c119",
+    ".github/workflows/checks.yml": "5149bf4a0fdbd68b1f8bdf8059e62ede38cb240abacab56a8303b2ea13285ba3",
+    "docs/BOUNDED_REFRESH.md": "d79be97713c32e8cf9f49f9be5c5d71ab658dc544da46b29cd2a7b4a2fbf1adb",
+    "docs/GOAL_ALIGNMENT.md": "45d34970089095cf8df9718b284a78e8afa11c563beca81b952761b3c445c181"
+  },
+  "retained_failed_cohort": {
+    "commit": "75c21b6dc0b59f5da188959bc96eef149d7e662f",
+    "run_id": 36099505746,
+    "study": "refresh-gate-a1d86fe0",
+    "archive_sha256": "dd0bbeaf7e792a57e7f3889240bfe5db46be7cb840ab9edb35f22290510253e8",
+    "original_assessments": {
+      "stable": "failed",
+      "continuing": "failed",
+      "uncertain_external_change": "passed"
+    },
+    "original_exports_reproduced_byte_identically": true,
+    "correction": "Bind compact broker receipt to independent API UID/version and intended-only spec change; compare full Service read except specifically omitted managedFields. Operating logic and fault schedule unchanged."
+  }
+}

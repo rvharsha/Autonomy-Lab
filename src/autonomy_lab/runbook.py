@@ -13,7 +13,9 @@ def _backend_works(payload: dict) -> bool:
         payload.get("kind") == "response"
         and payload.get("status_code") == 200
         and isinstance(body, dict)
-        and body.get("sku") == payload.get("sku")
+        and isinstance(payload.get("sku"), str) and bool(payload["sku"])
+        and type(payload.get("quantity")) is int and payload["quantity"] > 0
+        and body.get("sku") == payload["sku"]
         and type(body.get("unit_price_minor")) is int
         and body["unit_price_minor"] >= 0
         and type(body.get("stock")) is int
@@ -46,7 +48,80 @@ def _application_matches(application: dict, backend: dict) -> bool:
     )
 
 
-def run(toolbox: ObservationTools, *, verification_fallback: bool = False) -> dict:
+def _service_scope(service_observation: dict):
+    service = service_observation.get("service")
+    if not isinstance(service, dict):
+        return None
+    metadata, spec = service.get("metadata", {}), service.get("spec", {})
+    if not isinstance(metadata, dict) or not isinstance(spec, dict):
+        return None
+    raw_ports = spec.get("ports")
+    if not isinstance(raw_ports, list) or not all(isinstance(p, dict) for p in raw_ports):
+        return None
+    ports = [port for port in raw_ports if port.get("name") == "http"]
+    valid = (
+        metadata.get("name") == "inventory"
+        and spec.get("selector") == {"app": "inventory"}
+        and len(ports) == 1
+        and len(spec.get("ports", [])) == 1
+        and ports[0].get("port") == 80
+        and ports[0].get("protocol") == "TCP"
+        and type(ports[0].get("targetPort")) is int
+        and all(
+            isinstance(metadata.get(key), str) and metadata[key]
+            for key in ("uid", "resourceVersion", "namespace")
+        )
+    )
+    return (metadata, ports[0]) if valid else None
+
+
+def _refresh_proposal(call, evidence, original, operation):
+    """One new decision after a received non-applied response, never an effect replay."""
+    if not (
+        {"result", "reconciliation"} <= operation.keys()
+        and operation.get("status") == "rejected"
+        and operation.get("reason") in {"api_rejected_409", "api_rejected_422"}
+        and operation.get("operation_id") == original["operation_id"]
+        and operation.get("run_id") == original["run_id"]
+        and operation.get("request") == original
+        and operation.get("result") is None
+        and operation.get("reconciliation") is None
+        and operation.get("journal_status") is None
+        and operation.get("budget_reserved") is True
+        and type(operation.get("budget_used")) is int
+        and type(operation.get("budget_limit")) is int
+        and 1 <= operation["budget_used"] < operation["budget_limit"]
+    ):
+        return None
+    evidence_count = len(evidence)
+    observed = call("observe_service")
+    backend = call("probe_backend")
+    application = call("probe_application")
+    scope = _service_scope(observed)
+    if len(evidence) != evidence_count + 3 or scope is None or not _backend_works(backend):
+        return None
+    metadata, port = scope
+    if not (
+        observed.get("run_id") == original["run_id"]
+        and metadata["namespace"] == original["namespace"]
+        and metadata["name"] == original["service_name"]
+        and metadata["uid"] == original["service_uid"]
+        and metadata["resourceVersion"] != original["resource_version"]
+        and port["targetPort"] == original["expected_target_port"]
+        and backend["backend_port"] == original["target_port"]
+        and port["targetPort"] != backend["backend_port"]
+        and application.get("kind") == "response"
+        and type(application.get("status_code")) is int
+        and application["status_code"] == 503
+        and application.get("body") == {"detail": "inventory unavailable"}
+    ):
+        return None
+    return {**original, "operation_id": str(uuid.uuid4()),
+            "resource_version": metadata["resourceVersion"], "evidence_ids": evidence[:]}
+
+
+def run(toolbox: ObservationTools, *, verification_fallback: bool = False,
+        bounded_refresh: bool = False) -> dict:
     """Run once in a fresh workspace; mid-run resumption is unsupported.
 
     Existing terminal claims may be read again. Reusing nonterminal observations
@@ -76,22 +151,9 @@ def run(toolbox: ObservationTools, *, verification_fallback: bool = False) -> di
     service_observation = call("observe_service")
     backend = call("probe_backend")
     application = call("probe_application")
-    service = service_observation.get("service", {})
-    metadata, spec = service.get("metadata", {}), service.get("spec", {})
-    ports = [port for port in spec.get("ports", []) if port.get("name") == "http"]
-    scoped_service = (
-        metadata.get("name") == "inventory"
-        and spec.get("selector") == {"app": "inventory"}
-        and len(ports) == 1
-        and len(spec.get("ports", [])) == 1
-        and ports[0].get("port") == 80
-        and ports[0].get("protocol") == "TCP"
-        and type(ports[0].get("targetPort")) is int
-        and all(
-            isinstance(metadata.get(key), str) and metadata[key]
-            for key in ("uid", "resourceVersion", "namespace")
-        )
-    )
+    scope = _service_scope(service_observation)
+    scoped_service = scope is not None
+    metadata, port = scope if scope else ({}, {})
     if not scoped_service or not _backend_works(backend):
         if verification_fallback and scoped_service and backend.get("kind") == "error":
             verification = call("verify_recovery")
@@ -110,7 +172,7 @@ def run(toolbox: ObservationTools, *, verification_fallback: bool = False) -> di
         )
 
     correct_application = _application_matches(application, backend)
-    target_matches = ports[0]["targetPort"] == backend["backend_port"]
+    target_matches = port["targetPort"] == backend["backend_port"]
     if correct_application and target_matches:
         verification = call("verify_recovery")
         if verification.get("verdict") == "verified_success":
@@ -128,21 +190,26 @@ def run(toolbox: ObservationTools, *, verification_fallback: bool = False) -> di
         )
 
     operation_id = str(uuid.uuid4())
-    operation = call(
-        "propose_repair",
-        {
-            "run_id": service_observation["run_id"],
-            "operation_id": operation_id,
-            "namespace": metadata["namespace"],
-            "service_name": metadata["name"],
-            "service_uid": metadata["uid"],
-            "resource_version": metadata["resourceVersion"],
-            "port_name": ports[0]["name"],
-            "expected_target_port": ports[0]["targetPort"],
-            "target_port": backend["backend_port"],
-            "evidence_ids": evidence[:],
-        },
-    )
+    proposal = {
+        "run_id": service_observation["run_id"],
+        "operation_id": operation_id,
+        "namespace": metadata["namespace"],
+        "service_name": metadata["name"],
+        "service_uid": metadata["uid"],
+        "resource_version": metadata["resourceVersion"],
+        "port_name": port["name"],
+        "expected_target_port": port["targetPort"],
+        "target_port": backend["backend_port"],
+        "evidence_ids": evidence[:],
+    }
+    operation = call("propose_repair", proposal)
+    # Only the original received rejection can enter this path. A later read of
+    # an unknown outcome cannot retrospectively authorize another mutation.
+    if bounded_refresh:
+        refreshed = _refresh_proposal(call, evidence, proposal, operation)
+        if refreshed is not None:
+            operation_id = refreshed["operation_id"]
+            operation = call("propose_repair", refreshed)
     if (
         operation.get("status") in {"uncertain", "dispatching", "prepared"}
         or operation.get("kind") == "error"
@@ -155,7 +222,7 @@ def run(toolbox: ObservationTools, *, verification_fallback: bool = False) -> di
     if operation.get("status") != "acknowledged" and not uncertain_desired:
         return finish(
             "escalated",
-            "The operation is rejected, unsent, or unresolved. No mutation was repeated.",
+            "The operation is rejected, unsent, or unresolved. No further mutation was attempted.",
         )
     verification = call("verify_recovery")
     if verification.get("verdict") != "verified_success":

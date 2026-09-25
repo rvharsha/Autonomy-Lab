@@ -364,7 +364,8 @@ def test_operator_selects_admitted_variant_and_refuses_fresh_work_after_withdraw
                                          'admitted_procedure': 'runbook_fallback'})
     calls = []
 
-    def runbook(tools, *, verification_fallback):
+    def runbook(tools, *, verification_fallback, bounded_refresh):
+        assert bounded_refresh is False
         episode = tools.path.parent
         selected = c.read(episode / 'procedure.json')
         assert selected['episode'] == episode.name
