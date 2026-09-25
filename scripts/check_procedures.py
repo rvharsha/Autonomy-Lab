@@ -24,16 +24,21 @@ def check(output, run=None):
                    'experiment_directory': str(declared_run), 'mode': 'existing' if run else 'execute',
                    'claim': 'Known-procedure admission calibration; no live rollout or learned improvement'}
     save(output / 'declaration.json', declaration)
-    result = {'status': 'failed', 'experiment_directory': str(declared_run)}
+    result = {'status': 'failed', 'stage': 'execution', 'experiment_directory': str(declared_run)}
     try:
         if run is None:
             run = run_experiment(config, run_id=run_id)
-        receipts = {variant: evaluate(run, variant) for variant in ('runbook', 'runbook_fallback')}
-        save(output / 'receipts.json', receipts)
+        receipts = {}
+        for variant in ('runbook', 'runbook_fallback'):
+            result['stage'] = 'evaluate_' + variant
+            receipts[variant] = evaluate(run, variant)
+            save(output / 'receipts.json', receipts)
+        result['stage'] = 'calibration'
         require({o['scenario'] for o in receipts['runbook']['outcomes'] if not o['task_success']}
                 == {'observer_outage'}, 'Negative calibration control differs')
         require(receipts['runbook_fallback']['eligible'] is True, 'Positive calibration control failed')
         registry_path = output / 'admission.sqlite'
+        result['stage'] = 'admission'
         registry = Registry(registry_path)
         rejected = registry.promote(run, 'runbook', expected_revision=0)
         require(rejected['kind'] == 'rejected' and registry.state()['active'] is None,
@@ -53,10 +58,12 @@ def check(output, run=None):
         require(blocked, 'Withdrawal admitted new work')
         require(release_manifest(config)['files'] == declaration['source_files'], 'Source drifted during gate')
         result.update(status='passed', rejected=rejected, promoted=promoted, withdrawn=withdrawn,
-                      pin_retained=True, new_pin_blocked=True, final_state=registry.state())
+                      stage='completed', pin_retained=True, new_pin_blocked=True, final_state=registry.state())
         return result
     except BaseException as error:
         result['error_type'] = type(error).__name__
+        if isinstance(error, Refused):
+            result['reason'] = str(error)
         raise
     finally:
         save(output / 'result.json', result)

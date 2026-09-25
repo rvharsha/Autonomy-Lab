@@ -22,7 +22,9 @@ Admission requires the exact complete plan, recorded results, completed cleanup,
 matching worker/release identities, current source hashes, reproduced raw verifier
 probe assessments, scores and API audit assessments, no damage to protected data
 or unrelated configuration, no unmatched successful writes, and the declared
-environment outcome for every trial. The deliberately injected Inventory routing
+environment outcome for controls. Candidate behavioral/environment misses remain
+complete, ineligible receipts, without invalidating another candidate's evidence.
+The deliberately injected Inventory routing
 fault may remain when no action or escalation is expected: its failure reason
 stays in the raw verification and must never accompany a healthy verdict.
 Missing/unknown/corrupt evidence
@@ -36,10 +38,15 @@ failed attempts rather than narrowing the gates or retrying away failures.
 The controller calls `Registry.promote` with a trusted raw evaluation directory
 and an expected ledger revision. The registry computes the receipt itself; a
 caller-supplied success boolean cannot authorize a version. A version binds the
-procedure choice, source dependencies, evaluated image/release and calibration protocol. SQLite commits
+procedure choice, source dependencies, frozen release/built agent-image identity
+and calibration protocol. The deterministic runbooks execute in the trusted
+trial worker with separate broker/verifier processes; the model-agent image is
+built release metadata, not an executed runbook container. SQLite commits
 the decision, active version and revision together. Failed behavioral candidates
 remain recorded and cannot replace the active version. Stale administrative
-decisions are refused. Each activation retains its own complete evidence receipt
+decisions are refused. Evidence and stale administrative refusals get a separate
+durable record without advancing the admission revision (assuming writable
+registry storage). Each activation retains its own complete evidence receipt
 in the decision ledger. Pins name the activating revision, even if a subsequent
 candidate is rejected; a re-promotion cannot relabel earlier pins.
 

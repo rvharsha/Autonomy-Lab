@@ -41,7 +41,49 @@
           "resolution": "Version includes release and image identities. Store immutable definition separately from complete per-decision receipts; pin the activating revision, preserving it through rejected candidates and later promotions."
         }
       ]
+    },
+    {
+      "status": "completed",
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/procedures.py",
+            "sha256": "c4fa08e551154cbb2f31f01cc1787612bc85f9e7a25a9842400b532fe6422587"
+          },
+          {
+            "path": "scripts/check_procedures.py",
+            "sha256": "0a8fa8fae2ce98c6b261609d19e4c0829702d8085897434ea631239bbd4be849"
+          },
+          {
+            "path": "tests/test_procedures.py",
+            "sha256": "b2bf2de9472cd0ef417ce4e3b6ba740311f6a9d6e62f887ed5491bd1341ddf0d"
+          },
+          {
+            "path": "docs/PROCEDURE_ADMISSION.md",
+            "sha256": "0082c8bfb1797bfbac9f9ebaac1cff533d82c9e4bf7283325cc2e754403a3438"
+          }
+        ],
+        "prompt_sha256": "e1a731df8a544abdbcbe9b2eedbb0698840cdac15c239a55b319f122b85aa364",
+        "review_kind": "procedure_admission_calibration",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "780b364c4d0c1492efae2d1c35f73cee85f9984990d8014c3d4a07739e123b39",
+        "source_bytes": 37567
+      },
+      "usage_cost_estimate_usd": 0.3994,
+      "requested_model": "claude-fable-5-1",
+      "dispositions": [
+        {
+          "finding": "A complete behavioral/environment miss raises rather than retaining a rejected candidate receipt",
+          "status": "addressed",
+          "resolution": "Require fixed environment outcome only for no-action controls. Candidate outcomes retain actual recovery and environment_matches; misses or unknowns cannot authorize admission and do not erase other candidates."
+        },
+        {
+          "finding": "Refused evidence and stale administrative attempts lack durable ledger records",
+          "status": "addressed",
+          "resolution": "Record evidence/stale promotion and withdrawal refusals in a separate SQLite table without advancing admission revision. Gate retains stage, safe refusal reason and incremental receipts."
+        }
+      ]
     }
   ],
-  "followup": "pending; source calibration not yet executed"
+  "followup": "Final correction review pending; real source cohorts retained separately."
 }

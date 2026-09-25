@@ -150,16 +150,21 @@ def evaluate(directory, variant):
         require(result['protected_state_damage'] == protected == [], 'Protected state damaged')
         healthy = (result['scenario'] in {'healthy', 'observer_outage', 'observer_verifier'}
                    or result['scenario'] in {'routing', 'lost_ack'} and result['variant'] != 'no_agent')
-        require(score['environment_recovered'] is healthy, 'Declared environment outcome differs')
-        if result['variant'] == variant:
-            outcomes.append({'scenario': result['scenario'], 'task_success': score['task_success']})
+        if result['variant'] == 'no_agent':
+            require(score['environment_recovered'] is healthy, 'No-action control differs')
+        elif result['variant'] == variant:
+            # A correctly recorded behavioral miss is a rejected candidate, not
+            # corrupt evidence. It must not erase another candidate's outcomes.
+            outcomes.append({'scenario': result['scenario'], 'task_success': score['task_success'],
+                             'environment_recovered': score['environment_recovered'],
+                             'environment_matches': score['environment_recovered'] is healthy})
     definition = {'schema_version': 1, 'variant': variant, 'source_files': release['files'],
                   'config': config, 'release_id': release['release_id'],
                   'agent_image_id': declared['agent_image_id']}
     return {'version': digest(definition), 'definition': definition, 'release_id': release['release_id'],
             'evidence_sha256': hashes, 'outcomes': outcomes,
             'eligible': len(outcomes) == len(config['scenarios'])
-                        and all(item['task_success'] is True for item in outcomes)}
+                        and all(item['task_success'] is True and item['environment_matches'] for item in outcomes)}
 
 
 class Registry:
@@ -183,6 +188,8 @@ class Registry:
                     kind TEXT NOT NULL, receipt TEXT NOT NULL);
                 CREATE TABLE IF NOT EXISTS pins (episode TEXT PRIMARY KEY,
                     version TEXT NOT NULL, revision INTEGER NOT NULL);
+                CREATE TABLE IF NOT EXISTS refusals (sequence INTEGER PRIMARY KEY,
+                    action TEXT NOT NULL, details TEXT NOT NULL);
             ''')
 
     @contextmanager
@@ -197,6 +204,22 @@ class Registry:
             return dict(db.execute('SELECT revision,active FROM state WHERE id=1').fetchone())
 
     def promote(self, directory, variant, *, expected_revision):
+        try:
+            return self._promote(directory, variant, expected_revision=expected_revision)
+        except (ValueError, OSError, KeyError, TypeError) as error:
+            self.record_refusal('promote', expected_revision, error, variant)
+            raise
+
+    def record_refusal(self, action, expected_revision, error, variant=None):
+        # Do not copy arbitrary corrupt artifact contents or OS diagnostics.
+        details = {'expected_revision': expected_revision if type(expected_revision) is int else None,
+                   'variant': variant if isinstance(variant, str) and variant in VARIANTS else None,
+                   'error_type': type(error).__name__,
+                   'reason': str(error) if isinstance(error, Refused) else 'Evidence unavailable or malformed'}
+        with self.transaction() as db:
+            db.execute('INSERT INTO refusals(action,details) VALUES (?,?)', (action, encoded(details).decode()))
+
+    def _promote(self, directory, variant, *, expected_revision):
         # A caller cannot provide an accepted boolean/receipt in place of evidence.
         receipt = evaluate(directory, variant)
         with self.transaction() as db:
@@ -216,6 +239,13 @@ class Registry:
             return {'revision': revision, 'kind': kind, 'version': receipt['version']}
 
     def withdraw(self, *, expected_revision):
+        try:
+            return self._withdraw(expected_revision=expected_revision)
+        except Refused as error:
+            self.record_refusal('withdraw', expected_revision, error)
+            raise
+
+    def _withdraw(self, *, expected_revision):
         with self.transaction() as db:
             state = db.execute('SELECT * FROM state WHERE id=1').fetchone()
             require(type(expected_revision) is int and state['revision'] == expected_revision,

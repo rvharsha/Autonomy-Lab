@@ -2,7 +2,9 @@
 
 import copy
 import json
+import sqlite3
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 
 import pytest
 
@@ -160,6 +162,10 @@ def test_corrupt_evidence_cannot_promote(evidence, tmp_path, corruption):
     with pytest.raises((p.Refused, OSError)):
         registry.promote(evidence, 'runbook_fallback', expected_revision=0)
     assert registry.state() == {'revision': 0, 'active': None}
+    with closing(sqlite3.connect(registry.path)) as db:
+        refusals = db.execute('SELECT details FROM refusals').fetchall()
+    assert len(refusals) == 1
+    assert json.loads(refusals[0][0])['expected_revision'] == 0
     with pytest.raises(p.Refused):
         registry.pin('unadmitted')
 
@@ -186,6 +192,8 @@ def test_withdrawal_is_durable_and_does_not_rebind_existing_work(evidence, tmp_p
     with pytest.raises(p.Refused, match='withdrawn'):
         registry.promote(evidence, 'runbook_fallback', expected_revision=3)
     assert registry.state()['revision'] == 3
+    with closing(sqlite3.connect(path)) as db:
+        assert db.execute('SELECT action FROM refusals ORDER BY sequence').fetchall() == [('withdraw',), ('promote',)]
 
 
 def test_failed_candidate_preserves_active_version(evidence, tmp_path):
@@ -194,6 +202,32 @@ def test_failed_candidate_preserves_active_version(evidence, tmp_path):
     assert registry.promote(evidence, 'runbook', expected_revision=1)['kind'] == 'rejected'
     assert registry.state() == {'revision': 2, 'active': accepted['version']}
     assert registry.pin('after-rejection')['revision'] == 1
+
+
+def test_complete_environment_miss_rejects_only_affected_candidate(evidence, tmp_path):
+    # Ground truth becomes unknown for one candidate's complete measurement;
+    # re-score it honestly. It must be retained and cannot authorize admission.
+    results = json.loads((evidence / 'results.json').read_text())
+    index = next(i for i, r in enumerate(results, 1) if r['variant'] == 'runbook')
+    trial = evidence / f'trial-{index:03d}'
+    verification = json.loads((trial / 'final-verification.json').read_text())
+    for probe in verification['probes']:
+        probe['observations']['database'] = {'kind': 'error'}
+        probe.update(verdict='indeterminate', reasons=['database: independent read unavailable'])
+    verification.update(verdict='indeterminate', reasons=['database: independent read unavailable'],
+                         counts={'total': 2, 'verified_success': 0, 'verified_failure': 0, 'indeterminate': 2})
+    save(trial / 'final-verification.json', verification)
+    result = json.loads((trial / 'trial.json').read_text())
+    observations = [json.loads(line) for line in (trial / 'evidence.jsonl').read_text().splitlines()]
+    result['score'] = score_trial('healthy', 'runbook', result['agent']['terminal'], verification, [], observations)
+    save(trial / 'trial.json', result)
+    results[index - 1].update(result)
+    save(evidence / 'results.json', results)
+    registry = p.Registry(tmp_path / 'registry.sqlite')
+    assert registry.promote(evidence, 'runbook', expected_revision=0)['kind'] == 'rejected'
+    assert registry.promote(evidence, 'runbook_fallback', expected_revision=1)['kind'] == 'promoted'
+    assert any(o['environment_recovered'] is None and not o['environment_matches']
+               for o in p.evaluate(evidence, 'runbook')['outcomes'])
 
 
 def test_version_binds_image_and_pin_binds_actual_activation(evidence, tmp_path):
