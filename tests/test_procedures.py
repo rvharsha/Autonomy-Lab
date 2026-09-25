@@ -313,3 +313,107 @@ def test_invalid_revision_refuses_without_state_change(evidence, tmp_path, revis
     with pytest.raises(p.Refused):
         registry.promote(evidence, 'runbook_fallback', expected_revision=revision)
     assert registry.state()['revision'] == 0
+
+
+def test_episode_start_is_once_only_even_when_old_pin_survives_withdrawal(evidence, tmp_path):
+    registry = p.Registry(tmp_path / 'registry.sqlite')
+    promoted = registry.promote(evidence, 'runbook_fallback', expected_revision=0)
+    selected = registry.start_episode('started')
+    assert selected == {'episode': 'started', 'version': promoted['version'], 'revision': 1,
+                        'variant': 'runbook_fallback'}
+    with pytest.raises(p.Refused, match='cannot be resumed'):
+        registry.start_episode('started')
+    registry.withdraw(expected_revision=1)
+    reopened = p.Registry(registry.path)
+    assert reopened.pin('started') == {k: selected[k] for k in ('episode', 'version', 'revision')}
+    with pytest.raises(p.Refused, match='cannot be resumed'):
+        reopened.start_episode('started')
+    with pytest.raises(p.Refused, match='No admitted procedure'):
+        reopened.start_episode('new')
+    with reopened.transaction() as db:
+        assert [r['action'] for r in db.execute('SELECT * FROM refusals')] == ['start_episode'] * 3
+
+
+def test_historical_lookup_does_not_grant_execution_or_bypass_source_check(evidence, tmp_path, monkeypatch):
+    registry = p.Registry(tmp_path / 'registry.sqlite')
+    registry.promote(evidence, 'runbook_fallback', expected_revision=0)
+    registry.pin('historical')
+    with pytest.raises(p.Refused, match='cannot be resumed'):
+        registry.start_episode('historical')
+    monkeypatch.setattr(p, 'release_manifest', lambda _: {'files': {'changed': 'source'}})
+    with pytest.raises(p.Refused, match='source changed'):
+        registry.start_episode('new')
+
+
+def test_operator_selects_admitted_variant_and_refuses_fresh_work_after_withdrawal(evidence, tmp_path, monkeypatch):
+    import time
+    from types import SimpleNamespace
+
+    from autonomy_lab import campaign as c
+
+    directory = tmp_path / 'campaign'
+    directory.mkdir()
+    workspace = directory / 'operator'
+    workspace.mkdir()
+    save(directory / 'owner.json', {'run_id': 'authored-campaign'})
+    save(directory / 'identities-before.json', {'Service/inventory': 'authored-uid'})
+    save(directory / 'window.json', {'start': time.time() - 1, 'end': time.time() + 100})
+    registry = p.Registry(directory / 'admission.sqlite')
+    registry.promote(evidence, 'runbook_fallback', expected_revision=0)
+    contract = c.Contract.model_validate({**c.read(c.ROOT / 'scenarios/campaign-restart.json'),
+                                         'admitted_procedure': 'runbook_fallback'})
+    calls = []
+
+    def runbook(tools, *, verification_fallback):
+        episode = tools.path.parent
+        selected = c.read(episode / 'procedure.json')
+        assert selected['episode'] == episode.name
+        assert selected['variant'] == 'runbook_fallback' and verification_fallback is True
+        assert registry.pin(episode.name)['version'] == selected['version']
+        assert not tools.path.exists()  # Selection is durable before any tool observation.
+        calls.append(selected)
+        registry.withdraw(expected_revision=1)
+        return {'outcome': 'healthy'}
+
+    monkeypatch.setattr(c, 'active', lambda _: None)
+    monkeypatch.setattr(c.time, 'sleep', lambda _: None)
+    monkeypatch.setattr(c, 'runbook', runbook)
+    c.operator(directory, workspace, contract, SimpleNamespace(namespace='autonomy-lab', cluster_name='autolab-00000000'),
+               {'quote_url': 'http://localhost:1', 'inventory_control_url': 'http://localhost:2'})
+    assert len(calls) == 1
+    assert len(list(workspace.glob('episode-*'))) == 2
+    assert c.read(workspace / 'escalation.json')['detail'] == 'No admitted procedure'
+    assert c.operation_rows(directory) == []
+
+
+def test_withdrawn_operator_reconciles_before_requesting_any_new_episode(evidence, tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+
+    from autonomy_lab import campaign as c
+
+    directory = tmp_path / 'campaign'
+    directory.mkdir()
+    workspace = directory / 'operator'
+    workspace.mkdir()
+    save(directory / 'owner.json', {'run_id': 'authored-campaign'})
+    save(directory / 'identities-before.json', {'Service/inventory': 'authored-uid'})
+    registry = p.Registry(directory / 'admission.sqlite')
+    registry.promote(evidence, 'runbook_fallback', expected_revision=0)
+    old = registry.start_episode('interrupted')
+    registry.withdraw(expected_revision=1)
+    broker = Mock()
+    monkeypatch.setattr(c, 'ActionBroker', lambda *a: broker)
+    monkeypatch.setattr(c, 'operation_rows', lambda _: [{'operation_id': 'authored-op', 'status': 'dispatching'}])
+    runner = Mock()
+    monkeypatch.setattr(c, 'runbook', runner)
+    contract = c.Contract.model_validate(c.read(c.ROOT / 'scenarios/campaign-withdrawal-uncertain.json'))
+    c.operator(directory, workspace, contract, SimpleNamespace(namespace='autonomy-lab', cluster_name='autolab-00000000'), {})
+    broker.reconcile.assert_called_once_with('authored-op')
+    broker.propose.assert_not_called()
+    runner.assert_not_called()
+    assert list(workspace.glob('episode-*')) == []
+    assert c.read(workspace / 'escalation.json')['reason'] == 'unresolved_prior_operations'
+    assert registry.pin('interrupted')['version'] == old['version']
+    with registry.transaction() as db:
+        assert db.execute('SELECT COUNT(*) FROM refusals').fetchone()[0] == 0

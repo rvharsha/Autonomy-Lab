@@ -1,7 +1,8 @@
 """Run real calibration trials and check a separate admission ledger.
 
-No persistent campaign consumes this ledger yet. Pins below exercise controller
-state, not dispatched work or a canary. Every failed attempt is retained.
+Pins below exercise controller state, not dispatched work. check_withdrawal
+separately consumes this release's evidence in live campaigns. Failed attempts
+are retained in both gates.
 """
 
 import argparse

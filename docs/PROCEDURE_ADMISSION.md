@@ -58,10 +58,10 @@ A pin is not broker authority, execution permission, or permission to replay a
 write. New pins also refuse source drift. Existing pin lookup deliberately does
 not execute or validate executable code.
 
-This ledger is **not yet consumed by the persistent campaign**. The live checker
-uses real evaluation receipts but exercises the ledger with a calibration pin;
-it does not demonstrate withdrawal during an actual dispatched operation. No
-production service consumes these admissions. Controller, evaluator and host
+The calibration checker exercises a separate ledger with a calibration pin.
+Opt-in persistent campaigns now consume the evaluated release through a fresh
+campaign ledger; the [live withdrawal protocol](PROCEDURE_WITHDRAWAL.md) checks
+that integration separately. No production service consumes these admissions. Controller, evaluator and host
 storage are trusted. Hashes detect changes against the checkout; they do not
 authenticate hostile, self-authored artifacts. The proposer has no API in this
 slice, and cannot edit verifier, broker, pass criteria or supported procedures.
@@ -74,10 +74,9 @@ and unchanged historical pins. These fixtures are not experiment outcomes.
 The live calibration must separately establish the expected rejection and
 acceptance from real Kubernetes, application, database and API audit evidence.
 
-Next, integrate admission into the persistent operator with a frozen canary
-contract. Pin the version before each episode, preserve that binding and the
-existing broker operation ID/budget through interruption, and withdraw during
-an actual unresolved operation. Require independent workload measurements,
-unchanged resource UIDs, no replay and no post-withdrawal admissions. Only after
-that boundary passes should a proposer attempt a new improvement against
+The next gate pins the version before each real episode, preserves that binding
+and the existing broker operation ID/budget through interruption, and withdraws
+during an actual unresolved operation. It also isolates withdrawal's effect in a
+healthy campaign with no unresolved operations. Only after that boundary passes
+should a proposer attempt a new improvement against
 separately frozen counterexamples and a competent maintained baseline.

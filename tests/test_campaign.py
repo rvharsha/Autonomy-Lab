@@ -239,3 +239,26 @@ def test_finished_owner_requires_successful_finalization(campaign):
     assert scorecard(campaign)['owner_finished'] is True
     save(campaign / 'failed.json', {'error_type': 'AuthoredFailure'})
     assert scorecard(campaign)['owner_finished'] is False
+
+
+@pytest.mark.parametrize('admitted,calibration', [(None, 'unexpected'), ('runbook_fallback', None)])
+def test_admission_mode_cannot_silently_fall_back_to_fixed_procedure(tmp_path, admitted, calibration):
+    from autonomy_lab.campaign import own
+    contract = json.loads((ROOT / 'scenarios/campaign-restart.json').read_text())
+    contract['admitted_procedure'] = admitted
+    save(tmp_path / 'manifest.json', contract)
+    with patch('autonomy_lab.campaign.provision') as provision, pytest.raises(ValueError, match='calibration'):
+        own(tmp_path / 'manifest.json', tmp_path / 'campaign', calibration=calibration)
+    provision.assert_not_called()
+    assert not (tmp_path / 'campaign').exists()
+
+
+def test_finish_barrier_refuses_owner_loss_and_wrong_episode_release(tmp_path):
+    from autonomy_lab.campaign import finish_barrier
+    episode = tmp_path / 'episode-authored'
+    with patch('autonomy_lab.campaign.active', side_effect=RuntimeError('owner absent')):
+        with pytest.raises(RuntimeError, match='owner absent'):
+            finish_barrier(tmp_path, tmp_path, episode)
+    save(tmp_path / 'finish-release.json', {'episode': 'different'})
+    with patch('autonomy_lab.campaign.active'), pytest.raises(ValueError, match='differs'):
+        finish_barrier(tmp_path, tmp_path, episode)

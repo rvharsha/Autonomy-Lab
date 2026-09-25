@@ -22,8 +22,8 @@ jobs:
         with:
           version: '0.9.3'
       - run: make setup
-      - name: Calibrate admission against complete real evaluation evidence
-        run: PYTHONPATH=src .venv/bin/python scripts/check_procedures.py --execute
+      - name: Calibrate admission and withdraw during real persistent episodes
+        run: PYTHONPATH=src .venv/bin/python scripts/check_withdrawal.py --execute
       - name: Retain allowlisted calibration evidence, including failed attempts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -45,6 +45,36 @@ jobs:
             artifacts/experiment-*/trial-*/final-verification.json
             artifacts/experiment-*/trial-*/evidence.jsonl
             artifacts/experiment-*/trial-*/server-audit.json
+            artifacts/withdrawal-gate-*/declaration.json
+            artifacts/withdrawal-gate-*/result.json
+            artifacts/withdrawal-gate-*/*/declaration.json
+            artifacts/withdrawal-gate-*/*/record.json
+            artifacts/withdrawal-gate-*/*/result.json
+            artifacts/withdrawal-gate-*/*/before-kill.json
+            artifacts/withdrawal-gate-*/*/scorecard-*.json
+            artifacts/withdrawal-gate-*/*/evaluation-*.json
+            artifacts/withdrawal-gate-*/*/server-audit.json
+            artifacts/withdrawal-gate-*/*/campaign/contract.json
+            artifacts/withdrawal-gate-*/*/campaign/window.json
+            artifacts/withdrawal-gate-*/*/campaign/source.json
+            artifacts/withdrawal-gate-*/*/campaign/identities-*.json
+            artifacts/withdrawal-gate-*/*/campaign/admission.json
+            artifacts/withdrawal-gate-*/*/campaign/admission.sqlite
+            artifacts/withdrawal-gate-*/*/campaign/operations.sqlite
+            artifacts/withdrawal-gate-*/*/campaign/finished.json
+            artifacts/withdrawal-gate-*/*/campaign/failed.json
+            artifacts/withdrawal-gate-*/*/campaign/finalization.json
+            artifacts/withdrawal-gate-*/*/campaign/cleanup.json
+            artifacts/withdrawal-gate-*/*/campaign/samples/*.json
+            artifacts/withdrawal-gate-*/*/campaign/workers/*/attempt.json
+            artifacts/withdrawal-gate-*/*/campaign/workers/*/ready.json
+            artifacts/withdrawal-gate-*/*/campaign/workers/*/finished.json
+            artifacts/withdrawal-gate-*/*/campaign/workers/*/failed.json
+            artifacts/withdrawal-gate-*/*/campaign/workers/*/escalation.json
+            artifacts/withdrawal-gate-*/*/campaign/workers/*/*-barrier.json
+            artifacts/withdrawal-gate-*/*/campaign/workers/*/finish-release.json
+            artifacts/withdrawal-gate-*/*/campaign/workers/*/episode-*/*.json
+            artifacts/withdrawal-gate-*/*/campaign/workers/*/episode-*/evidence.jsonl
           if-no-files-found: warn
           retention-days: 14
   telemetry-loss:

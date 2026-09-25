@@ -20,7 +20,7 @@ import time
 import uuid
 from contextlib import ExitStack, closing, contextmanager
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -29,6 +29,7 @@ from autonomy_lab.environment import provision, service_identity
 from autonomy_lab.harness import save
 from autonomy_lab.janitor import cleanup, process_identity
 from autonomy_lab.kubernetes import ROOT, Kubernetes
+from autonomy_lab.procedures import Refused, Registry, require
 from autonomy_lab.runbook import run as runbook
 from autonomy_lab.toolbox import ObservationTools
 from autonomy_lab.verifier import verify
@@ -51,6 +52,8 @@ class Contract(BaseModel):
     lease_seconds: Annotated[int, Field(strict=True, ge=1200, le=3600)]
     # Trusted test controller only: freeze before provisioning, never actor input.
     test_pause_after_dispatch: bool = False
+    admitted_procedure: Literal['runbook', 'runbook_fallback'] | None = None
+    test_pause_before_finish: bool = False
 
     @model_validator(mode='after')
     def valid_schedule(self):
@@ -59,6 +62,8 @@ class Contract(BaseModel):
                 or self.max_restart_downtime_seconds >= self.duration_seconds
                 or self.operator_interval_seconds >= self.duration_seconds):
             raise ValueError('Invalid campaign schedule')
+        if self.test_pause_before_finish and self.admitted_procedure is None:
+            raise ValueError('Finish barrier requires an admitted procedure')
         return self
 
 
@@ -205,8 +210,21 @@ def dispatch_barrier(stage, directory, workspace, broker):
         time.sleep(0.1)
 
 
+def finish_barrier(directory, workspace, episode):
+    """Trusted canary hook: hold a pinned episode before committing its claim."""
+    save(workspace / 'finish-barrier.json', {'at': time.time(), 'episode': episode.name})
+    release = workspace / 'finish-release.json'
+    while not release.exists():
+        active(directory)
+        time.sleep(0.1)
+    active(directory)
+    require(read(release) == {'episode': episode.name}, 'Finish release differs from episode')
+
+
 def operator(directory, workspace, contract, kube, verification):
     broker_kube = Kubernetes(directory / 'broker-kubeconfig', kube.cluster_name)
+    registry = Registry(directory / 'admission.sqlite') if contract.admitted_procedure else None
+    pin = None
 
     class Adapter:
         def get_service(self, namespace, name):
@@ -218,6 +236,12 @@ def operator(directory, workspace, contract, kube, verification):
                            if row['status'] == 'dispatching' and row['owner'] == broker.owner]
             if len(dispatching) != 1:
                 raise RuntimeError('Cannot attribute campaign dispatch to one operation')
+            if registry is not None:
+                require(pin is not None, 'Dispatch has no admitted episode')
+                # Durable before the API write, even if its acknowledgement is lost.
+                binding = episode / 'operation.json'
+                require(not binding.exists(), 'Episode already attempted a dispatch')
+                save(binding, {'at': time.time(), 'operation_id': dispatching[0]['operation_id'], 'pin': pin})
             broker_kube.audit_operation_id = dispatching[0]['operation_id']
             return broker_kube.patch_service(namespace, name, patch)
 
@@ -241,6 +265,16 @@ def operator(directory, workspace, contract, kube, verification):
         episode = workspace / ('episode-' + uuid.uuid4().hex)
         episode.mkdir()
         save(episode / 'attempt.json', {'started_at': time.time()})
+        pin = None
+        if registry is not None:
+            try:
+                pin = registry.start_episode(episode.name)
+                require(pin['variant'] == contract.admitted_procedure, 'Admitted variant differs from contract')
+            except Refused as error:
+                save(workspace / 'escalation.json', {'reason': 'procedure_admission_refused',
+                     'detail': str(error), 'episode': episode.name, 'at': time.time()})
+                return
+            save(episode / 'procedure.json', {'at': time.time(), **pin})
 
         def verify_current():
             result = verify(**verification, window_seconds=contract.sample_window_seconds,
@@ -249,9 +283,15 @@ def operator(directory, workspace, contract, kube, verification):
             save(episode / ('verification-' + uuid.uuid4().hex + '.json'), result)
             return result
 
-        tools = ObservationTools(observer_kube, broker, verification['quote_url'],
-                                 verification['inventory_control_url'], verify_current, episode, policy.run_id)
-        outcome = runbook(tools, verification_fallback=True)
+        class EpisodeTools(ObservationTools):
+            def _execute(self, name, args):
+                if name == 'finish' and contract.test_pause_before_finish:
+                    finish_barrier(directory, workspace, episode)
+                return super()._execute(name, args)
+
+        tools = EpisodeTools(observer_kube, broker, verification['quote_url'],
+                             verification['inventory_control_url'], verify_current, episode, policy.run_id)
+        outcome = runbook(tools, verification_fallback=pin['variant'] == 'runbook_fallback' if pin else True)
         save(episode / 'outcome.json', {'finished_at': time.time(), 'claim': outcome})
         # An escalation requires explicit follow-up; do not create new IDs forever.
         if outcome.get('outcome') == 'escalated':
@@ -343,8 +383,10 @@ def finalize_owner(directory, run_id, processes):
         raise RuntimeError('Owner finalization failed; original and cleanup failures retained')
 
 
-def own(manifest, directory):
+def own(manifest, directory, *, calibration=None):
     contract = Contract.model_validate(read(manifest))
+    if (calibration is not None) != (contract.admitted_procedure is not None):
+        raise ValueError('Admitted campaigns require calibration; fixed campaigns cannot consume it')
     directory.mkdir(mode=0o700)  # Existing campaigns cannot be resumed as owners.
     run_id = uuid.uuid4().hex[:8]
     identity = process_identity(os.getpid())
@@ -363,6 +405,11 @@ def own(manifest, directory):
     (directory / 'api-mutations.jsonl').touch(mode=0o600, exist_ok=False)
     processes = []
     try:
+        if calibration is not None:
+            registry = Registry(directory / 'admission.sqlite')
+            decision = registry.promote(calibration, contract.admitted_procedure, expected_revision=0)
+            save(directory / 'admission.json', decision)
+            require(decision['kind'] == 'promoted', 'Campaign procedure failed admission')
         kube = provision(directory, run_id, lease_seconds=contract.lease_seconds)
         for role in ('broker', 'verifier', 'observer'):
             service_identity(kube, directory, role)
@@ -403,6 +450,7 @@ def main():
     owner = commands.add_parser('own')
     owner.add_argument('manifest', type=Path)
     owner.add_argument('directory', type=Path)
+    owner.add_argument('--calibration', type=Path)
     launch = commands.add_parser('start-operator')
     launch.add_argument('directory', type=Path)
     child = commands.add_parser('worker')
@@ -412,7 +460,7 @@ def main():
     args = parser.parse_args()
     directory = args.directory.resolve()
     if args.command == 'own':
-        own(args.manifest, directory)
+        own(args.manifest, directory, calibration=args.calibration)
     elif args.command == 'start-operator':
         workspace, process = spawn_worker(directory, 'operator')
         wait_ready(workspace, process)
