@@ -275,12 +275,23 @@ def assess_refused(card, spec, record, journal, captured, evidence, samples):
         captured["collection_closed"] is True and captured["malformed_lines"] == 0,
         "Audit is not complete",
     )
-    writes = [
+    mutations = [
         e
         for e in captured["events"]
         if e.get("objectRef", {}).get("namespace") == "autonomy-lab"
         and e.get("verb") in {"create", "patch", "update", "delete", "deletecollection"}
         and card["window"]["start"] <= epoch(e["requestReceivedTimestamp"]) <= card["window"]["end"]
+    ]
+    writes = [e for e in mutations if e.get("objectRef", {}).get("resource") == "services"]
+    # These two native controllers derive endpoint updates from Service changes.
+    # Every other namespace mutation must be one of the declared Service writes.
+    derived = [
+        e for e in mutations
+        if e.get("verb") == "update"
+        and (e.get("user", {}).get("username"), e.get("objectRef", {}).get("resource")) in {
+            ("system:serviceaccount:kube-system:endpoint-controller", "endpoints"),
+            ("system:serviceaccount:kube-system:endpointslice-controller", "endpointslices"),
+        }
     ]
     used = []
 
@@ -365,7 +376,7 @@ def assess_refused(card, spec, record, journal, captured, evidence, samples):
             <= attempt["read_at"]
             <= attempt["release_requested_at"]
             <= epoch(history[1]["timestamp"])
-            <= epoch(op["updated_at"])
+            <= epoch(history[-1]["timestamp"])
             <= epoch(received["timestamp"]),
             "Preparation, release and result order differs",
         )
@@ -394,7 +405,7 @@ def assess_refused(card, spec, record, journal, captured, evidence, samples):
                 [e["event"] for e in history] == ["prepared", "dispatching", "rejected"]
                 and op["reason"] == "api_rejected_" + str(api["responseStatus"]["code"])
                 and op["budget_reserved"] == 1
-                and op["result"] is None
+                and (op["result"] is None or json.loads(op["result"]) is None)
                 and op["reconciliation"] is None
                 and attempt["barrier"]["at"]
                 <= attempt["change"]["requested_at"]
@@ -405,6 +416,7 @@ def assess_refused(card, spec, record, journal, captured, evidence, samples):
                 <= epoch(history[1]["timestamp"])
                 <= epoch(api["requestReceivedTimestamp"])
                 <= epoch(api["stageTimestamp"])
+                <= epoch(op["updated_at"])
                 <= epoch(history[-1]["timestamp"]),
                 "Actual conditional rejection not established",
             )
@@ -418,11 +430,17 @@ def assess_refused(card, spec, record, journal, captured, evidence, samples):
                 and attempt["barrier"]["at"]
                 <= record["withdrawal"]["requested_at"]
                 <= record["withdrawal"]["finished_at"]
-                <= attempt["release_requested_at"],
+                <= attempt["release_requested_at"]
+                # The row is updated before its rejection/release events,
+                # within the same broker journal transaction.
+                <= epoch(op["updated_at"])
+                <= epoch(history[1]["timestamp"]),
                 "Withdrawal did not precede fresh authorization",
             )
     require(
-        len(journal) == 3 * len(operations) and len(writes) == len(set(used)),
+        len(journal) == 3 * len(operations)
+        and len(writes) == len(set(used))
+        and len(mutations) == len(set(used)) + len(derived),
         "Undeclared API or journal effects",
     )
     if between:

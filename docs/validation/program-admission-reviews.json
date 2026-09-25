@@ -1,6 +1,6 @@
 {
   "status": "completed",
-  "generation_estimate_usd": 2.59193,
+  "generation_estimate_usd": 3.24927,
   "reviews": [
     {
       "kind": "logic",
@@ -166,6 +166,68 @@
         "snapshot_id": "c0288830b1e5c2314ca1d7af76690f59bbb290e3a471406fdb23a9b3122ba282",
         "source_bytes": 37675
       }
+    },
+    {
+      "kind": "evaluator",
+      "record_id": "20260925T171537.684531Z-mixed_state_gate.json",
+      "model": "claude-fable-5-1",
+      "started_at": "2026-09-25T17:15:37.684811+00:00",
+      "finished_at": "2026-09-25T17:16:29.320194+00:00",
+      "usage_cost_estimate_usd": 0.32276,
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/program_lifecycle.py",
+            "sha256": "82047ff4fde37c5d71281deb42d7461fb099642b302d623a5b2dc76434f222e8"
+          },
+          {
+            "path": "tests/test_program_lifecycle.py",
+            "sha256": "e7762782d70fe69f91d9ac191143bcb7b80a0464b25a2ebe975b89cafe392016"
+          },
+          {
+            "path": "src/autonomy_lab/broker.py",
+            "sha256": "c982d74c79842988091c1d79cb4a8c1f13e976c1592eb2b951d7314af263e888"
+          }
+        ],
+        "prompt_sha256": "aef8e89a8cdeab1f42fec9ab2500871e3b5c363ffb2e2e80f78d0ec2f49cb4c1",
+        "review_kind": "program_admission_evaluator_correction",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "734aa47c9349579e52b19c6f3a9354f10b9147ae0b4bd001cc983a941c6f7c53",
+        "source_bytes": 37585
+      }
+    },
+    {
+      "kind": "evaluator-final",
+      "record_id": "20260925T171845.981564Z-mixed_state_gate.json",
+      "model": "claude-fable-5-1",
+      "started_at": "2026-09-25T17:18:45.981754+00:00",
+      "finished_at": "2026-09-25T17:19:41.487339+00:00",
+      "usage_cost_estimate_usd": 0.33458,
+      "snapshot": {
+        "files": [
+          {
+            "path": "src/autonomy_lab/program_lifecycle.py",
+            "sha256": "fba444f80380dae8cdb9d2b76b386f921ba1857535fa7a7774c88805cd10e0f3"
+          },
+          {
+            "path": "tests/test_program_lifecycle.py",
+            "sha256": "104308fad1e5bb3ba0b2916861f10b09aa5d067e7b65c2c50cc95dd4088a1d97"
+          },
+          {
+            "path": "src/autonomy_lab/broker.py",
+            "sha256": "c982d74c79842988091c1d79cb4a8c1f13e976c1592eb2b951d7314af263e888"
+          },
+          {
+            "path": "src/autonomy_lab/kubernetes.py",
+            "sha256": "1812c19cb4cc63a723b06e085efab881bb548742573d20f42113c42b677f7730"
+          }
+        ],
+        "prompt_sha256": "0456f2b02c44766eef07afaedffb00033ec3971d20f097d89c3a8a8d733af148",
+        "review_kind": "program_admission_evaluator_final",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "6bb4e5b8ce6e28b7d42a360be26d3b7ef7e867d8ebd4ea6083f744b9d2c5e6e3",
+        "source_bytes": 37855
+      }
     }
   ],
   "final_source_sha256": {
@@ -178,15 +240,39 @@
     "src/autonomy_lab/broker.py": "c982d74c79842988091c1d79cb4a8c1f13e976c1592eb2b951d7314af263e888",
     "src/autonomy_lab/campaign.py": "a8824469a4e1b871a11af135619218fc181eb4ceea401d5c63890c83897469c5",
     "src/autonomy_lab/experiments.py": "cfeddb11cd4eed16a8f0fc4c62535dadc890809195eaff880a4f637787fae4c5",
+    "src/autonomy_lab/kubernetes.py": "1812c19cb4cc63a723b06e085efab881bb548742573d20f42113c42b677f7730",
     "src/autonomy_lab/procedure.py": "6e508650c8a94a3339441278f3599f8e5f6aa1d245d4eb053837d1ca38eb299a",
     "src/autonomy_lab/procedures.py": "ab197102f740d4a0c8d591c70a875c243dd4aa8919e168c311c2a48507325fb2",
     "src/autonomy_lab/program_admission.py": "42162838287b4f34a7485ae8608bedf319a7eabd20902671a3021bd141c452b6",
-    "src/autonomy_lab/program_lifecycle.py": "c1e2b2b1dda11790c4b02845acc25ea3ab7175be2aa894470128e859d82ea132",
+    "src/autonomy_lab/program_lifecycle.py": "4c91ae50667e02df416bd488d455dd5e4222eaed1e2bafcf9e013ab792391409",
     "src/autonomy_lab/scoring.py": "b03d31bfc5d85086f80029351a2bf8dcf7515db4ab10bc4006728273b8eb14f5",
     "tests/test_program_admission.py": "c3f5607efcb0a66d1cec8fc099d6e9673e926dc964ec789e4e3b0efe58a3a08f",
-    "tests/test_program_lifecycle.py": "7ecf7f34ed9dcc789605388bfa701978d8581a87a5af5b5e4908506fb9d39693"
+    "tests/test_program_lifecycle.py": "30dd16fc2455d856b58e9c7fd77a5de0782731b3f52ce2cc5edc69b091f837dd"
+  },
+  "failed_live_cohort": {
+    "run_id": "36160436498",
+    "source_commit": "81b4f44117cf9d03c6cc5af1a376b23650022461",
+    "status": "failed",
+    "calibration": "passed",
+    "stable": "passed",
+    "uncertain": "passed",
+    "before_first": "failed",
+    "between_attempts": "failed",
+    "original_exports": "reproduced byte-for-byte on original source; never retrospectively qualified"
   },
   "dispositions": [
+    {
+      "finding": "Real withdrawal evidence exposed incorrect evaluator assumptions about row/event order, JSON null, and native endpoint updates.",
+      "resolution": "Corrected evaluator ordering to match broker transactions; decode JSON null; allow only update events for exact endpoint-controller/endpoints and endpointslice-controller/endpointslices pairs. Every other namespace mutation must match declared Service writes. Added counterexamples; fresh full qualification required."
+    },
+    {
+      "finding": "Initial controller correction ignored non-Service writes by unlisted identities.",
+      "resolution": "Fixed after focused Fable review: exact controller/resource/verb exceptions replace actor filtering; admin, unknown, operator, default and anonymous mutations remain rejected."
+    },
+    {
+      "finding": "API rejection reason should use a colon.",
+      "resolution": "Not applicable to the actual Kubernetes transport: it raises PatchRejected with api_rejected_422, as retained in the real journal; the broker preserves that reason before its generic exception fallback. Adapter source included in final follow-up."
+    },
     {
       "finding": "Promotion must enforce the adverse calibration control itself.",
       "resolution": "Fixed: require exact task and environment misses in routing/lost_ack; bind reproduced control receipt digest. Direct promotion refusal is tested."
@@ -217,15 +303,16 @@
     }
   ],
   "validation": {
-    "local_tests": 1459,
+    "local_tests": 1482,
     "lint": "passed",
-    "live_ci": "pending at source freeze"
+    "live_ci": "fresh corrected cohort pending at source freeze; original 36160436498 failed and retained"
   },
   "limits": [
-    "Five bounded source reviews, not a human approval or whole-repository certification. No report review is claimed here.",
+    "Final correction review found no blocking defect. Its suggested rejection of empty-string result corruption was applied afterward and covered by tests; no further review is claimed.",
+    "Seven bounded source reviews, not a human approval or whole-repository certification. No report review is claimed here.",
     "First logic excerpt accidentally omitted broker.resume_prepared; both follow-up reviews include it. Excerpt hashes refer to whole files, not a claim that every line was submitted.",
     "AST excerpts omit decorators; actual contextmanager/staticmethod declarations were checked locally. _finish, start_episode and manifest integration are covered by local tests and forthcoming real qualification, not independently certified by Fable.",
-    "Two oversized count-only preflights made no generation call; scope was narrowed without expanding the review budget.",
+    "Four oversized count-only preflights made no generation call; scope was narrowed without expanding the review budget.",
     "Unit fixtures are authored counterexamples, never workload outcomes. The pending real cohort is development calibration, not a sealed holdout or model-value comparison."
   ]
 }

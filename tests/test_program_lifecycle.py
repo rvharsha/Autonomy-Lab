@@ -29,6 +29,9 @@ def authored(between):
         updated_at=stamp(1051.1 if between else 1049.1),
     )
     card["operations"][0]["updated_at"] = stamp(1049.4 if between else 1049.1)
+    if between:
+        # Broker._finish stores JSON null in the SQLite result column.
+        card["operations"][0]["result"] = "null"
     start = 1050.7 if between else 1048.1
     record["withdrawal"] = {"requested_at": start, "finished_at": start + 0.1}
     if between:
@@ -39,10 +42,10 @@ def authored(between):
             {
                 "event": kind,
                 "operation_id": op["operation_id"],
-                "timestamp": stamp(1051.1),
+                "timestamp": stamp(1051.1001 + index * 0.0001),
                 "details": {},
             }
-            for kind in ["rejected", "budget_released"]
+            for index, kind in enumerate(["rejected", "budget_released"])
         ]
         after = record["changed_service"]
     else:
@@ -55,10 +58,10 @@ def authored(between):
             {
                 "event": kind,
                 "operation_id": op["operation_id"],
-                "timestamp": stamp(1049.1),
+                "timestamp": stamp(1049.1001 + index * 0.0001),
                 "details": {},
             }
-            for kind in ["rejected", "budget_released"]
+            for index, kind in enumerate(["rejected", "budget_released"])
         ]
         after = record["before_change"]
     record["after_operations"] = copy.deepcopy(after)
@@ -72,6 +75,14 @@ def authored(between):
             budget_used=int(between),
             budget_reserved=bool(operation["budget_reserved"]),
         )
+    # Routing changes also produce ordinary Kubernetes controller writes.
+    for resource, controller in [("endpoints", "endpoint-controller"),
+                                 ("endpointslices", "endpointslice-controller")]:
+        event = copy.deepcopy(fixture["captured"]["events"][0])
+        event.update(auditID="authored-" + resource, verb="update",
+                     user={"username": "system:serviceaccount:kube-system:" + controller})
+        event["objectRef"]["resource"] = resource
+        fixture["captured"]["events"].insert(1, event)
     return {
         **{k: fixture[k] for k in ["card", "spec", "record", "journal", "captured", "evidence"]},
         "samples": fixture["raw_samples"],
@@ -81,6 +92,62 @@ def authored(between):
 @pytest.mark.parametrize("between", [False, True])
 def test_refused_authorization_preserves_customer_failure_and_prior_budget(between):
     assert p.assess_refused(**authored(between)) is True
+
+
+@pytest.mark.parametrize("between", [False, True])
+@pytest.mark.parametrize("damage", ["row_after_event", "row_before_release", "event_after_result"])
+def test_refused_journal_timestamps_must_follow_real_write_order(between, damage):
+    f = authored(between)
+    op = f["card"]["operations"][-1]
+    if damage == "row_after_event":
+        op["updated_at"] = stamp(1051.2 if between else 1049.2)
+    elif damage == "row_before_release":
+        op["updated_at"] = stamp(1050 if between else 1048)
+    else:
+        f["journal"][-1]["timestamp"] = stamp(1060)
+    with pytest.raises(Refused):
+        p.assess_refused(**f)
+
+
+@pytest.mark.parametrize("result", ['{"acknowledged":true}', "false", "0", '"null"', ""])
+def test_actual_api_rejection_cannot_contain_a_non_null_result(result):
+    f = authored(True)
+    f["card"]["operations"][0]["result"] = result
+    with pytest.raises(ValueError):
+        p.assess_refused(**f)
+
+
+def test_api_rejection_row_cannot_predate_the_actual_response():
+    f = authored(True)
+    f["card"]["operations"][0]["updated_at"] = stamp(1049.05)
+    with pytest.raises(Refused):
+        p.assess_refused(**f)
+
+
+@pytest.mark.parametrize("identity", [
+    "system:serviceaccount:autonomy-lab:" + role
+    for role in ["broker", "observer", "verifier", "operator-repair", "default"]
+] + ["kubernetes-admin", "system:anonymous", "system:serviceaccount:kube-system:unknown"])
+def test_actor_mutation_outside_services_cannot_hide_as_controller_work(identity):
+    f = authored(True)
+    event = next(e for e in f["captured"]["events"] if e["objectRef"]["resource"] == "endpointslices")
+    event["user"]["username"] = identity
+    with pytest.raises(Refused):
+        p.assess_refused(**f)
+
+
+@pytest.mark.parametrize("damage", ["other_resource", "other_controller", "other_verb"])
+def test_native_controller_exception_is_limited_to_its_derived_updates(damage):
+    f = authored(True)
+    event = next(e for e in f["captured"]["events"] if e["objectRef"]["resource"] == "endpointslices")
+    if damage == "other_resource":
+        event["objectRef"]["resource"] = "deployments"
+    elif damage == "other_controller":
+        event["user"]["username"] = "system:serviceaccount:kube-system:endpoint-controller"
+    else:
+        event["verb"] = "delete"
+    with pytest.raises(Refused):
+        p.assess_refused(**f)
 
 
 @pytest.mark.parametrize(
