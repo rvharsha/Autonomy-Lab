@@ -417,6 +417,7 @@ class ObservationTools:
                 "journal_status",
                 "budget_reserved",
                 "budget_used",
+                "budget_limit",
                 "request",
                 "result",
                 "reconciliation",

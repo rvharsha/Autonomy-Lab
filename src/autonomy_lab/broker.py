@@ -229,6 +229,7 @@ class ActionBroker:
                 result[key] = json.loads(result[key]) if result[key] else None
             result["budget_reserved"] = bool(result["budget_reserved"])
             result["budget_used"] = self._used(db, result["run_id"])
+            result["budget_limit"] = self.policy.max_dispatches
             if result["status"] == "dispatching" and owner != self.owner:
                 result["journal_status"] = "dispatching"
                 result["status"] = "uncertain"

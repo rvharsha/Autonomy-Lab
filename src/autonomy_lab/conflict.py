@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from collections import Counter
 
 from autonomy_lab.ambiguity import journal_events
 from autonomy_lab.campaign import Contract, read
@@ -197,10 +198,23 @@ def episode_records(path, committed):
             'uncommitted_sha256': hashlib.sha256(tail).hexdigest() if tail else None}
 
 
-def evaluate(gate):
+def verify_episode_records(path, records, window_seconds):
+    """A positive tool verdict needs its retained independently checked raw probe."""
+    available = Counter()
+    for verification in path.glob('verification-*.json'):
+        raw = read(verification)
+        verify_record(raw, window_seconds)
+        payload = {key: raw[key] for key in ('verdict', 'reasons', 'counts')}
+        available[json.dumps(payload, sort_keys=True)] += 1
+    for row in records:
+        if row['source'] == 'verify_recovery' and 'verdict' in row['payload']:
+            key = json.dumps(row['payload'], sort_keys=True)
+            require(available[key] > 0, 'Verification claim lacks matching raw evidence')
+            available[key] -= 1
+
+
+def load_evidence(gate, spec):
     directory = gate / 'campaign'
-    spec = read(gate / 'declaration.json')
-    require(spec == declaration(), 'Protocol or release changed')
     card = scorecard(directory)
     require(card['contract'] == spec['contract'], 'Campaign differs from frozen contract')
     sources = {p: sha for p, sha in spec['release_files'].items()
@@ -221,8 +235,15 @@ def evaluate(gate):
             if episode['outcome'] is not None:
                 require(records[-1]['source'] == 'finish'
                         and records[-1]['payload'] == episode['outcome']['claim'], 'Terminal evidence differs')
-            for verification in path.glob('verification-*.json'):
-                verify_record(read(verification), card['contract']['sample_window_seconds'])
+            verify_episode_records(path, records, card['contract']['sample_window_seconds'])
+    return card, samples, evidence
+
+
+def evaluate(gate):
+    directory = gate / 'campaign'
+    spec = read(gate / 'declaration.json')
+    require(spec == declaration(), 'Protocol or release changed')
+    card, samples, evidence = load_evidence(gate, spec)
     record = read(gate / 'record.json')
     barrier = read(directory / 'workers' / record['repair_worker'] / 'preflight-barrier.json')
     release = read(directory / 'workers' / record['repair_worker'] / 'preflight-release.json')

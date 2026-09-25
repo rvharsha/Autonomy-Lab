@@ -55,6 +55,8 @@ class Contract(BaseModel):
     admitted_procedure: Literal['runbook', 'runbook_fallback'] | None = None
     test_pause_before_finish: bool = False
     test_pause_before_dispatch: bool = False
+    # Reviewed experimental baseline; not eligible for known-variant admission.
+    bounded_refresh: bool = False
 
     @model_validator(mode='after')
     def valid_schedule(self):
@@ -67,6 +69,8 @@ class Contract(BaseModel):
             raise ValueError('Finish barrier requires an admitted procedure')
         if self.test_pause_before_dispatch and (self.test_pause_after_dispatch or self.test_pause_before_finish):
             raise ValueError('Pre-dispatch barrier cannot be combined with other barriers')
+        if self.bounded_refresh and self.admitted_procedure is not None:
+            raise ValueError('Bounded refresh has no admitted procedure definition')
         return self
 
 
@@ -224,7 +228,7 @@ def finish_barrier(directory, workspace, episode):
     require(read(release) == {'episode': episode.name}, 'Finish release differs from episode')
 
 
-def preflight_barrier(stage, directory, workspace, broker):
+def preflight_barrier(stage, directory, workspace, broker, *, per_operation=False):
     """Trusted controller pauses an already constructed conditional patch.
 
     This is after the broker's fresh read and before its dispatch claim. Only a
@@ -236,6 +240,9 @@ def preflight_barrier(stage, directory, workspace, broker):
             if row['status'] == 'prepared' and row['run_id'] == broker.policy.run_id]
     require(len(rows) == 1, 'Cannot identify prepared dispatch')
     operation_id = rows[0]['operation_id']
+    if per_operation:
+        workspace = workspace / 'preflight' / operation_id
+        workspace.mkdir(parents=True, exist_ok=True)
     path = workspace / 'preflight-barrier.json'
     require(not path.exists(), 'Preflight barrier already used')
     save(path, {'at': time.time(), 'operation_id': operation_id})
@@ -278,7 +285,8 @@ def operator(directory, workspace, contract, kube, verification):
     if contract.test_pause_after_dispatch:
         broker.hook = lambda stage: dispatch_barrier(stage, directory, workspace, broker)
     elif contract.test_pause_before_dispatch:
-        broker.hook = lambda stage: preflight_barrier(stage, directory, workspace, broker)
+        broker.hook = lambda stage: preflight_barrier(stage, directory, workspace, broker,
+                                                          per_operation=contract.bounded_refresh)
     unresolved = reconcile_pending(broker, directory)
     if unresolved:
         save(workspace / 'escalation.json', {'reason': 'unresolved_prior_operations', 'operation_ids': unresolved})
@@ -319,7 +327,8 @@ def operator(directory, workspace, contract, kube, verification):
 
         tools = EpisodeTools(observer_kube, broker, verification['quote_url'],
                              verification['inventory_control_url'], verify_current, episode, policy.run_id)
-        outcome = runbook(tools, verification_fallback=pin['variant'] == 'runbook_fallback' if pin else True)
+        outcome = runbook(tools, verification_fallback=pin['variant'] == 'runbook_fallback' if pin else True,
+                          bounded_refresh=contract.bounded_refresh)
         save(episode / 'outcome.json', {'finished_at': time.time(), 'claim': outcome})
         # An escalation requires explicit follow-up; do not create new IDs forever.
         if outcome.get('outcome') == 'escalated':

@@ -47,6 +47,9 @@ objective's achievement.
    targets that gap without changing the operating procedure; its baseline may
    correctly escalate while customer failure persists. That is an opportunity
    to evaluate an improvement, not evidence that an improvement already exists.
+   The opt-in [bounded-refresh baseline](BOUNDED_REFRESH.md) now defines the
+   maintained-automation comparison and three development gates. Its implementation
+   is authored, and it is not eligible for current known-variant admission.
    Keep the current routing authority. Freeze the fault schedule, deadlines,
    complete calendar, pass criteria and stop conditions before each experiment.
    Escalation can be correct while the service remains failed; retain both facts.
