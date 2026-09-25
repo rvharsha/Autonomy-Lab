@@ -1,0 +1,132 @@
+{
+  "scope": "persistent ambiguous-effect campaigns; technical source review",
+  "reviews": [
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T22:08:56.938642+00:00",
+      "finished_at": "2026-09-24T22:10:06.236724+00:00",
+      "generation_attempts": 1,
+      "findings_text": "**Findings (2), both correctness/durability of the scorer\u2019s failure path**\n\n**1. `evaluate()` crashes instead of scoring a failed attempt \u2014 `src/autonomy_lab/ambiguity.py`, `evaluate`, lines ~178\u2013182**\n\nThe doc/contract state that a missed barrier, failed fault, or missed deadline must produce a *failed* evaluation with preserved partial artifacts, and `assess_case` has an explicit `controller_completed`/`interrupted_operation_evidence = False` branch for that. That branch is unreachable through `evaluate()`:\n\n```\nevaluate(gate)\n  read(gate/'record.json')['repair_worker']            # KeyError if barrier/repair never happened\n  read(directory/'workers'/<repair_worker>/'dispatch-barrier.json')  # FileNotFoundError if barrier missed\n  read(gate/'before-kill.json')                        # FileNotFoundError if kill never reached\n```\n\nTrace: repair operator starts at 45 s, hook never reaches barrier by 70 s \u2192 controller records failure, no `dispatch-barrier.json`, no `before-kill.json`, `record.json` lacks `repair_worker`. Running the \u201cexport evaluations twice, byte-identical\u201d step raises; there is no `evaluation.json` at all, so the attempt is neither passed nor failed, and the \u201cfinish the other case after an ordinary failure\u201d path has nothing to compare.\n\nMinimal fix:\n\n```python\ndef evaluate(gate):\n    directory = gate / 'campaign'\n    record = read(gate / 'record.json')\n    def opt(path, default): return read(path) if path.is_file() else default\n    barrier = opt(directory/'workers'/str(record.get('repair_worker',''))/'dispatch-barrier.json', {}) if record.get('repair_worker') else {}\n    return assess_case(scorecard(directory), read(gate/'declaration.json'), record,\n                       opt(gate/'before-kill.json', []), barrier, journal_events(directory),\n                       read_events(directory/'server-audit'),\n                       {int(p.stem): read(p) for p in (directory/'samples').glob('*.json')})\n```\n\n**2. `assess_case` `complete` guard does not cover keys it then indexes \u2014 `ambiguity.py`, `required` (line ~66) vs `frozen_schedule`/`real_conditional_write_before_barrier` (lines ~93, ~117\u2013125)**\n\n`required` omits `initial_stop_requested_at`, `repair_requested_at`, and `run_id`, yet inside the `if complete` block the code uses `record['initial_stop_requested_at']`, `record['repair_requested_at']` (twice, also in `fault_samples`), `record['run_id']`, and `barrier['at']` (elsewhere `barrier.get('at', 0)`).\n\nTrace: controller loses/never writes `repair_requested_at` (e.g. crashed between repair start and journaling) but does write all `required` keys and `fault.finished_at` \u2192 `complete=True` \u2192 `KeyError: 'repair_requested_at'` at `frozen_schedule` \u2192 whole evaluation aborts rather than returning `status: failed`. Same for a barrier file lacking `at` (the `.get('at', 0)` elsewhere shows the author expected that possibility): `record['kill_requested_at'] - barrier['at']` raises.\n\nMinimal fix:\n\n```python\nrequired = ('initial_stop_requested_at', 'initial_stopped_at', 'repair_requested_at', 'repair_worker',\n            'repair_ready_at', 'stopped_at', 'kill_requested_at', 'restart_requested_at',\n            'resumed_worker', 'resumed_ready_at', 'run_id')\ncomplete = (all(key in record for key in required) and bool(record.get('fault', {}).get('finished_at'))\n            and isinstance(barrier.get('at'), (int, float)))\n```\n\nand replace `barrier['at']` with `barrier.get('at', 0)` (or rely on the guard).\n\n**Missing evidence (not defects):** `epoch`, `routing_only`, `scorecard`, `client_path_failed`, `harness.save` and `check_ambiguity.py` are not supplied; the byte-identical double-export claim, barrier hook, and SIGKILL scoping are unreviewed. No false-pass path was substantiated in `assess`/`assess_case` with the supplied code; both defects above turn required *failures* into unscored crashes.\n\nSnapshot 3572ac7b0b753bf3f3affb087bb5e84fe000bdf651e23ac6320a8668757cc6c3",
+      "usage_cost_estimate_usd": 0.37558,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "http_status": 200,
+      "snapshot": {
+        "files": [
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/ambiguity.py",
+            "sha256": "6210966205bae675316c10aa6a5a7b0c28d29b430fbbb16fb9addd51b9efc0b7"
+          },
+          {
+            "included": "full_source",
+            "path": "src/autonomy_lab/audit.py",
+            "sha256": "3a0fc211258421bdea43828d80c2673dc3e86f9c8b050a716407db36c6138cc5"
+          },
+          {
+            "included": "full_source",
+            "path": "scenarios/campaign-ambiguity.json",
+            "sha256": "38bc3e028ab559a53269089533535373605ee0797ae8746e04cd247dde2214c9"
+          },
+          {
+            "included": "full_source",
+            "path": "docs/AMBIGUITY_EXPERIMENT.md",
+            "sha256": "b9ec224adea3228bc3ad22c4fda3ee83b872a11612988d73a51600b394e54458"
+          },
+          {
+            "included": "test_names_only",
+            "path": "tests/test_ambiguity.py",
+            "sha256": "b21bbd443b7bd78b46914cc369d12514a41affc80ae97964e5811a905cd3fe2c"
+          }
+        ],
+        "prompt_sha256": "5e53200347451962cbacc485aa673426b3a6395d366e304059219ee39488f92a",
+        "review_kind": "persistent_ambiguity_scoring",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "3572ac7b0b753bf3f3affb087bb5e84fe000bdf651e23ac6320a8668757cc6c3",
+        "source_bytes": 28518
+      }
+    },
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "started_at": "2026-09-24T22:08:58.523982+00:00",
+      "finished_at": "2026-09-24T22:09:57.408725+00:00",
+      "generation_attempts": 1,
+      "findings_text": "**Findings (2)**\n\n**1. Dispatch budget off-by-one \u2014 `src/autonomy_lab/broker.py`, `resume_prepared`, the `BEGIN IMMEDIATE` block**\n\n```python\nif reason is None and self._used(db, proposal.run_id) > self.policy.max_dispatches:\n    reason = \"budget_revoked\"\n```\n\n`_used` counts dispatches already reserved (per supplied context: cumulative reserved dispatches) and the current row is only reserved by the subsequent `UPDATE`. So with `max_dispatches = 2` (`scenarios/campaign-ambiguity.json`):\n\n- dispatch 1: `_used=0`, `0 > 2` false \u2192 `dispatching`\n- dispatch 2: `_used=1`, `1 > 2` false \u2192 `dispatching`\n- dispatch 3: `_used=2`, `2 > 2` false \u2192 `dispatching` (third real API write)\n\nThe contract allows N+1 real cluster writes. In this gate the ambiguous `dispatching\u2192uncertain` row keeps `budget_reserved=1`, so a resumed operator (if the escalation path were ever bypassed or a later restart made a new proposal) could still send a third patch. Caveat: if `_policy_reason` independently enforces the budget with `>=`, this is only dead defence; the supplied source does not show that.\n\nFix:\n```python\nif reason is None and self._used(db, proposal.run_id) >= self.policy.max_dispatches:\n```\n\n**2. Local pre-transport failure recorded as transport ambiguity \u2014 `src/autonomy_lab/campaign.py` `Adapter.patch_service` + `broker.py` `resume_prepared` except-branch**\n\n`Adapter.patch_service` raises `RuntimeError` from `active(directory)` (owner lease expired / `ending.json` / outside window) or `'Cannot attribute campaign dispatch to one operation'` *before* `broker_kube.patch_service` is ever invoked. In `resume_prepared`:\n\n```python\nexcept Exception as error:\n    if isinstance(error, PatchRejected): ...\n    code = getattr(error, \"status_code\", None) ...   # None for RuntimeError\n    if code in (400, ...): ...\n    return self._finish(operation_id, \"uncertain\", \"dispatch_outcome_unknown\")\n```\n\nTrace: repair operator prepares op; `UPDATE ... status='dispatching'` commits; `active()` raises because `window['end']` was reached (or owner wrote `ending.json`) \u2192 no HTTP request sent \u2192 row finishes `uncertain/dispatch_outcome_unknown`, budget stays reserved, `reconcile_pending` on next start escalates. Nothing was sent, yet the ledger claims a possibly-applied effect; the scorecard/evaluation then counts a fabricated ambiguity, and the reserved dispatch is lost. The row can never be distinguished from a genuine network-timeout ambiguity downstream. (Same misclassification for `PermissionError`, `FileNotFoundError` on `operations.sqlite` read, etc.)\n\nMinimal fix: have the adapter signal \"not sent\" distinctly and map it to a definite state:\n\n```python\nclass NotDispatched(RuntimeError): ...\n# Adapter.patch_service\ntry:\n    active(directory); ...checks...\nexcept Exception as e:\n    raise NotDispatched(str(e)) from e\nreturn broker_kube.patch_service(namespace, name, patch)\n\n# resume_prepared\nexcept NotDispatched as error:\n    return self._finish(operation_id, \"rejected\", f\"not_dispatched:{type(error.__cause__).__name__}\")\n```\n(and release `budget_reserved` in that `_finish` path, as `_reject_prepared` does).\n\n**Missing evidence (not defects):** `_used`, `_policy_reason`, `_finish`, `stop_and_reap`, `finalize_gate`, `evaluate`, and the owner's worker registration are not supplied; finding 1 depends on `_used` semantics as described in context.\n\nSnapshot c770230524dc85356c9c57ae82accbff0352b8f319eac058f2bd5a19d2090ec9",
+      "usage_cost_estimate_usd": 0.32575,
+      "limitations": "Source snapshot review only; no tools, execution, continuation, or automatic approval",
+      "http_status": 200,
+      "snapshot": {
+        "files": [
+          {
+            "included": "full_source",
+            "path": "scripts/check_ambiguity.py",
+            "sha256": "732156fe677f4a13a1003eebfb2fafc03b77464c2130fe238394c93b98c3b120"
+          },
+          {
+            "included": "selected_functions: active,dispatch_barrier,operation_rows,operator,owner_alive,reconcile_pending,spawn_worker,stop_worker,wait_ready,worker",
+            "path": "src/autonomy_lab/campaign.py",
+            "sha256": "8f2b9d6e2589477a8117bdac3fb3a2b3e1db31d1e8043c39eaa7e936f527d737"
+          },
+          {
+            "included": "selected_functions: resume_prepared,reconcile",
+            "path": "src/autonomy_lab/broker.py",
+            "sha256": "64b02b1e17171524fdc612aa8f520fec4c3eecda0782ef42a28f698ff4af812b"
+          },
+          {
+            "included": "full_source",
+            "path": "scenarios/campaign-ambiguity.json",
+            "sha256": "38bc3e028ab559a53269089533535373605ee0797ae8746e04cd247dde2214c9"
+          }
+        ],
+        "prompt_sha256": "dffe2540ccf5f2e9897612579558fd62ac22e635e24f24777ec21fcba142a1e3",
+        "review_kind": "persistent_ambiguity_runtime",
+        "scope": "mixed_state_gate",
+        "snapshot_id": "c770230524dc85356c9c57ae82accbff0352b8f319eac058f2bd5a19d2090ec9",
+        "source_bytes": 26837
+      }
+    }
+  ],
+  "dispositions": [
+    {
+      "review": "scoring",
+      "finding": 1,
+      "decision": "fixed",
+      "reason": "Optional barrier, controller and journal receipts now allow partial evaluation; the controller also writes evaluation-final when a frozen window exists. A failed case already had a failed result receipt, but independent partial assessment is now available.",
+      "test": "test_partial_attempt_exports_failed_evaluation_without_a_barrier_or_journal"
+    },
+    {
+      "review": "scoring",
+      "finding": 2,
+      "decision": "fixed",
+      "reason": "Require every indexed controller field, fault timestamps, and barrier identity/time before assessing the complete path. Atomic controller saves normally preserve these fields together; missing exported receipts now fail the assessment.",
+      "test": "test_missing_controller_fields_produce_a_failed_assessment"
+    },
+    {
+      "review": "runtime",
+      "finding": 1,
+      "decision": "not_applicable",
+      "reason": "The focused snapshot omitted propose(): it reserves budget when the prepared row is inserted, after a >= limit check. _used includes this current reservation, so resume_prepared must use > for later policy reduction; changing it to >= would incorrectly reject the last allowed dispatch. Existing broker and recurrence tests cover cumulative authority."
+    },
+    {
+      "review": "runtime",
+      "finding": 2,
+      "decision": "conservative_existing_behavior_retained",
+      "reason": "A local failure after durable dispatch start may conservatively remain uncertain even if no transport occurred. It cannot pass this gate: a real successful conditional API write, completed response, after-dispatch barrier and pre-kill dispatching journal are all required. No claim of exact pretransport classification or automatic budget reclamation is made."
+    }
+  ],
+  "followup_validation": "Focused adversarial tests cover the fixes; Fable reviewed the earlier snapshot and is not claimed to have approved the changed source.",
+  "final_component_sha256": {
+    "src/autonomy_lab/ambiguity.py": "65cd0203103ebebea7ea504a00acce04abe1b10959221a304bc01bc6586d81be",
+    "scripts/check_ambiguity.py": "e214ebca1e1a17c8574f70776d569bccce9559e622877e6250a083614613d9d0",
+    "src/autonomy_lab/campaign.py": "8f2b9d6e2589477a8117bdac3fb3a2b3e1db31d1e8043c39eaa7e936f527d737",
+    "tests/test_ambiguity.py": "06697826c110ac0b6403dc34fe4bf4d3040d8d8e460068ca2c4452ee4f66b646"
+  },
+  "self_review_followup": {
+    "finding": "A failed unchanged case could label expected recovery as observed recovery in its summary.",
+    "decision": "fixed after completing the frozen runs",
+    "change": "Derive service_recovered from independent post-restart slots; return null for missing/unknown coverage. No acceptance criteria changed.",
+    "tests": "test_failed_attempt_does_not_report_expected_recovery_as_observed",
+    "validation": "Both completed GCP scorecards/evaluations reproduce identical bytes with the original scorer and reporting correction. The follow-up is covered by two authored cases and subsequent real CI."
+  }
+}
