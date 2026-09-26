@@ -41,7 +41,7 @@ def fresh_service(kube):
             {'op': 'test', 'path': '/metadata/uid', 'value': old['metadata']['uid']},
             {'op': 'remove', 'path': '/metadata/finalizers'},
         ])
-    kube.call('delete', 'service', 'inventory', '--wait=true', '--timeout=20s')
+    kube.call('delete', 'service', 'inventory', '--ignore-not-found=true', '--wait=true', '--timeout=20s')
     body = {'apiVersion': 'v1', 'kind': 'Service', 'metadata': {
         'namespace': kube.namespace, 'name': 'inventory',
         'annotations': {HEARTBEAT: 'tick-0', AUTHORITY: 'enabled'}},

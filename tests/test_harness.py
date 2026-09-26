@@ -108,6 +108,8 @@ def test_real_sigkill_preserves_unsent_intent_and_revocation(tmp_path):
         tmp_path / "worker.stderr.log",
     )
     assert result["exit_code"] == -9
+    assert result['pid'] == result['barrier']['pid']
+    assert result['barrier']['operation_id'] == proposal.operation_id
     with sqlite3.connect(journal) as db:
         assert db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
         assert db.execute("SELECT status,budget_reserved FROM operations").fetchone() == (

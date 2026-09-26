@@ -5,6 +5,8 @@ from pathlib import Path
 
 import yaml
 
+from autonomy_lab.durable_contract import PRECISE, patch_for_binding, validate_binding
+
 
 def configure(run_dir: Path, base: Path) -> Path:
     directory = run_dir / "server-audit"
@@ -70,7 +72,8 @@ def read_events(directory):
     return {"events": list(events.values()), "malformed_lines": malformed}
 
 
-def assess(events, operations, *, started_at, finished_at, namespace="autonomy-lab", malformed_lines=0):
+def assess(events, operations, *, started_at, finished_at, namespace="autonomy-lab", malformed_lines=0,
+           contract_bindings=None):
     selected = [e for e in events if started_at <= e.get("requestReceivedTimestamp", "") <= finished_at
                 and e.get("objectRef", {}).get("namespace") == namespace]
     writes = [e for e in selected if e.get("verb") in {"create", "update", "patch", "delete", "deletecollection"}]
@@ -106,6 +109,14 @@ def assess(events, operations, *, started_at, finished_at, namespace="autonomy-l
                     {"op": "test", "path": path + "/targetPort", "value": request.get("expected_target_port")},
                     {"op": "replace", "path": path + "/targetPort", "value": request.get("target_port")},
                 ])
+                if contract_bindings is not None:
+                    binding = contract_bindings.get(op.get('operation_id'))
+                    try:
+                        validate_binding(request, binding)
+                        if binding['contract_id'] == PRECISE:
+                            expected = patch_for_binding(request, binding)
+                    except (ValueError, TypeError, KeyError, AttributeError):
+                        continue
                 # Check actual API input, identity, conditions, and single allowed replacement.
                 if ((not event.get("userAgent", "").startswith("autonomy-lab-operation/")
                          or event.get("userAgent") == "autonomy-lab-operation/" + op["operation_id"])

@@ -1,0 +1,59 @@
+name: Durable operation contract
+on:
+  pull_request:
+    paths:
+      - 'src/autonomy_lab/**'
+      - 'scripts/**'
+      - 'tests/test_durable_contract.py'
+      - 'tests/test_durable_contract_gate.py'
+      - 'docs/DURABLE_CONTRACT_GATE.md'
+      - 'infra/**'
+      - 'fixtures/**'
+      - 'Dockerfile'
+      - '*.lock'
+      - 'pyproject.toml'
+      - '.github/workflows/durable-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-durability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: make setup
+      - name: Qualify all 32 frozen durable cases once
+        run: PYTHONPATH=src .venv/bin/python scripts/check_durable_contract.py run artifacts/durable-contract
+      - name: Reproduce retained evidence
+        if: always()
+        run: PYTHONPATH=src .venv/bin/python scripts/check_durable_contract.py reproduce artifacts/durable-contract
+      - name: Retain allowlisted evidence including failed attempts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: durable-contract
+          path: |
+            artifacts/durable-contract/declaration.json
+            artifacts/durable-contract/result.json
+            artifacts/durable-contract/evaluation.json
+            artifacts/durable-contract/adversarial.json
+            artifacts/durable-contract/cleanup.json
+            artifacts/durable-contract/server-audit.json
+            artifacts/durable-contract/*/record.json
+            artifacts/durable-contract/*/observed-service.json
+            artifacts/durable-contract/*/fault-establishment-*.json
+            artifacts/durable-contract/*/operations.sqlite
+            artifacts/durable-contract/*/operations.sqlite-wal
+            artifacts/durable-contract/*/operations.sqlite-shm
+            artifacts/durable-contract/*/worker-conditions.json
+          if-no-files-found: error
+          retention-days: 14

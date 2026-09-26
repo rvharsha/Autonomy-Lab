@@ -280,7 +280,7 @@ def kill_at_barrier(
             exit_code = process.wait(timeout=10)
             if exit_code != -signal.SIGKILL:
                 raise AssertionError(f"Expected SIGKILL termination, got {exit_code}")
-            return {"barrier": barrier, "exit_code": exit_code, "signal": "SIGKILL"}
+            return {"barrier": barrier, "pid": process.pid, "exit_code": exit_code, "signal": "SIGKILL"}
         finally:
             if process.poll() is None:
                 process.kill()
