@@ -20,6 +20,7 @@ from autonomy_lab.information_gate import (
     launch_decision,
     plan,
     select,
+    verify_preflight_refusals,
 )
 from autonomy_lab.kubernetes import ROOT
 
@@ -312,3 +313,86 @@ def test_failed_shard_require_is_recorded_and_other_shards_still_inspected(runne
     assert set(receipt['errors']) == {'shard-0', 'shard-1', 'shard-2'}
     assert receipt['errors']['shard-0']['error_type'] == 'Refused'
     assert receipt['shards']['0']['status'] == 'failed'
+
+
+def test_monitor_avoids_normal_expiry_race_without_hiding_early_owner_failure(runner, monkeypatch, tmp_path):
+    from autonomy_lab import campaign
+
+    window = {'start': 0, 'end': 90}
+    monkeypatch.setattr(campaign, 'owner_alive', lambda directory: None)
+    monkeypatch.setattr(campaign, 'read', lambda path: window)
+    ticks = iter([89.999, 90.001])
+    monkeypatch.setattr(runner.time, 'time', lambda: next(ticks))
+    # Reproduce the original two-read race, even with a still-live owner.
+    with pytest.raises(RuntimeError, match='Outside the frozen measurement window'):
+        if runner.time.time() < window['end']:
+            campaign.active(tmp_path)
+    monkeypatch.setattr(runner.time, 'time', lambda: 89.999)
+    assert runner.response_monitor_active(tmp_path, window, {'response_deadline_offset': 65}) is False
+    monkeypatch.setattr(runner.time, 'time', lambda: 64)
+
+    def absent(directory):
+        raise RuntimeError('Owner absent before response deadline')
+
+    monkeypatch.setattr(runner, 'active', absent)
+    with pytest.raises(RuntimeError, match='Owner absent'):
+        runner.response_monitor_active(tmp_path, window, {'response_deadline_offset': 65})
+
+
+@pytest.fixture
+def unsent_case(api_case):
+    card, spec, record, audit = api_case
+    op = card['operations'][0]
+    request = json.loads(op['request'])
+    request.update(run_id='run-1', evidence_ids=['observation-1'])
+    op.update(run_id='run-1', request=json.dumps(request), budget_reserved=0,
+              reason='resource_version_changed', result=None, reconciliation=None)
+    card['dispatch_budget_reserved'] = 0
+    record['barriers'] = []
+    audit['events'].pop()
+    journal = [{'operation_id': 'op-1', 'event': name, 'timestamp': stamp(30.6 + i / 10),
+                'details': {'reason': 'intent_recorded' if i == 0 else 'resource_version_changed'}}
+               for i, name in enumerate(('prepared', 'rejected', 'budget_released'))]
+    evidence = {'worker': [{'records': [
+        {'source': 'observe_service', 'observation_id': 'observation-1', 'payload': {}},
+        {'source': 'propose_repair', 'observation_id': 'proposal-1', 'timestamp': stamp(33.4),
+         'payload': {'operation_id': 'op-1', 'run_id': 'run-1', 'request': request, 'status': 'rejected',
+                     'reason': 'resource_version_changed', 'budget_reserved': False}}]}]}
+    return card, spec, record, audit, evidence, journal
+
+
+def test_preflight_refusal_is_not_a_dispatched_rejection(unsent_case):
+    card, spec, record, audit, evidence, journal = unsent_case
+    assert assess_api(card, spec, record, audit) == []
+    verify_preflight_refusals(card['operations'], evidence, journal)
+
+
+@pytest.mark.parametrize('change', ['missing_journal', 'dispatch_event', 'reason', 'missing_episode',
+                                   'future_evidence', 'empty_evidence', 'payload', 'time', 'fake_api'])
+def test_unsent_refusal_requires_journal_episode_and_no_actual_api_effect(unsent_case, change):
+    card, spec, record, audit, evidence, journal = unsent_case
+    payload = evidence['worker'][0]['records'][-1]['payload']
+    if change == 'missing_journal':
+        journal.pop()
+    elif change == 'dispatch_event':
+        journal[1]['event'] = 'dispatching'
+    elif change == 'reason':
+        journal[1]['details']['reason'] = 'api_rejected_422'
+    elif change == 'missing_episode':
+        evidence.clear()
+    elif change in {'future_evidence', 'empty_evidence'}:
+        payload['request']['evidence_ids'] = ['future'] if change == 'future_evidence' else []
+        card['operations'][0]['request'] = json.dumps(payload['request'])
+    elif change == 'payload':
+        payload['budget_reserved'] = True
+    elif change == 'time':
+        journal[-1]['timestamp'] = stamp(40)
+    else:
+        event = copy.deepcopy(audit['events'][0])
+        event['auditID'] = 'extra-broker-request'
+        event['user'] = {'username': 'system:serviceaccount:autonomy-lab:broker'}
+        event['userAgent'] = 'autonomy-lab-operation/op-1'
+        audit['events'].append(event)
+    with pytest.raises(ValueError):
+        assess_api(card, spec, record, audit)
+        verify_preflight_refusals(card['operations'], evidence, journal)

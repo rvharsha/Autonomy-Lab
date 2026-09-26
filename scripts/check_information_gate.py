@@ -57,6 +57,15 @@ def churn(gate):
     save(gate / 'churn.json', record)
 
 
+def response_monitor_active(directory, window, spec):
+    # Do not police active() at the owner's normal window-expiry boundary.
+    # Responses have an earlier deadline; the observer/owner still run to end.
+    if time.time() >= window['start'] + spec['response_deadline_offset']:
+        return False
+    active(directory)
+    return True
+
+
 def run_case(gate, spec):
     gate = gate.resolve()
     require(spec == declaration(spec['arm'], spec['context']), 'Frozen case changed')
@@ -71,6 +80,7 @@ def run_case(gate, spec):
         owner = subprocess.Popen([sys.executable, '-m', 'autonomy_lab.campaign', 'own',
                                   str(gate / 'manifest.json'), str(directory)], stdout=log, stderr=log,
                                  start_new_session=True, env=env)
+    stage = 'provisioning'
     try:
         window = await_file(directory / 'window.json', time.monotonic() + 900)
         start = window['start']
@@ -79,10 +89,12 @@ def run_case(gate, spec):
         cluster = read(directory / 'environment.json')['cluster']
         kube = Kubernetes(directory / 'kubeconfig', cluster)
         observer = Kubernetes(directory / 'observer-kubeconfig', cluster)
+        stage = 'initial_stop'
         wait_until(start + spec['stop_offset'])
         record['stop_requested_at'] = time.time()
         save(gate / 'record.json', record)
         record['stopped_at'] = stop_and_reap(initial, children)
+        stage = 'fault_injection'
         wait_until(start + spec['fault_offset'])
         change_routing(kube, directory, gate, record, 'fault', 8080, 9999)
         with (gate / 'churn.log').open('ab') as log:
@@ -90,8 +102,8 @@ def run_case(gate, spec):
                                           stdout=log, stderr=log, start_new_session=True, env=env)
         origin = start + spec['decision_offset']
         history, repair, index, terminal = [], None, 0, False
-        while time.time() < window['end']:
-            active(directory)
+        stage = 'response_monitor'
+        while response_monitor_active(directory, window, spec):
             require(controller.poll() in {None, 0}, 'Independent controller failed')
             if not terminal and time.time() >= origin + index:
                 row = {}
@@ -127,14 +139,17 @@ def run_case(gate, spec):
                         save(path.parent / 'preflight-release.json', {'operation_id': barrier['operation_id']})
             time.sleep(.025)
         require(terminal, 'Selector never finished')
-        require(controller.wait(timeout=5) == 0, 'Independent controller failed')
+        stage = 'controller_completion'
+        require(controller.wait(timeout=max(1, window['end'] - time.time())) == 0, 'Independent controller failed')
         frozen_churn = read(gate / 'churn.json')
         record.update(churn=frozen_churn['actions'], churn_finished=frozen_churn['finished'],
                       initial_annotations=frozen_churn['initial_annotations'])
         save(gate / 'record.json', record)
-        owner.wait(timeout=180)
+        stage = 'owner_completion'
+        owner.wait(timeout=max(1, window['end'] - time.time()) + 180)
         require(owner.returncode == 0, 'Campaign owner failed')
         capture_audit(gate)
+        stage = 'offline_export'
         for label in ('a', 'b'):
             save(gate / f'scorecard-{label}.json', scorecard(directory))
             save(gate / f'evaluation-{label}.json', evaluate(gate))
@@ -143,7 +158,7 @@ def run_case(gate, spec):
                     'Repeated offline exports differ')
         result.update(status='passed', evaluation=read(gate / 'evaluation-a.json'))
     except BaseException as error:
-        result['error_type'] = type(error).__name__
+        result.update(error_type=type(error).__name__, failed_stage=stage)
         raise
     finally:
         try:

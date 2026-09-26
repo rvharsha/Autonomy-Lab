@@ -90,3 +90,27 @@ invoices and human active time stay unknown. This is one routing fault with auth
 metadata interference on a trusted host, not production availability or indefinite
 ownership. The [workflow](../.github/workflows/information-gate.yml) uses freeze,
 run and reproduce commands and uploads only allowlisted credential-free evidence.
+
+## Implementation correction after the first cohort
+
+Source `e0b38b5` attempted all twelve cases; six passed and six failed, so no
+selection occurred. Two completed cases exposed an evaluator assumption that
+every journal entry is a dispatch: the broker had correctly refused a changed
+resource version before sending a request and released that unsent reservation.
+The corrected checker separates those refusals, requires their original
+prepared/rejected/budget-released history and unique episode evidence, and still
+attributes every actual API request. A dispatched rejection remains spent.
+
+Four other cases retained complete customer calendars but lacked normal owner
+completion and final identity inventory after a response-monitor RuntimeError.
+The source permits time to cross the window end between the loop condition and
+`active()`; the finalizer then interrupts the owner's normal completion. A
+deterministic clock-crossing test reproduces this race. The monitor now ends at
+the already-declared response deadline (65 seconds), leaving the observer and
+owner to complete the unchanged 90-second calendar. Failures also retain their
+stage. All original clusters were cleaned up, four through emergency cleanup;
+missing final inventories are not reclassified as unchanged resources.
+
+The original source, records and incomplete decision remain retained. A separate
+cohort qualifies the correction. Policies, authority, interventions, measurement
+calendar and advancement thresholds are unchanged.
