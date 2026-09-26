@@ -215,7 +215,12 @@ def assess(records, captured, cleanup):
                     row['dropped_real_response'] = record['dropped_response'] == event['responseObject']
             if case in KILLS:
                 row['real_sigkill'] = record['kill']['exit_code'] == -9 and record['kill']['signal'] == 'SIGKILL'
-                row['kill_stage'] = record['kill']['barrier']['stage'] == KILLS[case]
+                barrier = record['kill']['barrier']
+                row['kill_stage'] = (barrier['stage'] == KILLS[case]
+                                     and barrier['operation_id'] == request['operation_id']
+                                     and type(record['kill']['pid']) is int and record['kill']['pid'] > 0
+                                     and barrier['pid'] == record['kill']['pid'])
+                row['killed_intent'] = record['journal_at_kill']['operation_id'] == request['operation_id']
                 row['restart_binding'] = binding == record['binding_at_kill']
                 if case == 'kill_after_dispatch':
                     row['unrecorded_ack'] = record['journal_at_kill']['status'] == 'dispatching' and record['journal_at_kill']['result'] is None
@@ -255,11 +260,12 @@ def adversarial_checks(records, captured, cleanup):
     results = {}
     for defect in ('budget', 'journal', 'binding', 'controls', 'extra_patch', 'missing_reads',
                    'short_window', 'kill', 'uncertain_recovery', 'rebound', 'withdrawal', 'backend_success',
-                   'missing_snapshot'):
+                   'missing_snapshot', 'kill_operation', 'kill_pid'):
         changed, audit = copy.deepcopy(records), copy.deepcopy(captured)
         case = {'controls': 'heartbeat', 'kill': 'kill_after_dispatch',
                 'uncertain_recovery': 'lost_ack', 'withdrawal': 'withdrawn_aba',
-                'backend_success': 'backend_changed', 'missing_snapshot': 'contract_change_snapshot'}.get(defect, 'unchanged')
+                'backend_success': 'backend_changed', 'missing_snapshot': 'contract_change_snapshot',
+                'kill_operation': 'kill_after_dispatch', 'kill_pid': 'kill_after_dispatch'}.get(defect, 'unchanged')
         row = next(r for r in changed if r['case'] == case and r['contract'] == PRECISE)
         if defect == 'budget':
             row['operation']['budget_used'] = 0
@@ -280,6 +286,10 @@ def adversarial_checks(records, captured, cleanup):
             row['verification']['probes'] = row['verification']['probes'][:1]
         elif defect == 'kill':
             row['kill']['exit_code'] = 0
+        elif defect == 'kill_operation':
+            row['kill']['barrier']['operation_id'] = 'different-operation'
+        elif defect == 'kill_pid':
+            row['kill']['barrier']['pid'] += 1
         elif defect == 'uncertain_recovery':
             row['decision'] = 'verified_recovery'
         elif defect == 'rebound':
