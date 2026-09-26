@@ -135,7 +135,13 @@ def challenge(source):
                 path = gate / "record.json"
                 value = read(path)
                 if name == "wrong_barrier_phase":
-                    next(p for p in value["checkpoints"] if "change" in p)["stage"] = "intent"
+                    prepared = next(p for p in value["checkpoints"] if "change" in p)
+                    intent = next(
+                        p
+                        for p in value["checkpoints"]
+                        if p["operation_id"] == prepared["operation_id"] and p["stage"] == "intent"
+                    )
+                    intent["change"] = prepared.pop("change")
                 else:
                     value["second_fault"]["requested_at"] = value["fault"]["finished_at"]
                 save(path, value)
