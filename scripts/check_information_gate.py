@@ -192,9 +192,11 @@ def run_shard(plan_path, shard, destination):
                 run_case(gate, spec)
                 result['cases'][name] = read(gate / 'result.json')
             except Exception as error:
-                result['cases'][name] = {**(read(gate / 'result.json') if (gate / 'result.json').exists() else {}),
-                                         'status': 'failed', 'error_type': type(error).__name__}
-            result['cases'][name]['finished_at'] = time.time()
+                prior = read(gate / 'result.json') if (gate / 'result.json').exists() else {}
+                result['cases'][name] = {**prior, 'status': 'failed',
+                                         'error_type': prior.get('error_type', type(error).__name__),
+                                         'shard_error_type': type(error).__name__}
+            result['cases'][name].setdefault('finished_at', time.time())
             save(destination / 'result.json', result)
         result['status'] = 'passed' if all(c['status'] == 'passed' for c in result['cases'].values()) else 'failed'
     finally:

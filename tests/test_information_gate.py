@@ -1,22 +1,27 @@
 """Authored adversarial inputs, never presented as live experiment evidence."""
 
 import copy
+import importlib.util
 import json
 from datetime import UTC, datetime
 
 import pytest
 
+from autonomy_lab.campaign import read
 from autonomy_lab.conflict import repair_patch
+from autonomy_lab.harness import save
 from autonomy_lab.information_gate import (
     ARMS,
     CONTEXTS,
     assess_api,
     assess_decision,
+    churn_patch,
     declaration,
     launch_decision,
     plan,
     select,
 )
+from autonomy_lab.kubernetes import ROOT
 
 
 def history(versions, gap=1):
@@ -129,6 +134,38 @@ def test_actual_rejection_spends_budget(api_case):
     assess_api(*api_case)
 
 
+@pytest.mark.parametrize('change', [None, 'late', 'routing', 'response', 'missing', 'duplicate'])
+def test_independent_churn_requires_its_own_complete_api_evidence(api_case, change):
+    card, spec, record, audit = api_case
+    spec['churn_offsets'] = [24]
+    patch = churn_patch('service-1', {}, 0)
+    response = {'metadata': {'uid': 'service-1', 'resourceVersion': '3'}}
+    record['churn'] = [{'index': 0, 'requested_at': 24, 'finished_at': 24.4,
+                         'patch': patch, 'response': response}]
+    event = {**copy.deepcopy(audit['events'][0]), 'auditID': 'churn',
+             'userAgent': 'autonomy-lab-operation/information-churn-0', 'requestObject': copy.deepcopy(patch),
+             'responseObject': copy.deepcopy(response), 'requestReceivedTimestamp': stamp(24.1),
+             'stageTimestamp': stamp(24.2)}
+    audit['events'].append(event)
+    if change == 'late':
+        record['churn'][0]['requested_at'] = 25.1
+    elif change == 'routing':
+        # Even mutually consistent forged audit/controller records must obey scope.
+        record['churn'][0]['patch'].append({'op': 'replace', 'path': '/spec/ports/0/targetPort', 'value': 8080})
+        event['requestObject'] = copy.deepcopy(record['churn'][0]['patch'])
+    elif change == 'response':
+        event['responseObject']['metadata']['resourceVersion'] = 'unknown'
+    elif change == 'missing':
+        audit['events'].pop()
+    elif change == 'duplicate':
+        audit['events'].append(copy.deepcopy(event))
+    if change is None:
+        assess_api(*api_case)
+    else:
+        with pytest.raises(ValueError):
+            assess_api(*api_case)
+
+
 @pytest.mark.parametrize('change', ['missing', 'duplicate', 'extra_write', 'actor', 'patch', 'code',
                                    'unspent', 'early', 'late', 'churn', 'unfinished', 'extra_barrier'])
 def test_attribution_and_timing_cannot_be_omitted(api_case, change):
@@ -230,3 +267,48 @@ def test_incomplete_or_changed_cohort_blocks_decision(cohort, change):
         value['eligible'] = False
     with pytest.raises(ValueError):
         select(declared, results)
+
+
+@pytest.fixture
+def runner(monkeypatch):
+    monkeypatch.syspath_prepend(str(ROOT / 'scripts'))
+    spec = importlib.util.spec_from_file_location('check_information_gate', ROOT / 'scripts/check_information_gate.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_cleanup_failure_preserves_original_error_time_and_all_attempts(runner, tmp_path, monkeypatch):
+    declared, attempted = plan(), []
+    save(tmp_path / 'plan.json', declared)
+
+    def fail(gate, spec):
+        attempted.append(spec['arm'] + '-' + spec['context'])
+        save(gate / 'result.json', {'status': 'failed', 'error_type': 'TimeoutExpired',
+                                   'cleanup_errors': [{'stage': 'cleanup', 'error_type': 'RuntimeError'}],
+                                   'finished_at': 123.5})
+        raise RuntimeError('Authored finalization failure after the original timeout')
+
+    monkeypatch.setattr(runner, 'run_case', fail)
+    with pytest.raises(ValueError, match='incomplete'):
+        runner.run_shard(tmp_path / 'plan.json', 0, tmp_path / 'shard')
+    ledger = read(tmp_path / 'shard/result.json')
+    assert attempted == declared['shards'][0] and ledger['unrun'] == []
+    assert all(r['error_type'] == 'TimeoutExpired' and r['shard_error_type'] == 'RuntimeError'
+               and r['finished_at'] == 123.5 and r['cleanup_errors'] for r in ledger['cases'].values())
+
+
+def test_failed_shard_require_is_recorded_and_other_shards_still_inspected(runner, tmp_path):
+    declared = plan()
+    save(tmp_path / 'plan.json', declared)
+    path = tmp_path / 'source/information-gate-shard-0'
+    path.mkdir(parents=True)
+    save(path / 'plan.json', declared)
+    save(path / 'result.json', {'shard': 0, 'status': 'failed', 'unrun': declared['shards'][0], 'cases': {}})
+    with pytest.raises(ValueError, match='selection withheld'):
+        runner.reproduce(tmp_path / 'plan.json', tmp_path / 'source', tmp_path / 'replay')
+    receipt = read(tmp_path / 'replay/reproduction.json')
+    assert receipt['status'] == 'incomplete' and receipt['selection'] is None
+    assert set(receipt['errors']) == {'shard-0', 'shard-1', 'shard-2'}
+    assert receipt['errors']['shard-0']['error_type'] == 'Refused'
+    assert receipt['shards']['0']['status'] == 'failed'
