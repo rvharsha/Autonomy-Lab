@@ -88,6 +88,12 @@ def verification_valid(value, expectations, seconds=3):
             and epoch(value['finished_at']) - epoch(value['started_at']) >= seconds
             and all(p['verdict'] == v['verdict'] and p['reasons'] == v['reasons']
                     for p, v in zip(probes, verdicts, strict=True))
+            # A known customer failure must not conceal unavailable database
+            # evidence, damaged data, a partial corpus or broken controls.
+            and all(reason.startswith('service: protected ') or (
+                reason.startswith('quote ') and ': HTTP 503 (expected ' in reason)
+                for v in verdicts for reason in v['reasons'])
+            and value['reasons'] == list(dict.fromkeys(reason for v in verdicts for reason in v['reasons']))
             and value['verdict'] == verdict)
 
 
@@ -119,6 +125,8 @@ def assess(records, captured, cleanup):
                 wanted['spec']['ports'][0]['targetPort'] = 8080
             row = {'completed': not record.get('error_type'),
                    'journal_consistent': record.get('journal_consistent') is True,
+                   'snapshot_phase': (binding['snapshot'] is not None) == (
+                       contract == PRECISE and case not in ('contract_change_intent', 'budget_exhausted')),
                    'identity': operation['operation_id'] == request['operation_id'] == binding['operation_id']
                    and binding['contract_id'] == contract,
                    'outcome': operation['status'] == state and operation['reason'] == reason,
@@ -246,11 +254,12 @@ def adversarial_checks(records, captured, cleanup):
         raise ValueError('A passing real cohort is required as the positive control')
     results = {}
     for defect in ('budget', 'journal', 'binding', 'controls', 'extra_patch', 'missing_reads',
-                   'short_window', 'kill', 'uncertain_recovery', 'rebound', 'withdrawal', 'backend_success'):
+                   'short_window', 'kill', 'uncertain_recovery', 'rebound', 'withdrawal', 'backend_success',
+                   'missing_snapshot'):
         changed, audit = copy.deepcopy(records), copy.deepcopy(captured)
         case = {'controls': 'heartbeat', 'kill': 'kill_after_dispatch',
                 'uncertain_recovery': 'lost_ack', 'withdrawal': 'withdrawn_aba',
-                'backend_success': 'backend_changed'}.get(defect, 'unchanged')
+                'backend_success': 'backend_changed', 'missing_snapshot': 'contract_change_snapshot'}.get(defect, 'unchanged')
         row = next(r for r in changed if r['case'] == case and r['contract'] == PRECISE)
         if defect == 'budget':
             row['operation']['budget_used'] = 0
@@ -277,8 +286,14 @@ def adversarial_checks(records, captured, cleanup):
             row['binding_before_reopen']['snapshot'] = None
         elif defect == 'withdrawal':
             row['followup']['reason'] = 'api_acknowledged'
-        else:
+        elif defect == 'backend_success':
             row['verification']['verdict'] = 'verified_success'
+        else:
+            from autonomy_lab.durable_contract import binding_for
+            empty = binding_for(row['operation']['request'], PRECISE)
+            for name in ('binding', 'binding_before_reopen', 'binding_at_kill'):
+                row[name] = copy.deepcopy(empty)
+            row['journal_events'] = [e for e in row['journal_events'] if e['event'] != 'conditions_recorded']
         result = assess(changed, audit, cleanup)
         selected = next(r for r in result['cases'] if r['case'] == case and r['contract'] == PRECISE)
         results[defect] = result['status'] == selected['status'] == 'failed'
