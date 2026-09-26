@@ -74,7 +74,11 @@ def repair_patch(snapshot, arm):
         {'op': 'copy', 'from': '/metadata', 'path': '/' + SCRATCH},
         {'op': 'replace', 'path': '/metadata/resourceVersion', 'value': '<current-version>'},
         {'op': 'add', 'path': '/metadata/managedFields', 'value': []},
-        {'op': 'replace', 'path': '/metadata/annotations/' + pointer(HEARTBEAT),
+        # The pinned API's JSON Patch object replacement accepts a missing key.
+        # Remove explicitly requires presence; restore from the saved metadata
+        # after comparison so the latest heartbeat value is never overwritten.
+        {'op': 'remove', 'path': '/metadata/annotations/' + pointer(HEARTBEAT)},
+        {'op': 'add', 'path': '/metadata/annotations/' + pointer(HEARTBEAT),
          'value': '<current-heartbeat>'},
         {'op': 'test', 'path': '/metadata', 'value': normalized_metadata(metadata)},
         {'op': 'move', 'from': '/' + SCRATCH, 'path': '/metadata'},
