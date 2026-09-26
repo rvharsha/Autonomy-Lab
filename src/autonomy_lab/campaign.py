@@ -25,6 +25,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from autonomy_lab.broker import ActionBroker, BrokerPolicy, DispatchNotSent, Proposal
+from autonomy_lab.durable_contract import LEGACY, PRECISE
 from autonomy_lab.environment import provision, service_identity
 from autonomy_lab.harness import save
 from autonomy_lab.janitor import cleanup, process_identity
@@ -60,6 +61,8 @@ class Contract(BaseModel):
     admitted_procedure: Literal['runbook', 'runbook_fallback'] | None = None
     test_pause_before_finish: bool = False
     test_pause_before_dispatch: bool = False
+    test_pause_after_intent: bool = False
+    operation_contract: Literal['service-resource-version-v1', 'service-routing-heartbeat-v1'] = LEGACY
     # Reviewed experimental baseline; not eligible for known-variant admission.
     bounded_refresh: bool = False
     # Exact UTF-8 JSON, experimental only; not eligible through known-variant admission.
@@ -76,8 +79,10 @@ class Contract(BaseModel):
             raise ValueError('Invalid campaign schedule')
         if self.test_pause_before_finish and self.admitted_procedure is None and not self.admit_program:
             raise ValueError('Finish barrier requires an admitted procedure')
-        if self.test_pause_before_dispatch and (self.test_pause_after_dispatch or self.test_pause_before_finish):
+        if (self.test_pause_before_dispatch or self.test_pause_after_intent) and (self.test_pause_after_dispatch or self.test_pause_before_finish):
             raise ValueError('Pre-dispatch barrier cannot be combined with other barriers')
+        if self.operation_contract == PRECISE and (self.admitted_procedure is not None or self.admit_program):
+            raise ValueError('Precise contract has no combined program/contract admission')
         if self.bounded_refresh and self.admitted_procedure is not None:
             raise ValueError('Bounded refresh has no admitted procedure definition')
         if self.procedure_program is not None:
@@ -269,6 +274,26 @@ def preflight_barrier(stage, directory, workspace, broker, *, per_operation=Fals
     require(read(release) == {'operation_id': operation_id}, 'Preflight release differs from operation')
 
 
+def intent_barrier(stage, directory, workspace, broker):
+    """Trusted test controller pauses before the broker's first API read."""
+    if stage != 'after_intent':
+        return
+    rows = [row for row in operation_rows(directory)
+            if row['status'] == 'prepared' and row['run_id'] == broker.policy.run_id]
+    require(len(rows) == 1, 'Cannot identify prepared intent')
+    operation_id = rows[0]['operation_id']
+    workspace = workspace / 'intent' / operation_id
+    workspace.mkdir(parents=True, exist_ok=True)
+    barrier, release = workspace / 'intent-barrier.json', workspace / 'intent-release.json'
+    require(not barrier.exists(), 'Intent barrier already used')
+    save(barrier, {'at': time.time(), 'operation_id': operation_id})
+    while not release.exists():
+        active(directory)
+        time.sleep(0.1)
+    active(directory)
+    require(read(release) == {'operation_id': operation_id}, 'Intent release differs from operation')
+
+
 def operator(directory, workspace, contract, kube, verification):
     broker_kube = Kubernetes(directory / 'broker-kubeconfig', kube.cluster_name)
     registry = (ProgramRegistry(directory / 'admission.sqlite') if contract.admit_program else
@@ -324,7 +349,7 @@ def operator(directory, workspace, contract, kube, verification):
 
     policy = BrokerPolicy(read(directory / 'owner.json')['run_id'], kube.namespace, 'inventory',
                           read(directory / 'identities-before.json')['Service/inventory'],
-                          max_dispatches=contract.max_dispatches)
+                          max_dispatches=contract.max_dispatches, operation_contract=contract.operation_contract)
     def authorize(proposal):
         try:
             active(directory)
@@ -342,9 +367,14 @@ def operator(directory, workspace, contract, kube, verification):
                           **({'authorize_dispatch': authorize} if contract.admit_program else {}))
     if contract.test_pause_after_dispatch:
         broker.hook = lambda stage: dispatch_barrier(stage, directory, workspace, broker)
-    elif contract.test_pause_before_dispatch:
-        broker.hook = lambda stage: preflight_barrier(stage, directory, workspace, broker,
-                                                          per_operation=contract.bounded_refresh or program_raw is not None)
+    elif contract.test_pause_before_dispatch or contract.test_pause_after_intent:
+        def pause(stage):
+            if contract.test_pause_after_intent:
+                intent_barrier(stage, directory, workspace, broker)
+            if contract.test_pause_before_dispatch:
+                preflight_barrier(stage, directory, workspace, broker,
+                                 per_operation=contract.bounded_refresh or program_raw is not None)
+        broker.hook = pause
     unresolved = reconcile_pending(broker, directory)
     if unresolved:
         save(workspace / 'escalation.json', {'reason': 'unresolved_prior_operations', 'operation_ids': unresolved})

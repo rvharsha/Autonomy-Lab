@@ -1,0 +1,136 @@
+name: Durable contract customer benefit
+on:
+  pull_request:
+    paths:
+      - 'src/autonomy_lab/**'
+      - 'scripts/**'
+      - 'scenarios/**'
+      - 'procedures/**'
+      - 'fixtures/**'
+      - 'infra/**'
+      - 'Dockerfile'
+      - '*.lock'
+      - 'pyproject.toml'
+      - 'tests/test_customer_benefit.py'
+      - 'tests/test_customer_benefit_audit.py'
+      - 'tests/test_campaign.py'
+      - 'docs/CUSTOMER_BENEFIT_GATE.md'
+      - '.github/workflows/customer-benefit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  freeze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: uv sync --frozen
+      - run: PYTHONPATH=src .venv/bin/python scripts/check_customer_benefit.py freeze artifacts/customer-benefit-plan/plan.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: customer-benefit-plan
+          path: artifacts/customer-benefit-plan/plan.json
+          if-no-files-found: error
+          retention-days: 14
+  compare:
+    needs: freeze
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: make setup
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: customer-benefit-plan
+          path: artifacts/customer-benefit-plan
+      - name: Execute each frozen case once
+        run: PYTHONPATH=src .venv/bin/python scripts/check_customer_benefit.py run artifacts/customer-benefit-plan/plan.json ${{ matrix.shard }} artifacts/customer-benefit-${{ matrix.shard }}
+      - name: Retain credential-free evidence including failed attempts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: customer-benefit-shard-${{ matrix.shard }}
+          path: |
+            artifacts/customer-benefit-${{ matrix.shard }}/plan.json
+            artifacts/customer-benefit-${{ matrix.shard }}/result.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/declaration.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/manifest.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/record.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/result.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/scorecard-*.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/evaluation-*.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/server-audit.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/contract.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/program-definition.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/window.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/source.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/identities-*.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/operations.sqlite
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/operations.sqlite-wal
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/operations.sqlite-shm
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/finished.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/failed.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/finalization.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/cleanup.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/samples/*.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/workers/*/attempt.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/workers/*/ready.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/workers/*/finished.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/workers/*/failed.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/workers/*/escalation.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/workers/*/preflight/*/*.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/workers/*/intent/*/*.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/workers/*/episode-*/*.json
+            artifacts/customer-benefit-${{ matrix.shard }}/cases/*/campaign/workers/*/episode-*/evidence.jsonl
+          if-no-files-found: error
+          retention-days: 14
+  reproduce-and-select:
+    needs: [freeze, compare]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: uv sync --frozen
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: customer-benefit-plan
+          path: artifacts/customer-benefit-plan
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: customer-benefit-shard-*
+          path: artifacts/customer-benefit-download
+      - name: Reproduce all eight cases and challenge their evidence before selection
+        run: PYTHONPATH=src .venv/bin/python scripts/check_customer_benefit.py reproduce artifacts/customer-benefit-plan/plan.json artifacts/customer-benefit-download artifacts/customer-benefit-selection
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: customer-benefit-selection
+          path: artifacts/customer-benefit-selection/reproduction.json
+          if-no-files-found: error
+          retention-days: 14
