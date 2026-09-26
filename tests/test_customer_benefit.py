@@ -131,3 +131,26 @@ def test_workflow_runs_changed_dependencies_and_keeps_intent_and_database_eviden
         json.loads((root / "procedures/bounded-refresh.json").read_text())["conditional_rejection"]
         == "refresh"
     )
+
+
+@pytest.mark.parametrize(
+    "error", [None, KeyError("slot"), OSError("missing file"), Refused("Unrelated refusal")]
+)
+def test_negative_control_does_not_accept_crashes_or_unrelated_refusals(error):
+    from autonomy_lab.customer_benefit_negative import require_rejection
+
+    def action():
+        if error is not None:
+            raise error
+
+    with pytest.raises((Refused, KeyError, OSError)):
+        require_rejection("missing_sample", action)
+
+
+def test_negative_control_retains_the_specific_rejection():
+    from autonomy_lab.customer_benefit_negative import require_rejection
+
+    def action():
+        raise Refused("Incomplete customer measurement calendar")
+
+    assert require_rejection("missing_sample", action) == "Incomplete customer measurement calendar"

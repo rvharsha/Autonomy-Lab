@@ -335,7 +335,7 @@ def assess_operations(directory, spec, card, record, evidence, captured):
                 <= point["before_at"]
                 <= point["after_at"]
                 <= point["release_requested_at"]
-                <= record[phase + "_requested_at"] + spec["response_deadline_seconds"],
+                <= (start + spec["first_stop_offset"] if phase == "first" else end),
                 "Barrier timing differs",
             )
             folder = directory / "workers" / owner / point["stage"] / op_id

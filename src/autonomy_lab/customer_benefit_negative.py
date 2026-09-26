@@ -11,7 +11,38 @@ from autonomy_lab.campaign import read
 from autonomy_lab.customer_benefit import evaluate, plan, select
 from autonomy_lab.durable_contract import LEGACY, binding_for
 from autonomy_lab.harness import save
-from autonomy_lab.procedures import require
+from autonomy_lab.procedures import Refused, require
+
+EXPECTED = {
+    "missing_snapshot": "Conditions were replaced across preparation",
+    "changed_contract": "Execution contract differs from candidate",
+    "changed_program": "Procedure bytes or runtime differ from frozen definition",
+    "extra_broker_request": "Replay or missing prepared dispatch",
+    "corrupted_effect": "Repair changed more than targetPort",
+    "wrong_barrier_phase": "Conflict placed at wrong causal boundary",
+    "unverified_recurrence": "Controller schedule slipped",
+    "missing_database": "Missing or damaged independent verification evidence",
+    "missing_corpus": "Missing or damaged independent verification evidence",
+    "altered_verification_summary": "Verification summary does not reproduce",
+    "missing_operation_binding": "Missing or extra operation binding",
+    "missing_sample": "Incomplete customer measurement calendar",
+    "claim_after_request": "Journal timestamps contradict operation/tool evidence",
+    "incomplete_case_inventory": "Incomplete or changed comparison",
+}
+
+
+def require_rejection(name, action):
+    """A crash or an unrelated refusal does not qualify a corruption control."""
+    try:
+        action()
+    except ValueError as error:
+        expected_type = ValueError if name == "changed_program" else Refused
+        require(
+            type(error) is expected_type and str(error) == EXPECTED[name],
+            "Corruption reached an unexpected rejection: " + name + ": " + str(error),
+        )
+        return str(error)
+    raise Refused("Authored evidence corruption passed: " + name)
 
 
 def challenge(source):
@@ -148,19 +179,14 @@ def challenge(source):
                         },
                     }
                 save(path, value)
-            refused = False
-            try:
-                evaluate(gate)
-            except (OSError, ValueError, KeyError, TypeError, AssertionError, StopIteration):
-                refused = True
-            require(refused, "Authored evidence corruption passed: " + name)
+            reason = require_rejection(name, lambda: evaluate(gate))
         require(evaluate(original) == positive, "Negative control modified original evidence")
-        receipts.append({"name": name, "rejected": True, "original_unchanged": True})
+        receipts.append(
+            {"name": name, "rejected": True, "reason": reason, "original_unchanged": True}
+        )
     declared = plan()
-    try:
-        select(declared, {})
-    except ValueError:
-        receipts.append({"name": "incomplete_case_inventory", "rejected": True})
+    reason = require_rejection("incomplete_case_inventory", lambda: select(declared, {}))
+    receipts.append({"name": "incomplete_case_inventory", "rejected": True, "reason": reason})
     require(len(receipts) == len(names) + 1, "Incomplete negative controls")
     return {
         "scope": "authored corruptions of copied evidence, not live trials",

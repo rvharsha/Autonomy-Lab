@@ -185,7 +185,9 @@ def evaluate(gate):
         record["stop_requested_at"] <= record["stopped_at"] <= record["fault"]["requested_at"]
         and record["first_stop_requested_at"]
         <= record["first_stopped_at"]
-        <= record["second_requested_at"],
+        <= record.get("second_fault", {"requested_at": record["second_requested_at"]})[
+            "requested_at"
+        ],
         "Prior operator did not stop before next phase",
     )
     for name in ("fault", "second_fault"):

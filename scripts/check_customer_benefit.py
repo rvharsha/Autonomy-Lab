@@ -85,7 +85,9 @@ def run_case(gate, spec):
             record[phase + "_worker"] = worker.name
             save(gate / "record.json", record)
             wait_ready(worker, process, timeout=20)
-            deadline = record[phase + "_requested_at"] + spec["response_deadline_seconds"]
+            # Continue releasing barriers after the first episode. The evaluator
+            # measures its deadline independently of the worker's lifetime.
+            deadline = start + spec["first_stop_offset"] if phase == "first" else window["end"]
             seen = set()
             while process.poll() is None and time.time() < deadline:
                 queued = [
@@ -95,8 +97,6 @@ def run_case(gate, spec):
                     if (stage, path.parent.name) not in seen
                 ]
                 if not queued:
-                    if any(worker.glob("episode-*/outcome.json")):
-                        break
                     time.sleep(0.05)
                     continue
                 stage, path, barrier = min(queued, key=lambda item: item[2]["at"])
@@ -159,7 +159,12 @@ def run_case(gate, spec):
             directory / "workers" / record["first_worker"], children
         )
         record["operations_first"] = operation_rows(directory)
+        wait_until(start + spec["second_fault_offset"] - 1)
         samples = [read(p) for p in sorted((directory / "samples").glob("*.json"))]
+        require(
+            {9, 10, 11} <= {s["slot"] for s in samples},
+            "Recovery-window samples missing before recurrence decision",
+        )
         recovered = recovered_before_recurrence(samples, start)
         record["recurrence_opportunity"] = (
             "not_declared"

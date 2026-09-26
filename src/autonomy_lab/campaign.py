@@ -333,16 +333,15 @@ def operator(directory, workspace, contract, kube, verification):
                     save(binding, {'at': time.time(), 'operation_id': dispatching[0]['operation_id'],
                                    'episode': episode.name, 'program_version': program_pin['version']})
             except Exception as error:
-                if not contract.admit_program:
-                    raise
                 refusal_unavailable = False
-                try:
-                    if proposal is None:
-                        registry.record_refusal('dispatch_guard', None, error)
-                    else:
-                        registry.record_dispatch_refusal(proposal, error)
-                except Exception:
-                    refusal_unavailable = True
+                if contract.admit_program:
+                    try:
+                        if proposal is None:
+                            registry.record_refusal('dispatch_guard', None, error)
+                        else:
+                            registry.record_dispatch_refusal(proposal, error)
+                    except Exception:
+                        refusal_unavailable = True
                 raise DispatchNotSent(refusal_unavailable=refusal_unavailable) from error
             broker_kube.audit_operation_id = dispatching[0]['operation_id']
             return broker_kube.patch_service(namespace, name, patch)
