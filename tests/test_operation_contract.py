@@ -1,10 +1,14 @@
 """Authored counterexamples for gate logic; these are not Kubernetes evidence."""
 
 import copy
+import fnmatch
+import runpy
 
 import pytest
+import yaml
 
 from autonomy_lab.broker import ActionBroker, BrokerPolicy, Proposal
+from autonomy_lab.kubernetes import ROOT
 from autonomy_lab.operation_contract import (
     ARMS,
     AUTHORITY,
@@ -23,6 +27,18 @@ def resource(uid='authored-uid', version='10'):
         'annotations': {HEARTBEAT: 'tick-0', AUTHORITY: 'enabled'}, 'creationTimestamp': 'authored'},
         'spec': {'selector': {'app': 'inventory'}, 'ports': [
             {'name': 'http', 'port': 80, 'targetPort': 9999, 'protocol': 'TCP'}]}, 'status': {}}
+
+
+def test_ci_reruns_for_every_receipted_input_and_transport_dependency():
+    runner = runpy.run_path(str(ROOT / 'scripts/check_operation_contract.py'))
+    workflow = yaml.load((ROOT / '.github/workflows/operation-contract.yml').read_text(),
+                         Loader=yaml.BaseLoader)
+    patterns = workflow['on']['pull_request']['paths']
+    required = {*runner['source_receipt'](), 'src/autonomy_lab/broker.py',
+                'src/autonomy_lab/bounded_http.py', 'Dockerfile', 'fixtures/expectations.json',
+                'pyproject.toml', 'uv.lock', 'tests/test_operation_contract.py',
+                '.github/workflows/operation-contract.yml'}
+    assert all(any(fnmatch.fnmatch(path, pattern) for pattern in patterns) for path in required)
 
 
 def test_comparator_is_current_broker_patch(tmp_path):

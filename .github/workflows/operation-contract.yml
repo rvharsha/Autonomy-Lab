@@ -2,8 +2,13 @@ name: Operation contract feasibility
 on:
   pull_request:
     paths:
-      - 'src/autonomy_lab/operation_contract.py'
-      - 'scripts/check_operation_contract.py'
+      - 'src/autonomy_lab/**'
+      - 'scripts/**'
+      - 'fixtures/**'
+      - 'infra/**'
+      - 'Dockerfile'
+      - '*.lock'
+      - 'pyproject.toml'
       - 'tests/test_operation_contract.py'
       - 'docs/OPERATION_CONTRACT_GATE.md'
       - '.github/workflows/operation-contract.yml'
