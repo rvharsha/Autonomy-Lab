@@ -455,10 +455,15 @@ def test_explicit_adverse_mode_records_control_bytes_and_calibration_context(
 
 
 @pytest.mark.parametrize(
-    "defect", ["none", "episode_pin", "binding_save", "authorization_read", "refusal_storage"]
+    "admitted,defect",
+    [
+        (True, d)
+        for d in ("none", "episode_pin", "binding_save", "authorization_read", "refusal_storage")
+    ]
+    + [(False, d) for d in ("none", "episode_pin", "binding_save")],
 )
 def test_campaign_real_broker_enforces_pretransport_program_guards(
-    registry, tmp_path, monkeypatch, defect
+    registry, tmp_path, monkeypatch, defect, admitted
 ):
     import time
     from types import SimpleNamespace
@@ -470,7 +475,7 @@ def test_campaign_real_broker_enforces_pretransport_program_guards(
     workspace.mkdir(parents=True)
     contract = c.Contract.model_validate(
         json.loads((ROOT / "scenarios/campaign-admitted-program.json").read_text())
-    ).model_copy(update={"test_pause_before_dispatch": False})
+    ).model_copy(update={"test_pause_before_dispatch": False, "admit_program": admitted})
     save(directory / "program-definition.json", freeze(BASELINE))
     save(directory / "owner.json", {"run_id": "run-1"})
     save(directory / "identities-before.json", {"Service/inventory": "service-uid"})
@@ -519,16 +524,17 @@ def test_campaign_real_broker_enforces_pretransport_program_guards(
     result = results[0]
     if defect == "none":
         assert result["status"] == "acknowledged" and len(adapter.patch_calls) == 1
-        assert len(rows(registry, "authorizations")) == 1 and rows(registry, "refusals") == []
+        assert len(rows(registry, "authorizations")) == int(admitted)
+        assert rows(registry, "refusals") == []
     else:
         assert adapter.patch_calls == [] and result["status"] == "rejected"
         assert result["reason"] == (
             "dispatch_authorization_refused"
-            if defect == "episode_pin"
+            if admitted and defect == "episode_pin"
             else "dispatch_not_sent_refusal_unavailable"
             if defect == "refusal_storage"
             else "dispatch_not_sent"
         )
-        assert result["budget_used"] == int(defect != "episode_pin")
-        assert len(rows(registry, "authorizations")) == int(defect != "episode_pin")
-        assert len(rows(registry, "refusals")) == int(defect != "refusal_storage")
+        assert result["budget_used"] == int(not admitted or defect != "episode_pin")
+        assert len(rows(registry, "authorizations")) == int(admitted and defect != "episode_pin")
+        assert len(rows(registry, "refusals")) == int(admitted and defect != "refusal_storage")

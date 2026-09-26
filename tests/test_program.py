@@ -354,8 +354,9 @@ def test_campaign_binds_each_operation_before_api_and_refuses_drift(tmp_path, mo
         c.operator(*args)
         assert calls == ["authored-1", "authored-2"]
     else:
-        with pytest.raises((ValueError, OSError)):
+        with pytest.raises(c.DispatchNotSent) as refusal:
             c.operator(*args)
+        assert isinstance(refusal.value.__cause__, (ValueError, OSError))
         assert calls == (["authored-1"] if defect == "replay" else [])
 
 

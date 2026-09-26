@@ -262,3 +262,59 @@ def test_finish_barrier_refuses_owner_loss_and_wrong_episode_release(tmp_path):
     save(tmp_path / 'finish-release.json', {'episode': 'different'})
     with patch('autonomy_lab.campaign.active'), pytest.raises(ValueError, match='differs'):
         finish_barrier(tmp_path, tmp_path, episode)
+
+
+@pytest.mark.parametrize('mode', ['legacy', 'program'])
+def test_precise_contract_cannot_inherit_existing_admission(mode):
+    from autonomy_lab.durable_contract import PRECISE
+    contract = json.loads((ROOT / ('scenarios/campaign-admitted-program.json' if mode == 'program'
+                                  else 'scenarios/campaign-withdrawal-healthy.json')).read_text())
+    contract['operation_contract'] = PRECISE
+    with pytest.raises(ValidationError, match='combined program/contract admission'):
+        Contract.model_validate(contract)
+
+
+def test_unknown_execution_contract_and_combined_unsafe_barriers_are_refused():
+    contract = json.loads((ROOT / 'scenarios/campaign-program-refresh.json').read_text())
+    with pytest.raises(ValidationError):
+        Contract.model_validate({**contract, 'operation_contract': 'agent-chosen'})
+    with pytest.raises(ValidationError, match='barrier'):
+        Contract.model_validate({**contract, 'test_pause_after_intent': True, 'test_pause_after_dispatch': True})
+
+
+def test_intent_barrier_checks_owner_and_exact_operation_release(tmp_path):
+    from unittest.mock import Mock
+
+    from autonomy_lab.campaign import intent_barrier
+    broker = Mock()
+    broker.policy.run_id = 'authored-run'
+    rows = [{'status': 'prepared', 'run_id': 'authored-run', 'operation_id': 'original'}]
+    folder = tmp_path / 'intent/original'
+    folder.mkdir(parents=True)
+    save(folder / 'intent-release.json', {'operation_id': 'different'})
+    with patch('autonomy_lab.campaign.operation_rows', return_value=rows), patch('autonomy_lab.campaign.active'), \
+            pytest.raises(ValueError, match='release differs'):
+        intent_barrier('after_intent', tmp_path, tmp_path, broker)
+    (folder / 'intent-barrier.json').unlink()
+    save(folder / 'intent-release.json', {'operation_id': 'original'})
+    with patch('autonomy_lab.campaign.operation_rows', return_value=rows), \
+            patch('autonomy_lab.campaign.active', side_effect=RuntimeError('owner gone')), pytest.raises(RuntimeError, match='owner gone'):
+        intent_barrier('after_intent', tmp_path, tmp_path, broker)
+
+
+@pytest.mark.parametrize('execution_contract', ['service-resource-version-v1', 'service-routing-heartbeat-v1'])
+def test_trusted_campaign_contract_reaches_broker_policy(tmp_path, execution_contract):
+    from unittest.mock import Mock
+
+    from autonomy_lab.campaign import operator
+    from autonomy_lab.procedure import freeze
+    values = json.loads((ROOT / 'scenarios/campaign-program-refresh.json').read_text())
+    contract = Contract.model_validate({**values, 'operation_contract': execution_contract})
+    save(tmp_path / 'owner.json', {'run_id': 'authored-run'})
+    save(tmp_path / 'identities-before.json', {'Service/inventory': 'authored-uid'})
+    save(tmp_path / 'program-definition.json', freeze(contract.procedure_program.encode()))
+    save(tmp_path / 'window.json', {'end': 0})
+    kube = Mock(namespace='autonomy-lab', cluster_name='autolab-12345678')
+    with patch('autonomy_lab.campaign.ActionBroker') as broker, patch('autonomy_lab.campaign.reconcile_pending', return_value=False):
+        operator(tmp_path, tmp_path, contract, kube, {})
+    assert broker.call_args.args[1].operation_contract == execution_contract
