@@ -1,6 +1,7 @@
 """Experimental patch construction and offline API gate; not a broker policy.
 
-Only the feasibility runner imports this module. The trusted snapshot is an API
+The feasibility runner and explicitly selected durable contract use this module.
+The trusted snapshot is an API
 observation, never a model-authored permission or arbitrary patch template.
 """
 

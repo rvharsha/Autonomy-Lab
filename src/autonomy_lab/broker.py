@@ -20,6 +20,16 @@ from typing import Annotated, Any, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from autonomy_lab.durable_contract import (
+    CONTRACTS,
+    LEGACY,
+    PRECISE,
+    binding_for,
+    encoded,
+    patch_for_binding,
+    validate_binding,
+)
+
 Identifier = Annotated[str, Field(min_length=1, max_length=253, pattern=r"\S")]
 Port = Annotated[int, Field(ge=1, le=65535, strict=True)]
 
@@ -53,8 +63,11 @@ class BrokerPolicy:
     max_dispatches: int = 1
     enabled: bool = True
     port_name: str = "http"
+    operation_contract: str = LEGACY
 
     def __post_init__(self) -> None:
+        if self.operation_contract not in CONTRACTS:
+            raise ValueError("Unknown operation contract")
         if type(self.max_dispatches) is not int or self.max_dispatches < 0:
             raise ValueError("max_dispatches must be a nonnegative integer")
         if not self.allowed_target_ports or any(
@@ -144,6 +157,16 @@ class ActionBroker:
                 );
                 """
             )
+            # Migrate only when this table is first introduced. A subsequently
+            # missing row must not silently acquire legacy or new semantics.
+            db.execute('BEGIN IMMEDIATE')
+            if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='operation_contracts'").fetchone():
+                db.execute('''CREATE TABLE operation_contracts (
+                    operation_id TEXT PRIMARY KEY, binding TEXT NOT NULL)''')
+                for row in db.execute('SELECT operation_id,request FROM operations').fetchall():
+                    binding = binding_for(json.loads(row['request']), LEGACY)
+                    db.execute('INSERT INTO operation_contracts VALUES (?,?)',
+                               (row['operation_id'], encoded(binding)))
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
@@ -169,6 +192,8 @@ class ActionBroker:
 
     def _policy_reason(self, proposal: Proposal) -> str | None:
         policy = self.policy
+        if policy.operation_contract not in CONTRACTS:
+            return "operation_contract_unknown"
         if not policy.enabled:
             return "policy_disabled"
         if reason := self._scope_reason(proposal):
@@ -206,6 +231,9 @@ class ActionBroker:
                 duplicate = True
             else:
                 duplicate = False
+                selected_contract = self.policy.operation_contract
+                if selected_contract not in CONTRACTS:
+                    raise ValueError('Unknown operation contract')
                 reason = self._policy_reason(proposal)
                 if reason is None and self._used(db, proposal.run_id) >= self.policy.max_dispatches:
                     reason = "budget_exhausted"
@@ -221,6 +249,9 @@ class ActionBroker:
                     ),
                 )
                 self._event(db, proposal.operation_id, status, reason=reason or "intent_recorded")
+                binding = binding_for(proposal.model_dump(), selected_contract)
+                db.execute('INSERT INTO operation_contracts VALUES (?,?)',
+                           (proposal.operation_id, encoded(binding)))
         if duplicate or reason:
             return self.lookup(proposal.operation_id)
         self._call_hook("after_intent")
@@ -253,19 +284,32 @@ class ActionBroker:
         if operation["status"] != "prepared":
             return operation
         proposal = Proposal.model_validate(operation["request"])
-        reason = self._policy_reason(proposal)
+        binding = self.contract_binding(operation_id)
+        reason = self._policy_reason(proposal) or self._contract_reason(proposal, binding)
         if reason:
             return self._reject_prepared(operation_id, reason)
         try:
-            service = self.adapter.get_service(proposal.namespace, proposal.service_name)
-            patch, reason = self._construct_patch(proposal, service)
+            if binding['contract_id'] == PRECISE and binding['snapshot'] is not None:
+                patch = patch_for_binding(proposal.model_dump(), binding)
+            else:
+                service = self.adapter.get_service(proposal.namespace, proposal.service_name)
+                patch, reason = self._construct_patch(proposal, service)
+                if not reason and binding['contract_id'] == PRECISE:
+                    candidate = binding_for(proposal.model_dump(), PRECISE, service)
+                    try:
+                        patch_for_binding(proposal.model_dump(), candidate)
+                    except (ValueError, TypeError, KeyError):
+                        return self._reject_prepared(operation_id, 'contract_snapshot_out_of_scope',
+                                                     expected_binding=binding)
+                    binding = self._record_conditions(proposal, candidate)
+                    patch = patch_for_binding(proposal.model_dump(), binding)
         except Exception as error:
             # No send has started; leave the durable intent resumable.
             with self._connect() as db:
                 self._event(db, operation_id, "preflight_unavailable", error_type=type(error).__name__)
             return self.lookup(operation_id)
         if reason:
-            return self._reject_prepared(operation_id, reason)
+            return self._reject_prepared(operation_id, reason, expected_binding=binding)
         self._call_hook("before_dispatch")
         with self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
@@ -276,6 +320,10 @@ class ActionBroker:
             if current['status'] != 'prepared':
                 return self.lookup(operation_id)
             reason = self._policy_reason(proposal)
+            current_binding = self._binding(db, operation_id)
+            reason = reason or self._contract_reason(proposal, current_binding)
+            if reason is None and current_binding != binding:
+                reason = 'operation_conditions_changed'
             if reason is None and self._used(db, proposal.run_id) > self.policy.max_dispatches:
                 reason = "budget_revoked"
             if reason is None and self.authorize_dispatch is not None:
@@ -340,6 +388,48 @@ class ActionBroker:
             {"service_uid": metadata.get("uid"), "resource_version": metadata.get("resourceVersion")},
         )
 
+    @staticmethod
+    def _binding(db, operation_id):
+        row = db.execute('SELECT binding FROM operation_contracts WHERE operation_id=?',
+                         (operation_id,)).fetchone()
+        try:
+            return json.loads(row['binding']) if row else None
+        except (ValueError, TypeError):
+            return None
+
+    def contract_binding(self, operation_id):
+        """Read the journal-owned contract, independently of policy or agent state."""
+        with self._connect() as db:
+            return self._binding(db, operation_id)
+
+    def _contract_reason(self, proposal, binding):
+        try:
+            validate_binding(proposal.model_dump(), binding)
+            if binding['contract_id'] != self.policy.operation_contract:
+                return 'operation_contract_changed'
+            if binding['snapshot'] is not None:
+                patch_for_binding(proposal.model_dump(), binding)
+        except (ValueError, TypeError, KeyError, AttributeError):
+            return 'operation_binding_invalid'
+        return None
+
+    def _record_conditions(self, proposal, candidate):
+        with self._connect() as db:
+            db.execute('BEGIN IMMEDIATE')
+            current = self._binding(db, proposal.operation_id)
+            validate_binding(proposal.model_dump(), current)
+            state = db.execute('SELECT status FROM operations WHERE operation_id=?',
+                               (proposal.operation_id,)).fetchone()['status']
+            if state == 'prepared' and current['snapshot'] is None and current['contract_id'] == PRECISE:
+                db.execute('UPDATE operation_contracts SET binding=? WHERE operation_id=?',
+                           (encoded(candidate), proposal.operation_id))
+                self._event(db, proposal.operation_id, 'conditions_recorded',
+                            binding_sha256=candidate['binding_sha256'])
+                return candidate
+            # Another resume may already have recorded conditions. Its immutable
+            # snapshot wins, even if this worker observed a different value.
+            return current
+
     def _construct_patch(
         self, proposal: Proposal, service: dict[str, Any]
     ) -> tuple[list[dict[str, Any]], str | None]:
@@ -368,9 +458,13 @@ class ActionBroker:
             {"op": "replace", "path": f"{path}/targetPort", "value": proposal.target_port},
         ], None
 
-    def _reject_prepared(self, operation_id: str, reason: str) -> dict[str, Any]:
+    def _reject_prepared(self, operation_id: str, reason: str, *, expected_binding=None) -> dict[str, Any]:
         with self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
+            # A late stale read cannot cancel another worker's already recorded
+            # precise conditions. That worker still owns no dispatch until claim.
+            if expected_binding is not None and self._binding(db, operation_id) != expected_binding:
+                return self.lookup(operation_id)
             changed = db.execute(
                 """UPDATE operations SET status='rejected',reason=?,budget_reserved=0,updated_at=?
                    WHERE operation_id=? AND status='prepared'""",
