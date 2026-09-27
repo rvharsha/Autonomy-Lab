@@ -1,0 +1,274 @@
+{
+  "reviews": [
+    {
+      "scope": "authority",
+      "snapshot_id": "4d3501b39237ff3a524de2d5225660b27ed6f671d6a45a6cf2aa09ee95e1e9c4",
+      "files": {
+        "src/autonomy_lab/durable_contract.py": "3585798b138879d76e62f0db103e0367af6b3d4e86449315603d40db7aa83921",
+        "src/autonomy_lab/procedures.py": "ab197102f740d4a0c8d591c70a875c243dd4aa8919e168c311c2a48507325fb2",
+        "src/autonomy_lab/program_admission.py": "8d2e8358f126811c25a8ec9a113b9230836f98932505d024b152ccb33770ce69"
+      },
+      "source_ranges": {
+        "src/autonomy_lab/durable_contract.py": null,
+        "src/autonomy_lab/procedures.py": [
+          [
+            186,
+            365
+          ]
+        ],
+        "src/autonomy_lab/program_admission.py": null
+      },
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "findings_text": "**Scope reviewed:** `program_admission.py`, `durable_contract.py`, `procedures.py` (Registry). I found no substantiated authority bypass, replay, or transaction regression in the changed paths: `authorize` re-checks active/pin/withdrawal/selection and inserts both rows under one `BEGIN IMMEDIATE` transaction; `execution_conditions` requires exact equality with a fully reconstructed patch and an exact durable binding; `authorization` compares stored conditions exactly. Two smaller, actionable defects:\n\n---\n\n### 1. Inherited legacy `promote` path can still make a non-program definition the active version in a `ProgramRegistry`\n\n**File/line:** `procedures.py:231-250` (`Registry.promote` / `_promote`) inherited by `ProgramRegistry` (`program_admission.py:87`); `ProgramRegistry.promote` (`98-110`) overrides with a different signature but `_promote` and `_record_promotion` remain reachable.\n\n**Trigger:** On a `ProgramRegistry` instance, call `Registry._promote(reg, directory, 'variantX', expected_revision=n)` (or any caller holding a base-class reference, e.g. `super().promote(...)`). `procedures.evaluate` produces a procedure receipt with no `kind`/`operation_contract`; `_record_promotion` (`252-267`) does not validate the definition shape and sets `state.active` to that version.\n\n**Effect:** Not a dispatch bypass\u2014`ProgramRegistry._selection` (`112-118`) refuses at `start_episode` and `authorize`\u2014but the ledger's `active` slot is now a definition that cannot be admitted, every `start_episode` refuses (\"Admission is not a restricted program\"), and the decisions table records a `promoted` entry for a contract-less definition, contradicting \"explicitly binds that contract into the candidate definition/version.\" Recovery requires a `withdraw` revision on a version the program registry never evaluated.\n\n**Minimal fix:** Enforce the invariant at the write point rather than only at read points:\n\n```python\n# ProgramRegistry\ndef _record_promotion(self, receipt, expected_revision):\n    self._selection(receipt['definition'])   # kind + operation_contract == LEGACY, pin validity\n    return super()._record_promotion(receipt, expected_revision)\n\ndef _promote(self, *a, **k):\n    raise Refused('Procedure promotion is not available in a program registry')\n```\n\n---\n\n### 2. `authorize` can raise without recording a refusal; `authorization` accepts an unshaped pin\n\n**File/line:** `program_admission.py:134` (`Proposal.model_validate(proposal)` sits outside the `try`), and `program_admission.py:188-190` (`pin['episode']` etc. with no shape check).\n\n**Trigger/trace:**\n- Broker passes a structurally invalid proposal to `authorize` \u2192 `ValidationError` at line 134 \u2192 propagates; `record_dispatch_refusal` never runs. The docstring promise \"commit a new one-use authorization **or retain refusal**\" is not met for this class, so the refusals ledger under-reports and offline evidence audits that reconcile attempted dispatches against `refusals` will see a gap (false-negative in the audit trail, not false-positive admission).\n- `authorization(pin={}, ...)` \u2192 `KeyError` at line 189 instead of `Refused`; unlike `authorize` (line 138) there is no `require(type(pin) is dict and set(pin) == {...})`. The broker is trusted, but the pre-dispatch guard should fail closed with a recorded, typed refusal, matching the authorize path.\n\n**Minimal fix:**\n\n```python\ndef authorize(self, pin, proposal, raw, *, binding, patch):\n    try:\n        proposal = Proposal.model_validate(proposal)\n    except Exception as error:\n        self._record_raw_refusal(proposal, error)   # operation_id if present, else None\n        raise\n    ...\n\ndef authorization(self, pin, proposal, *, binding, patch):\n    require(type(pin) is dict and set(pin) == {'episode', 'version', 'revision', 'program_version'},\n            'Malformed admitted episode pin')\n    proposal = Proposal.model_validate(proposal)\n    ...\n```\n\n---\n\nNothing else in the diff scope rose to an actionable defect; the \"in-flight permit survives withdrawal\" and \"no consumption marking in registry\" behaviours are documented design boundaries delegated to the broker's one-use claim, not regressions here.",
+      "usage_cost_estimate_usd": 0.34121,
+      "usage": {
+        "input_tokens": 9511,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 4922,
+        "output_tokens_details": {
+          "thinking_tokens": 3399
+        },
+        "service_tier": "standard",
+        "inference_geo": "global"
+      },
+      "current_file_matches": {
+        "src/autonomy_lab/durable_contract.py": true,
+        "src/autonomy_lab/procedures.py": true,
+        "src/autonomy_lab/program_admission.py": false
+      }
+    },
+    {
+      "scope": "boundary",
+      "snapshot_id": "5505d405919179c8db84a1620cc9d80bbd6dd1d85547e4fb065e62ef4c9d507e",
+      "files": {
+        "src/autonomy_lab/broker.py": "17ef2b00343b99de18e8031ef89d32ec1aeb3832ab93b9fb4df6b06b5f240cf5",
+        "src/autonomy_lab/campaign.py": "c420c48684b8c4fd31e364b9a2716ad021fe77269df0d3b7897db22ce217d163",
+        "src/autonomy_lab/durable_contract.py": "3585798b138879d76e62f0db103e0367af6b3d4e86449315603d40db7aa83921",
+        "src/autonomy_lab/program_admission.py": "8d2e8358f126811c25a8ec9a113b9230836f98932505d024b152ccb33770ce69"
+      },
+      "source_ranges": {
+        "src/autonomy_lab/broker.py": [
+          [
+            113,
+            140
+          ],
+          [
+            280,
+            365
+          ],
+          [
+            409,
+            470
+          ]
+        ],
+        "src/autonomy_lab/campaign.py": [
+          [
+            295,
+            370
+          ]
+        ],
+        "src/autonomy_lab/durable_contract.py": null,
+        "src/autonomy_lab/program_admission.py": [
+          [
+            58,
+            88
+          ],
+          [
+            124,
+            198
+          ]
+        ]
+      },
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "findings_text": "**Finding 1 \u2014 binding/contract validation errors are misattributed as \"unavailable\" (measurement/attribution)**\n\n- `src/autonomy_lab/program_admission.py:68` calls `validate_binding`, which raises `ValueError` (`durable_contract.py:32`, also `:23` via `binding_for` for a LEGACY binding carrying a non-null snapshot or an unknown `contract_id`). `ValueError` is not `Refused`.\n- Path: `ProgramRegistry.authorize` line 162 catches it, and `record_dispatch_refusal` (line 169) stores `reason='Authorization unavailable or malformed'`, discarding the actual cause. It re-raises; `campaign.py:361-364` only maps `Refused`\u2192`PermissionError`, so the `ValueError` reaches `broker.py:342` and the journal records `dispatch_authorization_unavailable` instead of `dispatch_authorization_refused`.\n- Same misclassification in the pre-transport guard: `program_admission.py:181` \u2192 `campaign.py:332` \u2192 `except Exception` at 336 \u2192 `record_dispatch_refusal` again writes the generic \"unavailable\" reason.\n- Trigger/trace: any operation whose stored binding no longer validates against the proposal (e.g. a `service-resource-version-v1` binding row with `snapshot != null`, or a `binding_sha256` mismatch introduced by a journal repair). Expected admission outcome: a deterministic refusal. Observed: registry refusal row says \"unavailable or malformed\", broker reason says \"unavailable\". Lifecycle evidence that distinguishes infrastructure unavailability from admission refusal (the stated \"attribution\" guard) will count a definite policy refusal as an outage, and any tooling that treats \"unavailable\" as retry-eligible (preflight retries are already the pattern at `broker.py:311-315`) is reasoning from a false signal. It is not an authorization bypass \u2014 the request is still rejected \u2014 but it is a false-negative in the refusal ledger.\n- Minimal fix: in `execution_conditions`, wrap the contract checks:\n  ```python\n  try:\n      validate_binding(request, binding)\n  except (ValueError, TypeError, KeyError) as error:\n      raise Refused('Durable binding does not match the proposal') from error\n  ```\n  and in `record_dispatch_refusal` also persist `str(error)` (or the `error_type`) for non-`Refused` errors so the ledger retains cause even when classification is \"unavailable\".\n\n**Finding 2 \u2014 not substantiated**\n\nI checked the other candidates in changed scope and could not confirm a defect from the supplied source:\n- Authorization committed in `admission.sqlite` but journal claim not committed (death between `broker.py:337` and the `UPDATE` commit): the restarted resume hits `program_admission.py:153-154` and refuses permanently. This matches the documented \"restart cannot adopt an orphan permit\" behavior rather than contradicting it.\n- `authorization()` at `program_admission.py:182` takes `BEGIN IMMEDIATE` for a read-only check immediately before transport; a busy writer could convert a valid committed authorization into a `DispatchNotSent` rejection. That depends on the connection's busy timeout, which is not shown, so I do not assert it.\n- `ProgramRegistry.authorize` validates `proposal` at line 134 outside the `try`, so a malformed proposal produces no refusal record \u2014 but the broker always supplies a validated `Proposal`, so it is unreachable via the admitted path.\n- The mutual-exclusivity check at `broker.py:131-134`, the `current_binding != binding` recheck at 330, and the exact-patch/regex comparison at `program_admission.py:70-82` behave as described; I found no bypass or replay in them.\n\nNo approval implied; Finding 1 should be fixed and its refusal-classification covered before the post-review Kubernetes acceptance run, since the lifecycle attribution checks rely on the reason strings it produces.",
+      "usage_cost_estimate_usd": 0.4006,
+      "usage": {
+        "input_tokens": 9880,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 6036,
+        "output_tokens_details": {
+          "thinking_tokens": 4694
+        },
+        "service_tier": "standard",
+        "inference_geo": "global"
+      },
+      "current_file_matches": {
+        "src/autonomy_lab/broker.py": true,
+        "src/autonomy_lab/campaign.py": true,
+        "src/autonomy_lab/durable_contract.py": true,
+        "src/autonomy_lab/program_admission.py": false
+      }
+    },
+    {
+      "scope": "evidence",
+      "snapshot_id": "97317a084050027aa829ed147b882af20edbc762eb3a59fe7a0e80c4c4f688f8",
+      "files": {
+        "docs/BOUND_DISPATCH_AUTHORIZATION.md": "1e96286773c6cc5df66dcfeba1637e297ea47248cd390309434283528a083cc1",
+        "src/autonomy_lab/program_admission.py": "8d2e8358f126811c25a8ec9a113b9230836f98932505d024b152ccb33770ce69",
+        "src/autonomy_lab/program_lifecycle.py": "531637bba5f52d92097ef88f00f840f2d02379178ca7e49bc42eca2d29396d1c",
+        "tests/test_contract_confirmation.py": "be0623c605eb4dc034ee19c4cd4a6612f1df27bed7c92b7ee0b7279ab3f4601c",
+        "tests/test_program_admission.py": "601163271e6f900dd3d2d78c0fe399d1d1180ea662c5c44aea292d79298179d5",
+        "tests/test_program_lifecycle.py": "42f6a247e86c54c01741a11502da9ee296228e429a51850691ccb1d2fc24162d"
+      },
+      "source_ranges": {
+        "docs/BOUND_DISPATCH_AUTHORIZATION.md": null,
+        "src/autonomy_lab/program_admission.py": [
+          [
+            58,
+            88
+          ]
+        ],
+        "src/autonomy_lab/program_lifecycle.py": [
+          [
+            1,
+            265
+          ],
+          [
+            515,
+            650
+          ]
+        ],
+        "tests/test_contract_confirmation.py": [
+          [
+            1,
+            49
+          ]
+        ],
+        "tests/test_program_admission.py": [
+          [
+            618,
+            710
+          ]
+        ],
+        "tests/test_program_lifecycle.py": [
+          [
+            480,
+            700
+          ]
+        ]
+      },
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "findings_text": "**Findings (focus: evidence)**\n\nAfter tracing `verify_execution_conditions`, `execution_conditions`, `evaluate`, and the three new tests, I can substantiate only one minor measurement defect. No bypass, replay, transaction regression, or false-positive evidence path is substantiated in the changed scope.\n\n---\n\n**1. Measurement/attribution defect \u2014 `src/autonomy_lab/program_lifecycle.py`, lines 582\u2013606**\n\n`verify_execution_conditions` (line 591) runs inside the same `try` as `evaluate_calibration`, `admission_ledger`, `verify_admission` and `verify_bindings`. If it raises, the `except` at 604 sets only `checks[\"evaluated_admission_and_authorizations\"] = False` and records a single `evidence_error_type`. The key `bound_execution_conditions` is never written, and `bound_program_dispatches` is skipped.\n\nTrigger / trace: an artifact whose admission ledger and pins reproduce, but whose `authorization_conditions` row differs from the audit-derived patch (the exact case `test_program_lifecycle.py:489` covers at unit level).\n- line 588\u2013590 `verify_admission` passes;\n- line 591 `verify_execution_conditions` raises `ValueError('Authorized conditions differ from actual requests')`;\n- control jumps to 604; `checks` = `{..., \"evaluated_admission_and_authorizations\": False}`; no `bound_execution_conditions` key; `detail = {\"evidence_error_type\": \"ValueError\"}`.\n\nOverall `status` is still `\"failed\"` (line 610), so this is not a false positive. But the result misattributes the new condition-binding failure to the pre-existing admission check, and a consumer diffing `checks` against the expected key set cannot tell whether the new guard ran at all. Since the PR's stated purpose is that the offline checker \"must bind every authorization condition\", the checker's own output should say when that specific guard fails.\n\nMinimal fix (lines 591\u2013592):\n\n```python\n        checks[\"evaluated_admission_and_authorizations\"] = True\n        try:\n            checks[\"bound_execution_conditions\"] = verify_execution_conditions(\n                directory, card, admitted, captured\n            )\n        except Exception as error:\n            checks[\"bound_execution_conditions\"] = False\n            detail[\"condition_error_type\"] = type(error).__name__\n            raise\n```\n\n(Re-raising preserves the existing \"stop and mark failed\" behavior while making the failing guard explicit; alternatively initialise `checks[\"bound_execution_conditions\"] = False` before the outer `try`.)\n\n---\n\n**Not substantiated (checked, no defect found):**\n\n- Audit matching (lines 83\u201386) requires exactly one `ResponseComplete` patch event per authorization keyed by the broker-set `userAgent`; duplicates fail closed (`duplicate_audit` test), and the patch embeds `uid`/`resourceVersion` tests, so target-object substitution fails at `program_admission.py:82`.\n- `execution_conditions` compares the audit `requestObject` against a patch reconstructed from the card request, then the result against the committed row, so a stored condition cannot be back-filled from the broker's own record alone.\n- Inventory check (line 77) plus list equality (lines 88\u201389) reject extra or missing condition rows.\n- SIGKILL test uses real fork/`SIGKILL`, checks both ledgers after reopen, and asserts no transport call; consistent with the doc's stated boundary.\n- `test_contract_confirmation.py` fixture correctly exempts `test_historical_entry_refuses_current_runtime` from the pin substitution, so the unmocked refusal is actually exercised.\n\nNo approval implied; real Kubernetes acceptance remains prospective as stated.",
+      "usage_cost_estimate_usd": 0.33098,
+      "usage": {
+        "input_tokens": 12278,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 4164,
+        "output_tokens_details": {
+          "thinking_tokens": 2903
+        },
+        "service_tier": "standard",
+        "inference_geo": "global"
+      },
+      "current_file_matches": {
+        "docs/BOUND_DISPATCH_AUTHORIZATION.md": true,
+        "src/autonomy_lab/program_admission.py": false,
+        "src/autonomy_lab/program_lifecycle.py": false,
+        "tests/test_contract_confirmation.py": true,
+        "tests/test_program_admission.py": false,
+        "tests/test_program_lifecycle.py": false
+      }
+    },
+    {
+      "scope": "remediation",
+      "snapshot_id": "844aa91f6dedd3add2843bf9dc97c8c729b0eaf905c7bbf47c233b6cfcfc7b60",
+      "files": {
+        "README.md": "7c211f0aac048a189f70bdac85dc777e46d9aaf2acde14bfac6be82d5c5b96b7",
+        "docs/FINAL_SLOT_RESULTS.md": "0addad24364fcc2c5cc059aca66eb33156d79235bb4c12857f62e084f9e64ee7",
+        "src/autonomy_lab/program_admission.py": "6aaa6dd7bd7f990eea67e1cddcfb45baed5589d4060339b42bb4fbdb7d58d409",
+        "src/autonomy_lab/program_lifecycle.py": "7d17aa8dc82e3f2ce1d548a70133865038d4cf2f05f27d0a1bd05d27d2513de8",
+        "tests/test_program_admission.py": "d58db9e694ec795176e7055f8e1db9ded19eb7f103cecf2a1c578cf48a692dc2",
+        "tests/test_program_lifecycle.py": "77674cad3b47b78e08fd27918e7cb15eeb51ec70f473c6d0404316564f62a11d"
+      },
+      "source_ranges": {
+        "README.md": [
+          [
+            21,
+            35
+          ]
+        ],
+        "docs/FINAL_SLOT_RESULTS.md": null,
+        "src/autonomy_lab/program_admission.py": [
+          [
+            37,
+            91
+          ],
+          [
+            163,
+            202
+          ]
+        ],
+        "src/autonomy_lab/program_lifecycle.py": [
+          [
+            559,
+            645
+          ]
+        ],
+        "tests/test_program_admission.py": [
+          [
+            698,
+            760
+          ]
+        ],
+        "tests/test_program_lifecycle.py": [
+          [
+            523,
+            580
+          ]
+        ]
+      },
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "findings_text": "**Scope reviewed:** `program_admission.py` (evaluate/execution_conditions/authorize tail/authorization), `program_lifecycle.py` 559\u2013625, the two new tests, and the report/README numerics.\n\n**Cross-check of report claims:** 6 cases \u00d7 2 requests = 12 = 9 acks + 3 \u00d7 HTTP 422; table values match the raw facts; README \"protected-metadata contexts tied\" matches 11/10 vs 11/10 and 17/4 vs 17/4. No overclaim found in changed doc text; both docs correctly say selection grants no authority and precise admission remains withheld.\n\n### Finding 1 \u2014 Dispatch-time condition refusals are not recorded in the registry (`program_admission.py:177\u2013195`)\n\n`authorize()` wraps its body so any refusal is persisted via `record_dispatch_refusal` (lines 165\u2013167). `authorization()` does not: `execution_conditions()` at line 184 and both `require()` calls at 188/191 raise `Refused` straight out of the method with no `refusals` row. A pre-send mismatch (binding drift, patch drift, pin mismatch) therefore leaves the registry's own audit trail empty; only the campaign's sanitized refusal exists. The offline checker's `verify_execution_conditions` (called with `directory, card, admitted, captured`) is fed the admission ledger \u2014 so a durable-binding mismatch caught at dispatch time is invisible to the registry-side evidence, and cannot be distinguished from \"never dispatched\".\n\nTrigger: call `registry.authorization(pin, proposal, binding=tampered, patch=patch)` after a committed `authorize`; observe `Refused` raised and `rows(registry,'refusals')` unchanged.\n\nFix:\n```python\ndef authorization(self, pin, proposal, *, binding, patch):\n    try:\n        conditions = execution_conditions(proposal, binding, patch)\n        with self.transaction() as db:\n            ...\n            return dict(row)\n    except Exception as error:\n        self.record_dispatch_refusal(proposal, error, action='dispatch_authorization')\n        raise\n```\n(add an `action` parameter to `record_dispatch_refusal`, default `'authorize_dispatch'`), and have `verify_execution_conditions` require that every operation present in `captured` broker attempts but absent from `authorizations` has a matching `dispatch_authorization` refusal.\n\n### Finding 2 \u2014 Refusal recording can mask the original error class (`program_admission.py:165\u2013175`)\n\n`record_dispatch_refusal` opens a second `self.transaction()`. If storage is genuinely unavailable (the exact condition it is trying to record), the `INSERT INTO refusals` raises inside the `except` block, replacing the original exception; the caller then sees an `sqlite3.OperationalError` originating from the refusal write, not the authorization failure, and the authored trigger test does not cover this because its trigger is scoped to `authorization_conditions` only. Broker classification still ends up \"unavailable\", so no authority expands, but the failure-key/attribution guarantee added in this PR (\"condition-specific failure key\") is lost for exactly the storage-failure branch.\n\nTrigger: add `CREATE TRIGGER ... BEFORE INSERT ON refusals ... RAISE(ABORT,...)` alongside the existing trigger and call `authorize`; the raised type is the refusal-write error, and `refusals` is empty with no marker of the original cause.\n\nFix:\n```python\nexcept Exception as error:\n    try:\n        self.record_dispatch_refusal(proposal, error)\n    except Exception as record_error:\n        raise error from record_error\n    raise\n```\nand extend `test_conditions_insert_failure_rolls_back_authorization_and_prevents_send` with a second trigger on `refusals` asserting the original error type propagates and `budget_used == 0`.\n\nNo transaction regression found in the shown `authorize` tail: both INSERTs sit in one `transaction()` and the trigger test substantiates joint rollback. Lifecycle checker initialisation (line 582) and stage retention (611) behave as described; `evaluated_admission_and_authorizations` cannot remain unset on the exception path.",
+      "usage_cost_estimate_usd": 0.29007,
+      "usage": {
+        "input_tokens": 7392,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 4323,
+        "output_tokens_details": {
+          "thinking_tokens": 2916
+        },
+        "service_tier": "standard",
+        "inference_geo": "global"
+      },
+      "current_file_matches": {
+        "README.md": true,
+        "docs/FINAL_SLOT_RESULTS.md": true,
+        "src/autonomy_lab/program_admission.py": true,
+        "src/autonomy_lab/program_lifecycle.py": true,
+        "tests/test_program_admission.py": true,
+        "tests/test_program_lifecycle.py": true
+      }
+    }
+  ],
+  "estimated_review_cost_usd": 1.36286,
+  "preflight_only_failures": 2,
+  "cost_is_invoice": false,
+  "approval": false,
+  "notes": [
+    "Scoped source excerpts, not independent test execution. Changed runtime sections after initial reviews are covered by remediation excerpts. Raw provider thinking, credentials and private artifacts excluded."
+  ]
+}

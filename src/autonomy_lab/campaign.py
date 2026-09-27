@@ -329,7 +329,8 @@ def operator(directory, workspace, contract, kube, verification):
                     binding = episode / ('operation-' + dispatching[0]['operation_id'] + '.json')
                     require(not binding.exists(), 'Program operation already dispatched')
                     if contract.admit_program:
-                        registry.authorization(pin, proposal)
+                        registry.authorization(pin, proposal,
+                                               binding=broker.contract_binding(proposal.operation_id), patch=patch)
                     save(binding, {'at': time.time(), 'operation_id': dispatching[0]['operation_id'],
                                    'episode': episode.name, 'program_version': program_pin['version']})
             except Exception as error:
@@ -349,7 +350,7 @@ def operator(directory, workspace, contract, kube, verification):
     policy = BrokerPolicy(read(directory / 'owner.json')['run_id'], kube.namespace, 'inventory',
                           read(directory / 'identities-before.json')['Service/inventory'],
                           max_dispatches=contract.max_dispatches, operation_contract=contract.operation_contract)
-    def authorize(proposal):
+    def authorize(proposal, binding, patch):
         try:
             active(directory)
             validate_pin(program_raw, program_pin)
@@ -358,12 +359,12 @@ def operator(directory, workspace, contract, kube, verification):
             registry.record_dispatch_refusal(proposal, error)
             raise PermissionError('Program validation refused dispatch') from error
         try:
-            registry.authorize(pin, proposal, program_raw)
+            registry.authorize(pin, proposal, program_raw, binding=binding, patch=patch)
         except Refused as error:
             raise PermissionError('Program admission refused dispatch') from error
 
     broker = ActionBroker(directory / 'operations.sqlite', policy, Adapter(),
-                          **({'authorize_dispatch': authorize} if contract.admit_program else {}))
+                          **({'authorize_bound_dispatch': authorize} if contract.admit_program else {}))
     if contract.test_pause_after_dispatch:
         broker.hook = lambda stage: dispatch_barrier(stage, directory, workspace, broker)
     elif contract.test_pause_before_dispatch or contract.test_pause_after_intent:

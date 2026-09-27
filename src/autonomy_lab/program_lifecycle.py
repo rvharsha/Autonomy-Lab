@@ -14,7 +14,7 @@ from autonomy_lab.kubernetes import ROOT
 from autonomy_lab.procedure import freeze, verify_bindings
 from autonomy_lab.procedures import encoded, require
 from autonomy_lab.program_admission import evaluate as evaluate_calibration
-from autonomy_lab.program_admission import request_digest
+from autonomy_lab.program_admission import execution_conditions, request_digest
 from autonomy_lab.recurrence import epoch, routing_only
 from autonomy_lab.withdrawal import ledger
 
@@ -62,7 +62,32 @@ def admission_ledger(path):
         result["authorizations"] = [
             dict(r) for r in db.execute("SELECT * FROM authorizations ORDER BY operation_id")
         ]
+        result['authorization_conditions'] = [
+            dict(r) for r in db.execute('SELECT * FROM authorization_conditions ORDER BY operation_id')
+        ]
     return result
+
+
+def verify_execution_conditions(directory, card, admitted, captured):
+    from autonomy_lab.durable_contract import validate_binding
+
+    with closing(sqlite3.connect((directory / 'operations.sqlite').resolve().as_uri() + '?mode=ro', uri=True)) as db:
+        bindings = {r[0]: json.loads(r[1]) for r in db.execute('SELECT operation_id,binding FROM operation_contracts')}
+    operations = {o['operation_id']: json.loads(o['request']) for o in card['operations']}
+    require(set(bindings) == set(operations), 'Durable condition inventory differs')
+    for operation_id, request in operations.items():
+        validate_binding(request, bindings[operation_id])
+    expected = []
+    for authorization in admitted['authorizations']:
+        operation_id = authorization['operation_id']
+        events = [e for e in captured['events'] if e.get('stage') == 'ResponseComplete'
+                  and e.get('verb') == 'patch'
+                  and e.get('userAgent') == 'autonomy-lab-operation/' + operation_id]
+        require(len(events) == 1, 'Authorization lacks exactly one independently recorded request')
+        expected.append(execution_conditions(operations[operation_id], bindings[operation_id], events[0]['requestObject']))
+    require(sorted(admitted['authorization_conditions'], key=lambda r: r['operation_id']) ==
+            sorted(expected, key=lambda r: r['operation_id']), 'Authorized conditions differ from actual requests')
+    return True
 
 
 def verify_admission(directory, card, evidence, journal, record, receipt, admitted, withdrawn):
@@ -554,6 +579,8 @@ def evaluate(gate):
             checks["refusal_evidence_error"] = False
             refusal_error = type(error).__name__
     detail = {}
+    checks['bound_execution_conditions'] = False
+    evidence_stage = 'calibration_and_admission'
     try:
         receipt = evaluate_calibration(
             gate.parent.parent / spec["calibration_name"],
@@ -563,7 +590,10 @@ def evaluate(gate):
         refused = verify_admission(
             directory, card, evidence, journal, record, receipt, admitted, case != "stable"
         )
+        evidence_stage = 'execution_conditions'
+        checks['bound_execution_conditions'] = verify_execution_conditions(directory, card, admitted, captured)
         checks["evaluated_admission_and_authorizations"] = True
+        evidence_stage = 'program_dispatches'
         checks["bound_program_dispatches"] = verify_bindings(
             directory, spec, card, evidence, journal, captured, refused_operations=refused
         )
@@ -578,6 +608,7 @@ def evaluate(gate):
     except Exception as error:
         checks["evaluated_admission_and_authorizations"] = False
         detail["evidence_error_type"] = type(error).__name__
+        detail["evidence_stage"] = evidence_stage
     if "refusal_error" in locals():
         detail["refusal_evidence_error_type"] = refusal_error
     return {
