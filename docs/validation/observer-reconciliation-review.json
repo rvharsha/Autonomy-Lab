@@ -1,0 +1,142 @@
+{
+  "kind": "pre-execution_source_reviews",
+  "reviews": [
+    {
+      "scope": "core",
+      "status": "completed",
+      "model": "claude-fable-5-1",
+      "snapshot": {
+        "extra_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {
+          "experiments/observer_reconciliation/gate.py": "504e8d3153d482918083b9d967133319139f2621f5ed83091d61ed244e1df7d6",
+          "src/autonomy_lab/desired_state.py": "af20665bf54bf621f340f8dc97db8ae1d31f25393abf3192f008f9428acd6d17"
+        },
+        "prompt_sha256": "fcecc2161a26dc6bd11ce93306032281e9001507888994445dffa0421dadb9d0",
+        "review_kind": "observer_reconciliation",
+        "scope": "broker",
+        "snapshot_id": "db5f0a58f42439e3fc1c9e86b14b62146ffecf976485d31a7f60f88382909566",
+        "source_bytes": 24684
+      },
+      "usage_cost_estimate_usd": 0.31596,
+      "findings_text": "**Finding 1 \u2014 gate.py line 179: the baseline arm cannot legally perform its own defined action**\n\n```python\nrequire(variant == 'desired_state' and scenario in ROUTING and ...)\n```\n\nThis runs for *every* recorded operation. The comparator p111 procedure is described as \"repair diagnosed routing\", so in `observer_routing` the program variant may legitimately submit one repair. Trace: program proposes a UID/RV-bound 8080 patch \u2192 `operations` has one entry \u2192 line 179 fails on `variant == 'desired_state'` \u2192 `evaluate_trial` raises \u2192 the whole shard's `evaluate` aborts (line 218) \u2192 `decide` never runs. The result is not \"program succeeded, no benefit\" but \"gate refused\", i.e. the only world in which the baseline beats or ties the new actor is unmeasurable, while the world in which it fails passes cleanly. That biases the comparison toward `conventional_benefit_observed` by construction, and the same line also short-circuits the justification checks (evidence coverage, UID/RV binding) that should apply to *any* repair.\n\nMinimal fix: separate the universal invariants from the fixed-intent-only check:\n\n```python\nrequire(scenario in ROUTING and coverage['references_valid_and_prior'] and coverage['service_evidence']\n        and proposal['target_port'] == 8080, 'Repair lacks justification')\nif variant == 'desired_state':\n    require(proposal['run_id'] == intent['intent']['run_id']\n            and proposal['service_uid'] == intent['intent']['service_uid'], 'Repair lacks fixed-intent binding')\n```\n\nIf the intended design really is \"program must never mutate\", state it explicitly in `config()`/`plan()` limits and fail the *trial's* row (record it) instead of aborting the shard, so the failed baseline is retained as data rather than discarded before decision.\n\n**Finding 2 \u2014 gate.py line 91: trial record precedence lets `trial.json` override the planned scenario/variant without detection**\n\n```python\nrequire({**expected, **trial} == result and result['status'] == 'recorded', ...)\n```\n\n`trial` is spread last, so any key present in both (`scenario`, `variant`, `repetition`) takes the `trial.json` value. `result` is the results.json row, which is produced from the same worker record. Trace: worker writes `trial.json` with `scenario='observer_outage'` into `trial-005` that the plan assigned `observer_routing`; results.json row matches trial.json \u2192 line 91 passes. Line 94 only checks `worker-request.json` against `expected`, not against `trial.json`, so the recorded trial and the declared request are never cross-checked. All later logic then uses `expected['scenario']` (line 99) while `trial['score']`/`trial['agent']` came from a differently-labelled run; the historical score reproduction at line 161\u2013163 is computed for the *expected* scenario against a record scored under another, and can still coincide (e.g. `healthy` vs `escalate` expectations both yield `task_success=False` for an escalated terminal). This is a silent mislabelling path, not a hypothetical host attack \u2014 a run-order or namespace-reuse bug in the worker produces exactly this.\n\nMinimal fix: make plan identity authoritative and check it explicitly:\n\n```python\nrequire(all(trial[k] == expected[k] for k in ('scenario', 'variant', 'repetition')), 'Trial identity differs from plan')\nrequire({**trial, **expected} == result and result['status'] == 'recorded', 'Trial record differs or failed')\n```\n\nNo further substantiated defects; the `desired_state.run` control flow (single dispatch, mandatory independent verify, `uncertain_desired` fall-through to verification) matches the stated intent."
+    },
+    {
+      "scope": "workflow",
+      "status": "completed",
+      "model": "claude-fable-5-1",
+      "snapshot": {
+        "extra_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {
+          ".github/workflows/observer-reconciliation.yml": "3c68d0d1cc5c2f44b46168b97ccf5f97cd41b724967e51ad32f195a94c5d2ca2",
+          "docs/OBSERVER_RECONCILIATION.md": "926ef6600b809c6e58a597b54f71b19c39a73f7014065d88ad8b70aa9f367db7",
+          "experiments/observer_reconciliation/negative.py": "582fd3f5eca72ad5bff8a2b0665252dec59904c71bf4cb74e6ad5481823c2d22",
+          "experiments/observer_reconciliation/run.py": "2642fa03dc2368bf0d27d9b1e28572305278cc4fa034f406b936da0073ef5056"
+        },
+        "prompt_sha256": "c6dfb82737aa47feb515f440b50fdce498964ffe34e6788dc0f2b4c82ffd66bf",
+        "review_kind": "observer_reconciliation",
+        "scope": "broker",
+        "snapshot_id": "595306ffbbdab48b6f364b77b99e3dd38db2e28eed1ce87050dbec511c9aef76",
+        "source_bytes": 24071
+      },
+      "usage_cost_estimate_usd": 0.2531,
+      "findings_text": "**Finding 1 \u2014 `reproduce` can exit without persisting its ledger (run.py:97, 104; negative.py:15)**\n\nTrigger: `controls()` selects `next(i for i, r in enumerate(rows,1) if variant=='desired_state' and scenario=='observer_routing')` from shard 0 only. If shard 0's two contexts don't include `observer_routing` (shard assignment is seeded in `plan`), or `results.json` order does not match `trial-NNN` directory numbering, `next()` raises `StopIteration` (or the wrong trial is corrupted, making a control refuse \"for an unexpected reason\"). `StopIteration`\u2014and any `Refused` if it isn't a subclass of `ValueError`/`AssertionError`\u2014is not in the `except` tuples at lines 97/104, so line 106 `save(...)` never runs. `reproduction.json` is left at its line-85 content: `status: incomplete`, `errors: {}`, and the uploaded artifact records no cause.\n\nFix: catch `Exception` in both blocks (recording `error_type`), or move the final `save` into a `finally:`; in `controls`, locate the trial by reading each `trial-*/trial.json` (`variant`, `scenario`) rather than by `results.json` position, and pick the shard that actually contains `observer_routing` instead of hard-coding shard 0.\n\n**Finding 2 \u2014 live gate and reproduction evaluate different file inventories (run.py:63 vs 71/93)**\n\nTrigger: `run_shard` calls `evaluate(source, ...)` on the full worker directory (raw logs, sqlite sidecars `operations.sqlite-wal/-shm`, any non-allowlisted file), then exports only `ROOT_FILES`/`TRIAL_FILES`/`verification-*.json`. `reproduce` evaluates the exported subset. Any dependency of `evaluate`/`audit.assess` on a non-allowlisted file (notably an un-checkpointed WAL: the copied `operations.sqlite` lacks the latest acknowledged operations) makes the live shard pass and the reproduction refuse (\"Shard outcome does not reproduce\" / \"missing acknowledged operations\") \u2014 or worse, silently agree while both read incomplete journals. The \"rows\" ledger is therefore not derived from the bytes that are hashed.\n\nFix: in `run_shard`, export first (`hashes = export(source, destination/'raw')`), then `evaluate(destination/'raw', ...)` so the recorded rows come from exactly the hashed inventory; checkpoint/close the sqlite journal before export (or export `operations.sqlite-wal`/`-shm` too).\n\n**Finding 3 \u2014 \"single live attempt\" guard is bypassable by opening a new PR (workflow lines 3\u20138, 15\u201318, 22\u201325, 54\u201357)**\n\nTrigger: `test \"$RUN_ATTEMPT\" = 1` only blocks *re-runs* of the same workflow run. The trigger is `pull_request: opened` with head ref and base sha pinned, but nothing pins the *PR number*. Closing the PR and opening another from `codex/observer-reconciliation` against the same base yields a fresh run with `run_attempt == 1`, re-executing all 32 live trials \u2014 a retry the protocol forbids, with the earlier failed attempt's artifacts unlinked from the new decision.\n\nFix: pin `github.event.pull_request.number` (or head sha) in the job `if:`, and have `freeze` refuse when a plan artifact for that head sha already exists (e.g., check an immutable marker via the API or a committed `frozen.json` containing the run id); alternatively use a repository-level lock (`concurrency` alone is insufficient since it doesn't persist across completed runs)."
+    },
+    {
+      "scope": "harness",
+      "status": "completed",
+      "model": "claude-fable-5-1",
+      "snapshot": {
+        "extra_diff_sha256": "f4da3811b61637ae70a90f4f0b48f462f851a510ab3b6e8f0fde6eb014ad4d5c",
+        "files": {
+          "src/autonomy_lab/value_scenarios.py": "5d292df663ab86363f3fc9b626ca2df6b9476f7693fb5160b014fc7eb9b0a5e0",
+          "tests/test_desired_state.py": "f2e4f352d366f8d49d61d29afec3daa365c515def901c07ceb0057d69a35cc6f",
+          "tests/test_observer_reconciliation.py": "2eb0a9df88c25e49b62dc765b16b7b08fe2594775bc8c094cd96e98ae4934775"
+        },
+        "prompt_sha256": "9ebf21fd4a8b515fbc82b9be41343c8770901925313b6c97dab6801801e1df1f",
+        "review_kind": "observer_reconciliation",
+        "scope": "broker",
+        "snapshot_id": "afe914fb1a8ec8e41db6bbe01a74440ab340c7d6e4b194dd2d2181f4d38a0207",
+        "source_bytes": 26549
+      },
+      "usage_cost_estimate_usd": 0.32149,
+      "findings_text": "**Finding 1 \u2014 `observer_routing_verifier` establishment check is untested and either aborts the whole arm or accepts non-routing evidence**\n\nLocation: `src/autonomy_lab/value_scenarios.py:13-28` (`verifier_outage_established`, new `configuration_fault` parameter) and `src/autonomy_lab/experiments.py:341-342`.\n\nTrigger: for `observer_routing_verifier`, the harness sets `expected = \"verified_failure\"` and requires every probe to have `inventory_control.kind == \"error\"`. Two problems:\n\n- Correctness of the expectation: the existing `verify_record` semantics for the sibling scenario `observer_verifier` are that a dead `inventory_control` yields `indeterminate` (control lost, no attribution). Nothing in this diff shows `verify_record` promoting a routing-only failure (quotes transport-fail; no HTTP-200 wrong content) to `verified_failure` while a control probe is in error state. The only reason `observer_quote_verifier` is `verified_failure` is the positive `total_minor == 126` evidence branch on line 22-26, which is skipped when `semantic_fault=False`. If `verify_record` returns `indeterminate` here, line 343 raises `RuntimeError(\"Verifier measurement outage was not established\")` for all 4 `observer_routing_verifier` trials (2 arms \u00d7 2 reps), and with no retries the gate's population check (`test_incomplete_or_aliased_population_is_refused`) refuses the entire experiment.\n- Measurement weakness in the other direction: with `configuration_fault=True` the `all(...)` requires **no** positive evidence that the failure is routing-caused. Any `verified_failure` (e.g., a leftover backend permission fault from a prior stage, or a quote deployment rollout hiccup) satisfies the establishment check, so the \"diagnosed routing fault\" the fixed-intent actor is supposed to repair is not actually confirmed to be the fault the trusted verifier saw.\n\nExecution trace: `run_trial` \u2192 `kube.set_target_port(8081)` (line ~234) \u2192 `establish_fault` \u2192 verifier-outage block \u2192 `verifier_outage_established(fault, semantic_fault=False, configuration_fault=True)` \u2192 `expected=\"verified_failure\"` \u2192 compares against whatever `verify_record` produced with `inventory_control` errored. No test in `tests/test_desired_state.py` or `tests/test_observer_reconciliation.py` exercises this path; `authored_rows()` simply hard-codes `desired_state` as healthy for `observer_routing_verifier`, which the gate tests inherit as an assumption rather than verify.\n\nMinimal fix:\n1. Add a positive routing-evidence requirement when `configuration_fault` is set, mirroring the semantic branch, e.g. require every probe's `service.target_port == 8081` (the `service` observation is already `kind == \"resource\"`) and `quotes` for `available-single` to show a non-200/transport error.\n2. Before launch, run one authored `verify_record` fixture (dead `inventory_control`, target 8081, failing quotes) through `verifier_outage_established(..., configuration_fault=True)` and assert it returns `True`; if `verify_record` yields `indeterminate`, change `expected` for this scenario to `indeterminate` rather than shipping an expectation that will abort the shard.\n\n**No second defect substantiated.** I checked: `intent` is always defined before `reconcile()` because `run_trial` calls `validate_contract(config.get('reconciliation_contract'))` at line 194-196 for `desired_state` (a missing contract raises before reaching line 428); the `observer_backend` permission check correctly requires `has_table_privilege(...) is False`; and `observer_routing_quote` establishes the wrong-200 quote before applying the routing fault, so the semantic check is not masked. The `reconciliation-binding.json` artifact being written for the p111 arm (line 397-400) is harmless to scoring."
+    },
+    {
+      "scope": "final_workflow",
+      "status": "completed",
+      "model": "claude-fable-5-1",
+      "snapshot": {
+        "extra_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "files": {
+          ".github/workflows/observer-reconciliation.yml": "91d80e8dfa75db697511ff4ad2cdb9f72a24791b93ac433aa9dfd7983102d2a5",
+          "docs/OBSERVER_RECONCILIATION.md": "443fd90c8ca6a4cdea8c40105ff13be3424f427778488ccaa687e30c7b88aad0",
+          "experiments/observer_reconciliation/negative.py": "2ec380916d4f55ca78e3725133efeeeb026ba1127ee511452a56880562d0cfb5",
+          "experiments/observer_reconciliation/run.py": "7fa7cc35dc6855627bd39ceaa25f68e7e1689a67d5cf231c5a28675b9e8e0912"
+        },
+        "prompt_sha256": "ad4c15f8af491c6e17e4592c3f84162add5a4f521ffa0421122af817b60db61d",
+        "review_kind": "observer_reconciliation",
+        "scope": "broker",
+        "snapshot_id": "ced2f47ac9959886ea22f151f48d7f929b1463bc2a7b4edcda11861ef6d89b37",
+        "source_bytes": 28552
+      },
+      "usage_cost_estimate_usd": 0.33023,
+      "findings_text": "**Finding 1 \u2014 retained SQLite snapshot drops the only sidecar DELETE journaling actually produces**\n\n`experiments/observer_reconciliation/run.py:24` allowlists `operations.sqlite-wal` and `operations.sqlite-shm`, but the runtime (per the disposition) uses DELETE journaling. In that mode the sidecar is `operations.sqlite-journal`; `-wal`/`-shm` never exist, so those two allowlist entries are dead, and the real sidecar is silently excluded by the `is_file()` filter at line 33.\n\nTrigger / trace:\n1. The 45\u2011minute step timeout (workflow line 93) or job cancellation interrupts the live wrapper while the broker/journal process is mid\u2011transaction.\n2. `run_shard` catches the `BaseException` (line 89), and the `finally` block (line 94\u201395) exports immediately \u2014 or, if the wrapper was hard\u2011killed, the always\u2011run `retain` step calls `retain_after_step` \u2192 `export` (line 66).\n3. At that instant `trial-NNN/operations.sqlite` has a hot `operations.sqlite-journal` beside it. `export` copies the main file only; the hot journal is not on the allowlist.\n4. `hashes` records the sha256 of the half\u2011committed main file; the retained \u201coriginal bytes\u201d now describe a database state that never existed (a reader opening it without the journal sees uncommitted pages as committed, or gets a corruption error), while `operations.json`/`operation-events.json` copied a moment later may reflect the rolled\u2011back state.\n\nThis is confined to failed/partial retention (a passed shard has a closed DB and no journal), but the docs (\u00a7Evaluation, lines 60\u201365) promise partial originals are retained faithfully, and a mismatch between the journal export and the raw DB in a failed shard is exactly what a post\u2011mortem would inspect.\n\nMinimal fix (`run.py:24`):\n\n```python\n'operations.sqlite', 'operations.sqlite-journal',\n```\n\nKeep `-wal`/`-shm` only if the journaling mode is ever changed; otherwise remove them so the allowlist matches the runtime. Optionally, in `retain_after_step`, record `journal_mode`/whether a `-journal` file was present so a snapshot taken with an open transaction is explicitly labelled.\n\n**Finding 2 \u2014 none substantiated**\n\nI checked the remaining suspect paths and cannot substantiate a defect from the supplied source:\n\n- `negative.py:15\u201316` maps `results.json` row index to `trial-NNN` by order; this is correct only if `run_experiment` writes rows in trial\u2011directory order. If that invariant fails, `evaluate` refuses with a different reason and `controls` raises at line 43, which `reproduce` catches (line 128) and withholds the decision \u2014 a false refusal, not a false acceptance. Not a measurement flaw; noted as a fragility only.\n- `run_shard` `finally` re\u2011export races with still\u2011running workers after `KeyboardInterrupt`, but the shard is already marked failed and the snapshot is never used for a decision.\n- The GitHub history check (workflow lines 31\u201345), the `download-artifact` `pattern` \u2192 directory naming used by `reproduce` (run.py:111), and `verify_export`\u2019s full\u2011inventory comparison all line up.\n\nNo further concrete defects found in the shown code."
+    }
+  ],
+  "dispositions": [
+    {
+      "finding": "Core: planned trial identity can be overridden by trial/result records",
+      "decision": "accepted",
+      "resolution": "Explicitly compare trial scenario/variant and every result plan identity; worker trial.json has no repetition field. Added unit refusal and real-evidence copied-identity corruption."
+    },
+    {
+      "finding": "Core: p111 might legitimately repair after observed backend transport failure",
+      "decision": "rejected",
+      "resolution": "The unchanged p111 backend-error branch only verifies then finishes, even with refresh enabled. The gate requires actual backend transport failure in every case. A program write contradicts its frozen behavior. Healthy baseline outcomes with no write are accepted and defeat primary gain. Added direct p111 behavior tests for all verifier verdicts."
+    },
+    {
+      "finding": "Workflow: unforeseen errors may leave an unexplained incomplete reconstruction ledger",
+      "decision": "accepted in part",
+      "resolution": "Catch unexpected Exceptions during shard reconstruction and controls and persist error type. The suggested StopIteration trigger is inapplicable: shard0 is fixed to observer_routing/observer_outage; only arm order is randomized, and original ordered identities are checked. Refused inherits ValueError."
+    },
+    {
+      "finding": "Workflow: live and reconstructed evidence inventories differ",
+      "decision": "accepted",
+      "resolution": "Export first; evaluate exactly the exported bytes; verify full inventory/digests again after evaluation. Sidecars are retained when present. No raw-evidence edits or SQLite checkpoint mutation."
+    },
+    {
+      "finding": "Workflow: another PR can trigger an undeclared replacement run",
+      "decision": "accepted",
+      "resolution": "Fixed workflow concurrency plus workflow-history API require this to be the only run on the study branch, as well as run_attempt1."
+    },
+    {
+      "finding": "Harness: routing-plus-verifier-loss qualification lacks positive routing evidence",
+      "decision": "accepted",
+      "resolution": "Require exact observed target8081 shape and actual failed client quote. Authored inputs pass through the real verifier and raw-record reproducer, confirming verified_failure coexists with control-loss reasons. Existing verifier already retains conclusive configuration failure; no verdict weakening."
+    },
+    {
+      "finding": "Final workflow: DELETE-mode hot rollback journal omitted from partial retention",
+      "decision": "accepted",
+      "resolution": "Retain operations.sqlite-journal plus WAL/SHM when present. Partial snapshots explicitly disclaim atomic database consistency, list sidecars, and cannot qualify a failed run. Hash copied bytes, including possible partial files."
+    }
+  ],
+  "cost_estimate_usd": 1.22078,
+  "token_only_oversized_preflights": 1,
+  "limitations": "Model source review does not authenticate live results. Final remedies were independently checked; no claim that final bytes received a separate clean review. Original preflight/review records retained privately without publishing provider reasoning.",
+  "final_files_sha256": {
+    "src/autonomy_lab/desired_state.py": "af20665bf54bf621f340f8dc97db8ae1d31f25393abf3192f008f9428acd6d17",
+    "src/autonomy_lab/experiments.py": "0b3bf1e936c5404880e9ac85ed75b38ceaa5fe3d9e43be1d5255124ce725f1b1",
+    "src/autonomy_lab/value_scenarios.py": "e2e01e69b3cbc3a9936007c0fa929438f736e96d97681cb572e31ed74f741b87",
+    "src/autonomy_lab/scoring.py": "f2bbc8c7e8eeb6c8974507383fb7bb7d9df34ebb9d1ebc4dde8b5cf74d67c2f2",
+    "experiments/observer_reconciliation/__init__.py": "d3ccdeeee3ffa5b387267aea866da9bacd8fa627b5b45727270ed22c0a161dcf",
+    "experiments/observer_reconciliation/gate.py": "1afd50e27a4bb655cb809ec2fdbbd72e629c0bfd6ca8387d7c5944ba9d39ce59",
+    "experiments/observer_reconciliation/negative.py": "2ec380916d4f55ca78e3725133efeeeb026ba1127ee511452a56880562d0cfb5",
+    "experiments/observer_reconciliation/run.py": "88b4471c5a3adb5f76654c9c40c9dc1435cb6fef11447d59a0faff703144f879",
+    ".github/workflows/observer-reconciliation.yml": "91d80e8dfa75db697511ff4ad2cdb9f72a24791b93ac433aa9dfd7983102d2a5",
+    "docs/OBSERVER_RECONCILIATION.md": "d1569f97d2d195752090903a479ff00065b0d8b6fe75dbdeaa23afffaaf6ba6d",
+    "tests/test_desired_state.py": "f2e4f352d366f8d49d61d29afec3daa365c515def901c07ceb0057d69a35cc6f",
+    "tests/test_observer_reconciliation.py": "1e29c3eda0f66892f0a16f19195fb23f737518c101e0ca022616ac63301b549a",
+    "tests/test_value_scenarios.py": "23f031afe3ed143b210a290a1676553349e7a316dc61b32377b2c34d330ea936"
+  },
+  "validation": "Standard make test lint:1876passed,2dependencywarnings; final focused34passed and experiments lint passed. Live cohort not executed at this record."
+}

@@ -77,3 +77,32 @@ def test_verifier_outage_gate_keeps_failure_and_uncertainty_distinct(semantic_fa
     snapshot["inventory_control"] = {"kind": "response", "status_code": 200}
     assert not verifier_outage_established(measurement, semantic_fault=semantic_fault)
     assert not verifier_outage_established({"verdict": verdict, "probes": []}, semantic_fault=semantic_fault)
+
+
+@pytest.mark.parametrize('transport_error', [False, True])
+def test_real_verifier_logic_preserves_routing_failure_during_control_loss(transport_error):
+    from test_verifier import TestClock
+    from test_verifier import healthy as healthy_fixture
+
+    from autonomy_lab.procedures import verify_record
+    from autonomy_lab.verifier import load_expectations, run_window
+
+    # Authored oracle input; no live measurements or experimental results.
+    expectations = load_expectations()
+    snapshot = healthy_fixture.__wrapped__(expectations)
+    snapshot['inventory_control'] = {'kind': 'error', 'error': 'ConnectError'}
+    snapshot['service']['resource']['spec']['ports'][0]['targetPort'] = 8081
+    for quote in snapshot['quotes']:
+        if transport_error:
+            quote.update(kind='error', error='ConnectError')
+            quote.pop('status_code')
+        else:
+            quote.update(status_code=503, body={'detail': 'inventory unavailable'})
+    clock = TestClock()
+    measured = run_window(lambda: snapshot, expectations, window_seconds=1, interval_seconds=1,
+                          clock=clock.now, sleep=clock.sleep)
+    verify_record(measured, 1)
+    assert measured['verdict'] == 'verified_failure'
+    assert verifier_outage_established(measured, semantic_fault=False, configuration_fault=True)
+    snapshot['service']['resource']['spec']['ports'][0]['targetPort'] = 8080
+    assert not verifier_outage_established(measured, semantic_fault=False, configuration_fault=True)
