@@ -77,7 +77,13 @@ Ties or a measured regression retain legacy. Missing evidence or an unrealized
 required opportunity withholds selection. Selection grants no authority.
 
 One attempt per case, eight campaigns total, zero model calls, at most two
-dispatches per campaign and 25 minutes per shard. No retry or favorable subset.
+dispatches per campaign and 25 minutes per shard's case-execution step. Provisioning
+must establish each case's measurement window within 180 seconds. The CI job has
+a separate 35-minute bound to leave time for setup and evidence upload after the
+execution step stops. This pre-execution review refinement avoids a whole-job
+timeout preempting artifact retention. A cancelled or lost host can still leave
+partial evidence; retain the started-attempt record and withhold selection.
+No retry or favorable subset.
 Stop this confirmation attempt after that cohort. A runtime or evaluator change
 in response to results converts the cohort to development evidence and requires
 a separately declared fresh confirmation; preserve the original failure.

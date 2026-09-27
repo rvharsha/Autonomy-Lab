@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import pytest
+import yaml
 
 from autonomy_lab.operation_contract import HEARTBEAT
 from autonomy_lab.procedures import Refused
@@ -57,6 +58,16 @@ def test_recurrence_requires_all_three_exact_healthy_slots():
     altered = copy.deepcopy(samples)
     altered[1]["scheduled_at"] += 1
     assert not gate.recovered_before_recurrence(altered, 1000)
+
+
+def test_execution_budget_leaves_separate_ci_retention_time():
+    declared = gate.plan()
+    workflow = yaml.safe_load(Path(".github/workflows/contract-confirmation.yml").read_text())
+    job = workflow["jobs"]["compare"]
+    execution = next(s for s in job["steps"] if s.get("name") == "Execute each frozen case once")
+    assert execution["timeout-minutes"] == declared["cost_budget"]["shard_timeout_minutes"] == 25
+    assert job["timeout-minutes"] == declared["cost_budget"]["ci_job_timeout_minutes"] == 35
+    assert all(s["provision_timeout_seconds"] == 180 for s in declared["cases"].values())
 
 
 def measurements():

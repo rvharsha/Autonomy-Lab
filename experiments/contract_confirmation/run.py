@@ -53,7 +53,9 @@ def run_case(gate, spec):
             env={"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "PYTHONPATH": str(ROOT / "src")},
         )
     try:
-        window = await_file(directory / "window.json", time.monotonic() + 900)
+        window = await_file(
+            directory / "window.json", time.monotonic() + spec["provision_timeout_seconds"]
+        )
         start = window["start"]
         record["run_id"] = read(directory / "owner.json")["run_id"]
         initial = next((directory / "workers").glob("operator-*"))

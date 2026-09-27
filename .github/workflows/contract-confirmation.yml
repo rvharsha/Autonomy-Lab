@@ -39,7 +39,7 @@ jobs:
       matrix:
         shard: [0, 1, 2, 3]
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
@@ -54,6 +54,7 @@ jobs:
           name: contract-confirmation-plan
           path: artifacts/contract-confirmation-plan
       - name: Execute each frozen case once
+        timeout-minutes: 25
         run: PYTHONPATH=src:scripts:. .venv/bin/python -m experiments.contract_confirmation.run run artifacts/contract-confirmation-plan/plan.json ${{ matrix.shard }} artifacts/contract-confirmation-${{ matrix.shard }}
       - name: Retain credential-free evidence including failed attempts
         if: always()

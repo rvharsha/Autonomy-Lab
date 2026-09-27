@@ -53,6 +53,40 @@ def require_rejection(name, action):
     raise Refused("Authored evidence corruption passed: " + name)
 
 
+def corrupt_recovery_sample(directory):
+    # Keep the schedule intact. In a copied t100 observation replace
+    # only its verification measurements with complete routing-failure
+    # measurements retained earlier in this same real campaign.
+    # Recompute the summary: malformed data must not mask the guard.
+    from collections import Counter
+
+    path = directory / "samples/0010.json"
+    value = read(path)
+    prior = next(
+        read(p)["verification"]
+        for p in sorted((directory / "samples").glob("*.json"))
+        if read(p)["verification"]["verdict"] == "verified_failure"
+    )
+    verification = value["verification"]
+    require(
+        len(verification["probes"]) == len(prior["probes"]),
+        "Recurrence corruption requires matching probe counts",
+    )
+    for probe, failed in zip(verification["probes"], prior["probes"], strict=True):
+        for key in ("observations", "verdict", "reasons"):
+            probe[key] = copy.deepcopy(failed[key])
+    counts = Counter(p["verdict"] for p in verification["probes"])
+    verification.update(
+        verdict="verified_failure",
+        reasons=list(dict.fromkeys(r for p in verification["probes"] for r in p["reasons"])),
+        counts={
+            "total": len(verification["probes"]),
+            **{k: counts[k] for k in ("verified_success", "verified_failure", "indeterminate")},
+        },
+    )
+    save(path, value)
+
+
 def challenge(source):
     names = (
         "missing_snapshot",
@@ -163,42 +197,7 @@ def challenge(source):
                     value["second_fault"]["requested_at"] = value["fault"]["finished_at"]
                 save(path, value)
             elif name == "unverified_recurrence":
-                # Keep the schedule intact. In a copied t100 observation replace
-                # only its verification measurements with complete routing-failure
-                # measurements retained earlier in this same real campaign.
-                # Recompute the summary: malformed data must not mask the guard.
-                from collections import Counter
-
-                path = directory / "samples/0010.json"
-                value = read(path)
-                prior = next(
-                    read(p)["verification"]
-                    for p in sorted((directory / "samples").glob("*.json"))
-                    if read(p)["verification"]["verdict"] == "verified_failure"
-                )
-                verification = value["verification"]
-                require(
-                    len(verification["probes"]) == len(prior["probes"]),
-                    "Recurrence corruption requires matching probe counts",
-                )
-                for probe, failed in zip(verification["probes"], prior["probes"], strict=True):
-                    for key in ("observations", "verdict", "reasons"):
-                        probe[key] = copy.deepcopy(failed[key])
-                counts = Counter(p["verdict"] for p in verification["probes"])
-                verification.update(
-                    verdict="verified_failure",
-                    reasons=list(
-                        dict.fromkeys(r for p in verification["probes"] for r in p["reasons"])
-                    ),
-                    counts={
-                        "total": len(verification["probes"]),
-                        **{
-                            k: counts[k]
-                            for k in ("verified_success", "verified_failure", "indeterminate")
-                        },
-                    },
-                )
-                save(path, value)
+                corrupt_recovery_sample(directory)
             elif name in {
                 "omitted_intermediate",
                 "reordered_intermediate",
