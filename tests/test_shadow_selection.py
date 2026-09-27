@@ -3,14 +3,21 @@
 import copy
 import hashlib
 import json
+import sys
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 import yaml
 
 from autonomy_lab.customer_benefit import plan as training_plan
 from autonomy_lab.procedures import Refused
-from experiments.shadow_selection import gate, training
+
+# The live CLI declares src:scripts:. because the historical script runner uses
+# sibling imports. Scope that same import path to loading it; do not change the
+# frozen experiment or operating runtime to repair a test collection mistake.
+with patch.object(sys, 'path', [str(Path(__file__).resolve().parents[1] / 'scripts'), *sys.path]):
+    from experiments.shadow_selection import gate, training
 
 
 def training_values():
