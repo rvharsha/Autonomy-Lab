@@ -86,7 +86,30 @@ def bindings(directory):
         }
 
 
-def assess_operations(directory, spec, card, record, evidence, captured):
+def require_early_change(record):
+    require(
+        "early_change" in record
+        and record["early_change"]["kind"] == "annotation"
+        and record["second_fault"]["finished_at"]
+        <= record["early_change"]["requested_at"]
+        <= record["early_change"]["finished_at"]
+        < record["second_requested_at"],
+        "Early protected change not completed before second worker",
+    )
+
+
+def assess_operations(
+    directory,
+    spec,
+    card,
+    record,
+    evidence,
+    captured,
+    *,
+    conflict_phase="first",
+    expected_sequence=None,
+    early_change=False,
+):
     require(
         captured["collection_closed"] is True and captured["malformed_lines"] == 0,
         "Incomplete audit",
@@ -152,7 +175,9 @@ def assess_operations(directory, spec, card, record, evidence, captured):
         )
 
     controls = [
-        record[name] for name in ("fixture", "fault", "second_fault", "post_ack") if name in record
+        record[name]
+        for name in ("fixture", "fault", "second_fault", "post_ack", "early_change")
+        if name in record
     ]
     controls.extend(c for p in checkpoints for c in p.get("changes", []))
     require(
@@ -200,17 +225,19 @@ def assess_operations(directory, spec, card, record, evidence, captured):
         record["fixture"]["finished_at"] <= record["fault"]["requested_at"],
         "Fixture applied after fault",
     )
-    first_intents = [p for p in checkpoints if p["phase"] == "first" and p["stage"] == "intent"]
+    first_intents = [
+        p for p in checkpoints if p["phase"] == conflict_phase and p["stage"] == "intent"
+    ]
     first = min(first_intents, key=lambda p: p["barrier"]["at"]) if first_intents else None
     changes = [p for p in checkpoints if p.get("changes")]
-    expected = SEQUENCES[spec["context"]]
+    expected = SEQUENCES[spec["context"]] if expected_sequence is None else expected_sequence
     require(len(changes) <= (1 if expected else 0), "Multiple injected conflicts")
     if changes:
         point = changes[0]
         require(
             first is not None
             and point["operation_id"] == first["operation_id"]
-            and point["phase"] == "first"
+            and point["phase"] == conflict_phase
             and point["stage"] == "preflight",
             "Conflict placed at wrong causal boundary",
         )
@@ -218,6 +245,10 @@ def assess_operations(directory, spec, card, record, evidence, captured):
             tuple(c["kind"] for c in point["changes"]) == expected,
             "Declared intervention sequence differs",
         )
+    if early_change:
+        require_early_change(record)
+    else:
+        require("early_change" not in record, "Undeclared early protected change")
     if spec["context"] == "heartbeat_post_ack":
         require(
             "post_ack" in record and record["post_ack"]["kind"] == "tick-1",
@@ -248,7 +279,7 @@ def assess_operations(directory, spec, card, record, evidence, captured):
             "post_ack" not in record and "post_ack_operation" not in record,
             "Undeclared post-ack intervention",
         )
-        exposed = bool(changes)
+        exposed = first is not None if early_change else bool(changes)
     all_proposals = []
     for worker, episodes in evidence.items():
         for episode in episodes:
