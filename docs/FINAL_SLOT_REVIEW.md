@@ -61,3 +61,9 @@ preflight stopped before generation while scoping that final review.
 Self-review also bound automatic live execution to the declared experiment branch
 and original baseline, matching changed paths and the first workflow attempt.
 Merely opening a later PR cannot rerun this exposed cohort.
+
+The final workflow review found that branch-name and baseline checks alone also
+matched a fork using that branch name. Accepted: require the head repository to
+equal the owning repository. Exact reviewed source is additionally retained and
+checked against the PR/run head and frozen source manifests. Six bounded source
+reviews completed before execution; four token-preflight stops generated no review.

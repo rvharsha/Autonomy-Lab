@@ -13,7 +13,10 @@ permissions:
 
 jobs:
   freeze:
-    if: github.event.pull_request.head.ref == 'codex/final-slot-confirmation' && github.event.pull_request.base.sha == 'b751905de27d2ae9e4de70763d392a7dd61c3fab'
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'codex/final-slot-confirmation' &&
+      github.event.pull_request.base.sha == 'b751905de27d2ae9e4de70763d392a7dd61c3fab'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
