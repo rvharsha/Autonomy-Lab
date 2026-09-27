@@ -1,0 +1,91 @@
+{
+  "review_scope": "New shadow selection experiment; no automatic approval",
+  "completed_reviews": [
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": {
+          "docs/SHADOW_SELECTION.md": "865e1e264edb751f1303b3caf0ecd6b013fef68acc51ab62138bc43a57117401",
+          "experiments/shadow_selection/__init__.py": "1426fa052d569cb8a1906b5e401e8cc79bb5a9df04ef1e0b5c756f942b7f9740",
+          "experiments/shadow_selection/gate.py": "9384653681b09f93e9aaecccefed247ea52e4ab435bc283f93f3e8f4b691b83b",
+          "experiments/shadow_selection/negative.py": "d5eb4fbded570a3d4c660eb15b093e89caca58d49d23aeda7541e9e2302a0121",
+          "experiments/shadow_selection/run.py": "f9d1013815a73461dd335373355c3f95fd2e99bf6e098f188748f5b422f492e4",
+          "experiments/shadow_selection/training.py": "c01ef7389bb3b355f53c60163e67ce135658e9d26379bbc5ba9b637347539a6c"
+        },
+        "prompt_sha256": "08e9ad7b4dc2ca109b94e27efb39dbf4162c1109b3483c938ffe0db7f3708f75",
+        "review_kind": "shadow_selection",
+        "scope": "broker",
+        "snapshot_id": "29ddef4d7ff61438fdcf6576b007ede0437db89c39cf90a580d28dac0353cdfd",
+        "source_bytes": 24556
+      },
+      "usage_cost_estimate_usd": 0.28601,
+      "findings_text": "**Finding 1 \u2014 accounting overclaim: training acquisition cost dropped from the frozen plan**\n`experiments/shadow_selection/gate.py:60-62`, `training.py:49-53`\n\nTrigger: `freeze` \u2192 `reproduce_training` runs the full 8-case reproduction (`result`), but `select_training` returns only `evaluations`/`selected`/`decision`; `result`'s cost/accounting fields are discarded. `plan()` then hard-codes `cost_budget = {'campaigns': 9, 'dispatches_per_campaign': 2, 'model_requests': 0, ...}` with no training line item. The report therefore states the mechanism cost as 9 campaigns/0 model requests, contradicting docs/SHADOW_SELECTION.md:39-40 (\"Preserve the historical acquisition cost; using old observations does not make training free\"). Any downstream reader of `plan.json`/`select()` output sees a cost claim that omits the 8 historical campaigns and their dispatches \u2014 an understatement of the loop's total cost.\n\nTrace: `freeze()` \u2192 `plan(selection, t)` \u2192 `cost_budget` literal, no reference to `selection` \u2192 `save(plan.json)` \u2192 `select()` returns `limits`/`comparisons` but no cost, so nothing later restores it.\n\nMinimal fix (training.py): carry the reproduction accounting into the selection, e.g. `'training_cost': result.get('cost_budget')` (or the reproduction's campaign/dispatch/API counts) inside `select_training`'s return; in `plan()`, add `'training_cost': selection['training_cost']` alongside `cost_budget` and state that `campaigns: 9` is *new-execution only*. `validate_selection` already re-derives the dict, so also pass `result` into `select_training` (signature `select_training(evaluations, accounting)`) and store accounting in `selection`, or compare only the non-accounting keys in `validate_selection`.\n\n**Finding 2 \u2014 selection audit compares role labels, not the executed contract**\n`experiments/shadow_selection/gate.py:94-97`\n\nTrigger: per docs (line 14) both contracts run \"the same maintained program\", so `candidate` is plausibly identical for legacy/maintained/selected. `select()` verifies only `('arm', 'context', 'candidate', 'evidence_use')`. The keys that actually identify what ran \u2014 `execution_arm` and `selection_digest` (set at 41-42) \u2014 are never checked against the evaluation. If the shared evaluator's record echoes a different `execution_arm` (e.g. a `selected-*` case whose record shows `legacy` after a mis-resolved selection, or a stale record from a prior plan with a different `selection_digest`), `select()` still accepts it, and `comparisons` would attribute one contract's healthy-window counts to another arm \u2014 exactly the \"wrong arm/selection\" failure mode. This is only a defect if the shared auditor does not itself enforce declaration equality on these fields; if it does, this is redundant but harmless.\n\nReproduction: build `evaluations` where `selected-<ctx>` copies the `legacy-<ctx>` record with `arm` rewritten to `'selected'`, distinct `run_id`/`workload_uid`, same `candidate`; `select()` returns `'complete'` and computes deltas from legacy-vs-legacy data.\n\nMinimal fix:\n```python\nrequire(all(value[k] == spec[k] for k in\n            ('arm', 'context', 'candidate', 'evidence_use',\n             'execution_arm', 'selection_digest')),\n        'Candidate identity differs')\n```\n(ensuring the shared `evaluate` surfaces those two declaration fields in its return value, which it must already hold to have compared the declaration).\n\nNo other substantiated defects: order/shard split, `frozen_at` gating, negative-control isolation, and the `same_as_maintained` handling behave as specified."
+    },
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": {
+          ".github/workflows/shadow-selection.yml": "a266b34d5691f9cbeb3749ad4dab08222317eff5f95f62bea8dedfbf136f87cd",
+          "docs/SHADOW_SELECTION.md": "865e1e264edb751f1303b3caf0ecd6b013fef68acc51ab62138bc43a57117401",
+          "experiments/shadow_selection/run.py": "f9d1013815a73461dd335373355c3f95fd2e99bf6e098f188748f5b422f492e4",
+          "experiments/shadow_selection/training.py": "c01ef7389bb3b355f53c60163e67ce135658e9d26379bbc5ba9b637347539a6c",
+          "tests/test_shadow_selection.py": "a633f37292d20e31b667a4a47b0aeadd3228f6336a64e2e88f7187bbabbc18f4"
+        },
+        "prompt_sha256": "98f3cf435191b40468a3dd1f50dd55cbffd86281c1f27493684e346ae5492584",
+        "review_kind": "shadow_selection",
+        "scope": "broker",
+        "snapshot_id": "84aa7b0e642856537607354edd1b303e6faacdaa9e83f6ff49183a3acbf63fd9",
+        "source_bytes": 32584
+      },
+      "usage_cost_estimate_usd": 0.3469,
+      "findings_text": "**Finding 1 \u2014 `experiments/shadow_selection/training.py:36-38` (and `tests/test_shadow_selection.py:130-138`): a missing pinned archive crashes instead of refusing**\n\nTrigger: any of the five pinned ZIPs is absent from `archives/` (e.g. `gh api` download step partially failed and the freeze step still ran, or the reproduce job's downloaded `archives/` is incomplete).\n\nTrace: `path.read_bytes()` raises `FileNotFoundError` before `require(...)` is evaluated. The wrapper never produces a `Refused` with a reason; it exits via an uncontrolled traceback. Per the doc (line 55\u201356) \"crashes and unrelated refusals never count\", and the test named `test_missing_or_changed_original_archive_never_reaches_evaluator` only exercises the *changed* branch (writes a bogus ZIP), so the missing branch is untested and the test title overclaims.\n\nMinimal fix:\n```python\npath = archives / (str(artifact['id']) + '.zip')\nrequire(path.is_file(), 'Training archive missing')\nrequire(hashlib.sha256(path.read_bytes()).hexdigest() == artifact['sha256'],\n        'Training archive digest differs')\n```\nand add a parametrized test case that deletes the file and asserts `Refused, match='archive missing'`.\n\n**Finding 2 \u2014 `.github/workflows/shadow-selection.yml:36,92,154`: compare shards install a different environment than freeze/reproduce**\n\nTrigger: `freeze` and `reproduce-and-select` run `uv sync --frozen` (lockfile-exact), but the `compare` job\u2014the only job that actually executes the nine cases\u2014runs `make setup`. Unless `make setup` is byte-identical to `uv sync --frozen`, the execution environment whose \"exact runtime dependencies\" are supposedly frozen into `gate_sources` (test line 146\u2013148 hashes sources from the freeze job's checkout) is not the one the measurements come from. Any drift (non-frozen resolve, extra dev tools, different Python resolution) means the reproduce job validates evidence produced under an environment it never recreates, and the workflow test (line 155\u2013165) does not pin this.\n\nTrace: freeze \u2192 `uv sync --frozen` \u2192 plan.json binds source/dependency hashes; compare \u2192 `make setup` \u2192 runs cases; reproduce \u2192 `uv sync --frozen` \u2192 re-derives plan and checks hashes against the *freeze* environment, silently accepting compare's divergent one.\n\nMinimal fix: replace line 92 with the same step used elsewhere:\n```yaml\n      - run: uv sync --frozen\n```\n(if `make setup` performs additional required provisioning, keep it but make it invoke `uv sync --frozen`), and extend `test_workflow_is_single_attempt_and_keeps_setup_and_evidence_margin` to assert every job contains a `run: uv sync --frozen` step.\n\nNothing else in the supplied wrapper/workflow rises to an actionable defect on the stated scope; remaining behavior depends on the unshown shared runner/auditor and is not asserted here."
+    },
+    {
+      "status": "completed",
+      "requested_model": "claude-fable-5-1",
+      "snapshot": {
+        "files": {
+          "docs/SHADOW_SELECTION.md": "865e1e264edb751f1303b3caf0ecd6b013fef68acc51ab62138bc43a57117401",
+          "experiments/shadow_selection/__init__.py": "1426fa052d569cb8a1906b5e401e8cc79bb5a9df04ef1e0b5c756f942b7f9740",
+          "experiments/shadow_selection/gate.py": "4714bc2e4c8a0959dac74999fc883051a54c62eca4f3665ab4e5b90c373c8a04",
+          "experiments/shadow_selection/negative.py": "d5eb4fbded570a3d4c660eb15b093e89caca58d49d23aeda7541e9e2302a0121",
+          "experiments/shadow_selection/run.py": "f9d1013815a73461dd335373355c3f95fd2e99bf6e098f188748f5b422f492e4",
+          "experiments/shadow_selection/training.py": "f5061d51984c1e7500f6d19070dd94c86125309de69748100a980969f8ab7b58"
+        },
+        "prompt_sha256": "50a1986b77666818d2272df5fe0b19d248ac58c4eeef3e4effb82e374dc719af",
+        "review_kind": "shadow_selection",
+        "scope": "broker",
+        "snapshot_id": "29a7b4abda4f3b7dccd16e11fd9f0594f4ab38b74bbc1a3d41d015f804e9df86",
+        "source_bytes": 26066
+      },
+      "usage_cost_estimate_usd": 0.27892,
+      "findings_text": "**Findings: none substantiated.**\n\nI traced the new wrapper (`gate.py`, `negative.py`, `run.py`, `training.py`) against the stated scope and could not confirm an actionable correctness, selection, source-binding, false-positive, or accounting defect.\n\nWhat was checked and why it holds:\n\n- **Arm/candidate binding** (`gate.py:31-45`, `87-99`): `execution_arm` is derived only from the frozen `selection['selected']`, and `select` compares `arm`, `context`, `candidate`, `evidence_use` per case against the frozen plan. `candidate` comes from `base_declaration(execution_arm, 'quiet')`, so a runner executing the wrong contract would fail the identity check rather than be relabeled.\n- **Selection freeze** (`gate.py:22-28`, `run.py:19-25`, `45-51`): `frozen_at` is captured after training reproduction but before `plan.json` is written; `evaluate` requires every `window.json['start'] > frozen_at`; `reproduce` re-derives the selection from pinned ZIPs and refuses any mismatch. `validate_selection` recomputes the choice from the embedded evaluations, so edited summaries cannot alter `selected`.\n- **Plan integrity** (`gate.py:88`): `declared == plan(...)` recomputes source hashes for the new module, shared experiment files, docs, workflow and training manifest; seeded shuffle with `random.Random(2026092701)` is deterministic across supported Python versions.\n- **Distinct executions** (`gate.py:91-95`): `run_id` and `workload_uid` must be non-empty strings and pairwise distinct across all nine cases, blocking reuse of another arm's measurements.\n- **Decision logic** (`gate.py:111-131`): `dominates` requires `eligible`, no healthy-window or dispatch regression in every context, and a strict gain in at least one; decision is `withhold_ineligible` if any case is ineligible; `incremental_strategy_value_demonstrated` is unconditionally `False`, which is conservative and consistent with the \"same bytes as maintained is never an advantage\" rule.\n- **Accounting** (`gate.py:136-142`, `training.py:26-33`): new-execution totals are summed only over the nine new evaluations; historical acquisition is carried separately from the reproduced 8-case cohort, with `billed_compute_cost`/`human_active_seconds` left `None` rather than asserted.\n- **Negative controls** (`negative.py:13-40`): corruptions are applied to `copytree` copies; the original's manifest and re-evaluation are required to be byte/value identical afterward; `early_change_*` maps to the `protected_before` case, matching `run.py:38`; `incomplete_case_inventory` is tested against `select(plan(...), {})` with an exact refusal-string match.\n- **Archive handling** (`training.py:43-56`): every member is checked for absolute paths, `..` components, backslashes and symlink mode before `extractall`; SHA-256 must match the pinned manifest.\n\nNon-blocking observation (not a defect under the stated scope): `challenge` skips `incomplete_case_inventory` from `EXPECTED` by name; if the shared `EXPECTED` list is later renamed, the local check at `negative.py:32-38` still runs, so coverage does not silently drop. The `incomplete_case_inventory` receipt omits a `reason` field unlike the others; purely cosmetic for downstream consumers.\n\nNo changes recommended for this cohort."
+    }
+  ],
+  "token_only_preflights": 1,
+  "configured_price_estimate_usd": 0.9118299999999999,
+  "dispositions": [
+    {
+      "finding": "Historical training acquisition omitted from plan cost view",
+      "status": "fixed",
+      "detail": "Derived 8 historical campaigns, 168 scheduled windows and actual API count from reproduced evidence; kept separate from 9 new campaigns. Unmeasured billed and human costs remain null."
+    },
+    {
+      "finding": "Conditional wrong-arm concern",
+      "status": "not_reproduced",
+      "detail": "Combined candidate identity includes operation_contract, program_version and digest. Shared evaluator compares entire declaration and audits actual broker conditions. Opposite-contract authored corruption is rejected. Final review confirmed this."
+    },
+    {
+      "finding": "Missing archive refusal untested",
+      "status": "fixed",
+      "detail": "Explicit missing-file refusal plus absent and corrupted archive tests; both stop before reproduction."
+    },
+    {
+      "finding": "make setup differs from frozen dependencies",
+      "status": "not_reproduced",
+      "detail": "Makefile setup invokes uv sync --frozen then scripts/bootstrap.py for checksum-verified local tools; removing setup would prevent live Kubernetes execution."
+    }
+  ]
+}

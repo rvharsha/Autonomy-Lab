@@ -1,0 +1,32 @@
+{
+  "run_id": 36327487992,
+  "source": "123505be7cd3d9a35748b1a0bf06d2092f2c375f",
+  "use": "Known development training; never held-out evidence",
+  "artifacts": [
+    {
+      "id": 10934736157,
+      "name": "customer-benefit-plan",
+      "sha256": "ddfdbe71df9229fc2522d17722a321d37a0b6d370a0930558cd657e42b9c5f5c"
+    },
+    {
+      "id": 10934722103,
+      "name": "customer-benefit-shard-0",
+      "sha256": "7389375db31c565a02003c4611dd6ef1f0650dcf6adc92a1119e2625ca1f73a9"
+    },
+    {
+      "id": 10935150195,
+      "name": "customer-benefit-shard-1",
+      "sha256": "46be3246b590275a33295e767e7532823273270ffaa46b678ed1306676a86bfe"
+    },
+    {
+      "id": 10934363502,
+      "name": "customer-benefit-shard-2",
+      "sha256": "afd468ccd76be9230d7493d8b7193efc40e8e20c1c99cd7f3069fde3fb46231b"
+    },
+    {
+      "id": 10934796031,
+      "name": "customer-benefit-shard-3",
+      "sha256": "3c28826b2959be0b6d4db024a907ea688568e475133f1052867a3fd507fbcb17"
+    }
+  ]
+}
