@@ -20,3 +20,7 @@ Its exact archived source is required. Qualification requires 24 specific negati
 controls on copied real evidence; a crash or unrelated rejection never counts.
 Selection grants no admission or deployment authority. No live result is claimed
 by this source change.
+
+Raw `intent_to_request_seconds` includes controller barrier holds. It is retained
+for diagnosis, not reported as isolated runtime latency or used for selection.
+The selection rule uses eligibility, healthy samples and actual dispatch counts.

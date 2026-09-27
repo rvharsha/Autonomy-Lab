@@ -139,7 +139,7 @@ def test_early_corruptions_reach_the_declared_guard(damage):
 
 
 @pytest.mark.parametrize("labels", [None, {}, {"kept": "value"}])
-def test_new_record_builders_do_not_assume_optional_metadata(labels):
+def test_new_record_constructors_accept_inert_optional_metadata(labels):
     first, _ = first_record()
     record = {
         **first,
@@ -186,3 +186,39 @@ def test_negative_control_crash_or_unrelated_rejection_is_never_success():
             negative.require_rejection("prior_budget", action)
     with pytest.raises(Refused, match="corruption passed"):
         negative.require_rejection("prior_budget", lambda: None)
+
+
+@pytest.mark.parametrize("damage", ["wrong_operation", "wrong_barrier_phase"])
+def test_final_conflict_must_belong_to_the_first_prepared_operation_of_second_response(damage):
+    from experiments.contract_confirmation.audit import require_conflict_boundary
+
+    points = [
+        {
+            "phase": phase,
+            "stage": stage,
+            "operation_id": "authored-" + phase,
+            "barrier": {"at": offset + index},
+        }
+        for phase, offset in [("first", 45), ("second", 140)]
+        for index, stage in enumerate(["intent", "preflight"])
+    ]
+    points[-1]["changes"] = [{"kind": "tick-1"}, {"kind": "annotation"}]
+    require_conflict_boundary(points, "second", ("tick-1", "annotation"))
+    record = {"checkpoints": points}
+    if damage == "wrong_operation":
+        negative.corrupt_record(record, damage)
+    else:
+        points[-2]["changes"] = points[-1].pop("changes")
+    assert (
+        negative.require_rejection(
+            damage, lambda: require_conflict_boundary(points, "second", ("tick-1", "annotation"))
+        )
+        == negative.EXPECTED[damage]
+    )
+
+
+def test_missing_second_fault_is_explicitly_refused_by_early_change_guard():
+    record = early_record()
+    del record["second_fault"]
+    with pytest.raises(Refused, match="Early protected change not completed"):
+        require_early_change(record)

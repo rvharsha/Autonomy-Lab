@@ -358,7 +358,9 @@ def reproduce(
             )
             receipt["selection"] = select_fn(declared, receipt["evaluations"])
             receipt["status"] = "complete"
-        except (OSError, KeyError, ValueError, TypeError, AssertionError) as error:
+        except Exception as error:
+            # Every checker failure is retained and withholds selection; crashes
+            # are never counted as successful negative controls.
             receipt["errors"]["qualification"] = {
                 "type": type(error).__name__,
                 "message": str(error),

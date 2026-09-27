@@ -89,6 +89,7 @@ def bindings(directory):
 def require_early_change(record):
     require(
         "early_change" in record
+        and "second_fault" in record
         and record["early_change"]["kind"] == "annotation"
         and record["second_fault"]["finished_at"]
         <= record["early_change"]["requested_at"]
@@ -96,6 +97,30 @@ def require_early_change(record):
         < record["second_requested_at"],
         "Early protected change not completed before second worker",
     )
+
+
+def require_conflict_boundary(checkpoints, conflict_phase, expected_sequence):
+    first_intents = [
+        p for p in checkpoints if p["phase"] == conflict_phase and p["stage"] == "intent"
+    ]
+    first = min(first_intents, key=lambda p: p["barrier"]["at"]) if first_intents else None
+    changes = [p for p in checkpoints if p.get("changes")]
+    expected = expected_sequence
+    require(len(changes) <= (1 if expected else 0), "Multiple injected conflicts")
+    if changes:
+        point = changes[0]
+        require(
+            first is not None
+            and point["operation_id"] == first["operation_id"]
+            and point["phase"] == conflict_phase
+            and point["stage"] == "preflight",
+            "Conflict placed at wrong causal boundary",
+        )
+        require(
+            tuple(c["kind"] for c in point["changes"]) == expected,
+            "Declared intervention sequence differs",
+        )
+    return first, changes
 
 
 def assess_operations(
@@ -225,26 +250,8 @@ def assess_operations(
         record["fixture"]["finished_at"] <= record["fault"]["requested_at"],
         "Fixture applied after fault",
     )
-    first_intents = [
-        p for p in checkpoints if p["phase"] == conflict_phase and p["stage"] == "intent"
-    ]
-    first = min(first_intents, key=lambda p: p["barrier"]["at"]) if first_intents else None
-    changes = [p for p in checkpoints if p.get("changes")]
     expected = SEQUENCES[spec["context"]] if expected_sequence is None else expected_sequence
-    require(len(changes) <= (1 if expected else 0), "Multiple injected conflicts")
-    if changes:
-        point = changes[0]
-        require(
-            first is not None
-            and point["operation_id"] == first["operation_id"]
-            and point["phase"] == conflict_phase
-            and point["stage"] == "preflight",
-            "Conflict placed at wrong causal boundary",
-        )
-        require(
-            tuple(c["kind"] for c in point["changes"]) == expected,
-            "Declared intervention sequence differs",
-        )
+    first, changes = require_conflict_boundary(checkpoints, conflict_phase, expected)
     if early_change:
         require_early_change(record)
     else:

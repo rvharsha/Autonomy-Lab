@@ -218,7 +218,7 @@ def test_negative_control_requires_exact_rejection_not_crash_or_unrelated_failur
         require_rejection("omitted_intermediate", lambda: None)
 
 
-@pytest.mark.parametrize("existing_labels", [None, {"kept": "value"}])
+@pytest.mark.parametrize("existing_labels", [None, {}, {"kept": "value"}])
 def test_intermediate_corruption_handles_valid_objects_without_labels(existing_labels):
     point = sequence()
     metadata = point["changes"][0]["response"]["metadata"]
