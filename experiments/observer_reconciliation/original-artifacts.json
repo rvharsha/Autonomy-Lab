@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "workflow_run": 36345940967,
+  "source_commit": "d19fa2e868b70feb22f368f0ae3a6b2dfe3d65b2",
+  "artifacts": [
+    {
+      "id": 10939574966,
+      "name": "observer-reconciliation-plan",
+      "run_id": 36345940967,
+      "head": "d19fa2e868b70feb22f368f0ae3a6b2dfe3d65b2",
+      "sha256": "87248468438ef5407cf0cc1efb9cdb99b14b05fee0e6c63f5f28d5ca8a6c8a02",
+      "bytes": 4447
+    },
+    {
+      "id": 10940871620,
+      "name": "observer-reconciliation-reproduction",
+      "run_id": 36345940967,
+      "head": "d19fa2e868b70feb22f368f0ae3a6b2dfe3d65b2",
+      "sha256": "24096e2811bbbd8e6b16d1b9a6d9a5058872f6ed518aca49d311770ac92be733",
+      "bytes": 282
+    },
+    {
+      "id": 10941266126,
+      "name": "observer-reconciliation-shard-0",
+      "run_id": 36345940967,
+      "head": "d19fa2e868b70feb22f368f0ae3a6b2dfe3d65b2",
+      "sha256": "eaf4d9c8945768804920438184a905548f71674bfe6ad74a2e52d08763c66de7",
+      "bytes": 709120
+    },
+    {
+      "id": 10941211679,
+      "name": "observer-reconciliation-shard-1",
+      "run_id": 36345940967,
+      "head": "d19fa2e868b70feb22f368f0ae3a6b2dfe3d65b2",
+      "sha256": "ef66ce3c5fc6b9e62092e5306c8183ad3de2061f2279f531c03a38e35aed1006",
+      "bytes": 887047
+    },
+    {
+      "id": 10941291089,
+      "name": "observer-reconciliation-shard-2",
+      "run_id": 36345940967,
+      "head": "d19fa2e868b70feb22f368f0ae3a6b2dfe3d65b2",
+      "sha256": "4fa2ec0d605b1ecf887629d836db04f816b5c45bb0ab453ab0673b5ae2e239a5",
+      "bytes": 723343
+    },
+    {
+      "id": 10940458646,
+      "name": "observer-reconciliation-shard-3",
+      "run_id": 36345940967,
+      "head": "d19fa2e868b70feb22f368f0ae3a6b2dfe3d65b2",
+      "sha256": "73cf26ed4955e4dc3be2fe779906a34a023cfd6960fe546f25ee29c49ac0c8a1",
+      "bytes": 653088
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import re
 import shutil
+import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -48,6 +49,14 @@ def verify_export(source, hashes):
     require(actual == hashes and bool(hashes), 'Raw export inventory or bytes differ')
 
 
+def audit_copy(source, shard, frozen_at):
+    """SQLite read-only WAL readers may create sidecars; isolate those effects."""
+    with tempfile.TemporaryDirectory(prefix='observer-evidence-audit-') as temporary:
+        scratch = Path(temporary) / 'raw'
+        shutil.copytree(source, scratch)
+        return evaluate(scratch, shard, frozen_at)
+
+
 def retain_after_step(destination):
     """A separate CI step retains partial originals after a killed live wrapper.
 
@@ -84,7 +93,7 @@ def run_shard(plan_path, shard, destination):
         run_experiment(declared['shards'][shard], run_id=run_id)
         result['raw_sha256'] = export(source, destination / 'raw')
         result['stage'] = 'independent_reproduction'
-        result['rows'] = evaluate(destination / 'raw', shard, declared['frozen_at'])
+        result['rows'] = audit_copy(destination / 'raw', shard, declared['frozen_at'])
         verify_export(destination / 'raw', result['raw_sha256'])
         require(declared == plan(declared['frozen_at']), 'Source changed during execution')
         result.update(status='passed', stage='complete')
@@ -116,7 +125,7 @@ def reproduce(plan_path, source, destination):
             ledger = read(directory / 'result.json')
             require(ledger['status'] == 'passed' and ledger['shard'] == shard, 'Original shard failed')
             verify_export(directory / 'raw', ledger['raw_sha256'])
-            actual = evaluate(directory / 'raw', shard, declared['frozen_at'])
+            actual = audit_copy(directory / 'raw', shard, declared['frozen_at'])
             require(actual == ledger['rows'], 'Shard outcome does not reproduce')
             result['shards'][str(shard)] = actual
             rows.extend(actual)

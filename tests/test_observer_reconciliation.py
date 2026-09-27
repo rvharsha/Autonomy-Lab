@@ -121,3 +121,77 @@ def test_retention_records_setup_failure_without_inventing_an_attempt(tmp_path):
     retain_after_step(tmp_path)
     assert read(tmp_path / 'retained-after-step.json')['status'] == 'no_live_ledger'
     assert not (tmp_path / 'result.json').exists()
+
+
+def test_readonly_wal_reader_cannot_add_sidecars_to_retained_evidence(tmp_path, monkeypatch):
+    import hashlib
+    import sqlite3
+    from contextlib import closing
+
+    from experiments.observer_reconciliation import run as runner
+
+    # Real SQLite behavior, not a mocked filesystem or a workload measurement.
+    source = tmp_path / 'original'
+    source.mkdir()
+    database = source / 'operations.sqlite'
+    with closing(sqlite3.connect(database)) as db:
+        db.execute('PRAGMA journal_mode=WAL')
+        db.execute('CREATE TABLE observations (value INTEGER)')
+        db.execute('INSERT INTO observations VALUES (7)')
+        db.commit()
+    before = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in source.iterdir()}
+
+    def reader(directory, shard, frozen_at):
+        with closing(sqlite3.connect(f'file:{directory / "operations.sqlite"}?mode=ro', uri=True)) as db:
+            assert db.execute('SELECT value FROM observations').fetchone() == (7,)
+            assert (directory / 'operations.sqlite-shm').exists()
+        return ['authored SQLite regression result']
+
+    monkeypatch.setattr(runner, 'evaluate', reader)
+    assert runner.audit_copy(source, 0, 1) == ['authored SQLite regression result']
+    assert {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in source.iterdir()} == before
+
+
+@pytest.mark.parametrize('mutation', ['unchanged', 'changed_original', 'missing_original', 'extra_file',
+                                      'nonempty_wal', 'changed_backup', 'different_failure'])
+def test_recovery_accepts_only_the_exact_reader_side_effect(tmp_path, mutation):
+    import hashlib
+
+    from autonomy_lab.harness import save
+    from experiments.observer_reconciliation.recover import original_inputs
+
+    # Authored byte-guard fixture. The full replay also requires real SQLite,
+    # original ZIP digests, source pins and complete independent trial evaluation.
+    raw = tmp_path / 'raw'
+    backup = tmp_path / 'retained-after-step'
+    expected = {}
+    for index in range(1, 9):
+        name = f'trial-{index:03d}/operations.sqlite'
+        for root in (raw, backup):
+            path = root / name
+            path.parent.mkdir(parents=True)
+            path.write_bytes(b'authored integrity fixture; not a database')
+        expected[name] = hashlib.sha256((raw / name).read_bytes()).hexdigest()
+        (raw / (name + '-wal')).write_bytes(b'')
+        (raw / (name + '-shm')).write_bytes(bytes(32768))
+    ledger = {'status': 'failed', 'stage': 'independent_reproduction', 'error_type': 'Refused',
+              'rows': [None] * 8, 'raw_sha256': expected}
+    save(tmp_path / 'retained-after-step.json', {'original_ledger_status': 'failed', 'raw_sha256': expected})
+    first = next(iter(expected))
+    if mutation == 'changed_original':
+        (raw / first).write_bytes(b'changed')
+    elif mutation == 'missing_original':
+        (raw / first).unlink()
+    elif mutation == 'extra_file':
+        (raw / 'unrelated.json').write_text('{}')
+    elif mutation == 'nonempty_wal':
+        (raw / (first + '-wal')).write_bytes(b'uncommitted data')
+    elif mutation == 'changed_backup':
+        (backup / first).write_bytes(b'changed')
+    elif mutation == 'different_failure':
+        ledger['stage'] = 'execution'
+    if mutation == 'unchanged':
+        assert original_inputs(tmp_path, ledger)['original_status'] == 'failed'
+    else:
+        with pytest.raises(ValueError):
+            original_inputs(tmp_path, ledger)

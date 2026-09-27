@@ -138,5 +138,52 @@
     "tests/test_observer_reconciliation.py": "1e29c3eda0f66892f0a16f19195fb23f737518c101e0ca022616ac63301b549a",
     "tests/test_value_scenarios.py": "23f031afe3ed143b210a290a1676553349e7a316dc61b32377b2c34d330ea936"
   },
-  "validation": "Standard make test lint:1876passed,2dependencywarnings; final focused34passed and experiments lint passed. Live cohort not executed at this record."
+  "validation": "Standard make test lint:1876passed,2dependencywarnings; final focused34passed and experiments lint passed. Live cohort not executed at this record.",
+  "original_review_premise_correction": "The final pre-execution packet incorrectly asserted DELETE journal mode. broker.py sets WAL. That was our review context error, not verified evidence; original findings remain intact. Live evaluation exposed WAL reader sidecars, addressed by the separate correction below.",
+  "post_execution_correction": {
+    "original_workflow": 36345940967,
+    "original_source": "d19fa2e868b70feb22f368f0ae3a6b2dfe3d65b2",
+    "original_status": "failed",
+    "live_retries": 0,
+    "scope": "Scratch readers and constrained original-evidence replay; no operating runtime, original evaluator or criteria change.",
+    "review": {
+      "status": "completed",
+      "snapshot": {
+        "files": {
+          ".github/workflows/observer-reconciliation-replay.yml": "bfb1cfe0bee9eb65dd6c6ce948b4b3b8d16008093d78be19c7fdeaa6b77bafef",
+          "experiments/observer_reconciliation/original-artifacts.json": "3d2f9ae4bc4763a80d5683dc656089b453d99f8e5cb1b4092f99b365a3fb1ed2",
+          "experiments/observer_reconciliation/recover.py": "c9478b2f769d8c2b7868c2521373d840ec66bf817a49d6f2f944aa9d30e8bef8",
+          "experiments/observer_reconciliation/run.py": "8b4e476ab8db41598aa76febd9c342008b1ddc7a375e9842c9b247127a1045df"
+        },
+        "prompt_sha256": "a3e3c8bcc01570678709757d0f103647b2f2d34611a02c868a9c21eed9f69c68",
+        "review_kind": "observer_reader_correction",
+        "scope": "broker",
+        "snapshot_id": "e304bbe457a96e2cc0fcd1e097237545b0fd9cfc081879c51ea3f719e0ae12c3",
+        "source_bytes": 28396
+      },
+      "usage_cost_estimate_usd": 0.42262,
+      "findings_text": "**Findings**\n\nI could not substantiate a definite correctness or provenance defect in the shown code. Two items are worth verifying before merge; neither is confirmed from the supplied source alone.\n\n**1. `recover.py:102` \u2014 `negative.controls` receives a different tree shape than `reproduce` gives it (unverified)**\n\n- In `run.py:136`, `controls(source, \u2026)` is handed the shard-artifact root: each `observer-reconciliation-shard-N/` contains `plan.json`, `result.json`, `raw/`.\n- In `recover.py:96\u2013102`, `working/observer-reconciliation-shard-N/` contains only `raw/` (copied from `retained-after-step`). No `plan.json`/`result.json` are copied.\n- If `negative.controls` reads either ledger (e.g., to compare against recorded rows or to check shard identity), recovery fails at line 102 with a `KeyError`/`FileNotFoundError` after all four shards were reconstructed, and the receipt records `status: incomplete` \u2014 a false negative, not a false positive. You state the 9 controls reconstructed locally, which argues `controls` only needs `raw/`; but `negative.py` is not in the diff, so this cannot be confirmed here.\n- Minimal hardening if it does read them: after line 97, also copy the original `plan.json` and `result.json` into `working / name` (they are already hash-pinned via the ZIP digest), or assert in `negative.py` that only `raw/` is consumed.\n\n**2. `.github/workflows/observer-reconciliation-replay.yml:14\u201316` \u2014 replay job is skipped for any PR not on branch `codex/observer-reconciliation`**\n\n- Trigger: open the same change from any other same-repo branch (or after a branch rename). The job condition is false, no `observer-corrected-replay` artifact is produced, and the PR shows no failing check \u2014 the \"independent CI replay qualifies the correction\" claim silently degrades to \"no replay ran.\"\n- Not a code defect in `recover.py`, but it is a provenance gap: nothing forces the qualifying artifact to exist for the merged head. Minimal fix: drop the branch-name clause (keep the same-repo guard for token safety) or make the job a required status check so a skipped job blocks merge.\n\n**Checked and found consistent**\n\n- `original_inputs` (lines 25\u201346): exact-inventory check via `actual.get(name) != sha`, `extras == allowed`, sidecar sizes 0/32768, retained copy hashed with the same `file_hashes` and required equal to `expected` \u2014 matches the seven parametrized mutations in the new test.\n- Frozen-source isolation (lines 53\u201359): frozen `src/` and root are prepended before any `autonomy_lab`/`experiments` import; `gate.__file__` is asserted under `frozen_source`; recovery's own module has no top-level imports from either package, so the current checkout's editable install cannot shadow the frozen evaluator.\n- Original ZIPs: digest-checked at 75 before extraction; path traversal guarded at 79\u201380; `before == file_hashes(original)` re-checked at 104 after evaluation ran only on `working/`.\n- `original_workflow_status: 'failed'` is set at 65 and never overwritten; `decision` only set after all four shards match `ledger['rows']`.\n- `run.py:audit_copy` (52\u201357) evaluates a scratch copy, so the regression test at `tests/test_observer_reconciliation.py` exercises real SQLite `mode=ro` sidecar creation against a copy, not the retained source.\n\nNo other actionable defect identified."
+    },
+    "dispositions": [
+      {
+        "finding": "Negative controls may require shard ledgers outside raw/",
+        "decision": "not substantiated",
+        "resolution": "Inspected original negative.py: reads only shard0/raw; all nine controls executed successfully in exact-source local recovery. No extra metadata needed."
+      },
+      {
+        "finding": "Branch guard could allow a different branch to skip replay",
+        "decision": "not applicable to this bounded correction",
+        "resolution": "PR28 is on the fixed branch. Merge requires explicitly checking successful current-head replay and retained artifact equality with local reconstruction. This historical recovery workflow makes no continuous general regression coverage claim."
+      }
+    ],
+    "validation": "1884 tests passed, lint passed; exact original local replay complete for32trials and9controls. Corrective CI not yet executed at this record.",
+    "files_sha256": {
+      "experiments/observer_reconciliation/run.py": "8b4e476ab8db41598aa76febd9c342008b1ddc7a375e9842c9b247127a1045df",
+      "experiments/observer_reconciliation/recover.py": "c9478b2f769d8c2b7868c2521373d840ec66bf817a49d6f2f944aa9d30e8bef8",
+      "experiments/observer_reconciliation/original-artifacts.json": "3d2f9ae4bc4763a80d5683dc656089b453d99f8e5cb1b4092f99b365a3fb1ed2",
+      ".github/workflows/observer-reconciliation-replay.yml": "bfb1cfe0bee9eb65dd6c6ce948b4b3b8d16008093d78be19c7fdeaa6b77bafef",
+      "tests/test_observer_reconciliation.py": "5ce7e14ae4ac98664b8b2913ba46e8e782a64eaf98d280ef482a66770c84eeeb"
+    }
+  },
+  "all_source_review_cost_estimate_usd": 1.6434
 }

@@ -90,3 +90,23 @@ observable decision tradeoff survives, define an experience/no-experience ablati
 and strong maintained/exhaustive comparators before adding a proposer. Previously
 inspected cases cannot become hidden tests. This study does not implement continuous
 same-service updates, intent changes or durable grant renewal.
+
+## Original auditor failure and separate offline reconstruction
+
+The first workflow ran the 32 declared trials, then failed its evidence-directory
+integrity check. SQLite read-only WAL access created extra WAL/shared-memory files
+while the original exported members retained their hashes. The original workflow
+and its withheld decision remain failed. No live trial is retried or replaced.
+
+The corrective reader audits scratch copies. A separate recovery entry point pins
+all six original ZIPs and the exact original source commit. It accepts only this
+specific post-evaluation failure: eight recorded/evaluated rows per shard, unchanged
+original export members, exactly the expected empty WAL/32KiB shared-memory extras,
+and an independent post-step copy matching the original digest inventory. It runs
+the original evaluator, frozen criteria and all nine corruption controls without
+editing either originals or thresholds. It refuses changed data, other failure
+stages or extra files. Its receipt explicitly retains original_workflow_status=failed.
+
+This is corrected offline evidence qualification after an auditor defect, not a
+successful original unattended pipeline or a new confirmation cohort. New source
+reviews/tests and independent CI replay qualify the correction separately.
