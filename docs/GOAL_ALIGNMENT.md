@@ -15,6 +15,14 @@ This can establish a bounded automatic configuration update, not discovery or
 learning value beyond maintained automation. Known contexts remain development
 data even when executed again; the eight-program search remains closed.
 
+PR27 completed the known-configuration selection checkpoint: selected and maintained
+precise each yielded 45 healthy/18 failed sampled windows, versus legacy 39/24,
+with one execution per known context/arm. It did not establish experience value.
+The next [observer-outage comparison](OBSERVER_RECONCILIATION.md) qualifies ordinary
+fixed-intent reconciliation against the maintained procedure before investing in a
+proposer. A conventional recovery closes that opportunity to model-value claims;
+only a residual observable decision gap warrants an experience ablation.
+
 The live deployment track still requires precise-contract admission and persistence
 across explicit durable grants. Neither requirement is waived by a successful
 shadow result. A later learning-value study must name a new operating gap, include

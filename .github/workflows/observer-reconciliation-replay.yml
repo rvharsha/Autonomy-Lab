@@ -1,0 +1,59 @@
+name: Observer original evidence replay
+on:
+  pull_request:
+    paths:
+      - experiments/observer_reconciliation/**
+      - .github/workflows/observer-reconciliation-replay.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  original-evidence:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'codex/observer-reconciliation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: d19fa2e868b70feb22f368f0ae3a6b2dfe3d65b2
+          path: frozen-source
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: uv sync --frozen
+      - run: .venv/bin/ruff check experiments/observer_reconciliation
+      - name: Fetch the six pinned original workflow archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          .venv/bin/python - <<'PYTHON'
+          import hashlib, json, subprocess
+          from pathlib import Path
+          spec = json.loads(Path('experiments/observer_reconciliation/original-artifacts.json').read_text())
+          destination = Path('artifacts/original-archives')
+          destination.mkdir(parents=True, exist_ok=False)
+          for artifact in spec['artifacts']:
+              path = destination / (str(artifact['id']) + '.zip')
+              with path.open('xb') as stream:
+                  subprocess.run(['gh', 'api', '--allow-escape-sequences', f"repos/rvharsha/Autonomy-Lab/actions/artifacts/{artifact['id']}/zip"], stdout=stream, check=True, timeout=120)
+              assert hashlib.sha256(path.read_bytes()).hexdigest() == artifact['sha256']
+          PYTHON
+      - name: Audit original criteria in scratch copies; preserve original failed status
+        run: .venv/bin/python experiments/observer_reconciliation/recover.py frozen-source artifacts/original-archives artifacts/observer-corrected-replay
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: observer-corrected-replay
+          path: artifacts/observer-corrected-replay/reproduction.json
+          if-no-files-found: error
+          retention-days: 14

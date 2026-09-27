@@ -1,0 +1,138 @@
+name: Observer reconciliation comparison
+on:
+  pull_request:
+    types: [opened]
+    paths:
+      - experiments/observer_reconciliation/**
+      - src/autonomy_lab/desired_state.py
+      - .github/workflows/observer-reconciliation.yml
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: observer-reconciliation-60bd7c9
+  cancel-in-progress: false
+
+jobs:
+  freeze:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'codex/observer-reconciliation' &&
+      github.event.pull_request.base.sha == '60bd7c9539066890d2f0149a418630c86b96c618'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Refuse repeated live attempts
+        env:
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: test "$RUN_ATTEMPT" = 1
+      - name: Refuse another PR or workflow execution of this declared study
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURRENT_RUN: ${{ github.run_id }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os, subprocess
+          def get(path):
+              return json.loads(subprocess.check_output(['gh', 'api', path], text=True))
+          base = 'repos/' + os.environ['GITHUB_REPOSITORY'] + '/actions/'
+          current = int(os.environ['CURRENT_RUN'])
+          run = get(base + 'runs/' + str(current))
+          runs = get(base + 'workflows/' + str(run['workflow_id']) + '/runs?branch=codex%2Fobserver-reconciliation&event=pull_request&per_page=100')
+          assert runs['total_count'] == 1 and [r['id'] for r in runs['workflow_runs']] == [current], 'Earlier study execution exists; automatic replacement refused'
+          PYTHON
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: uv sync --frozen
+      - run: .venv/bin/ruff check experiments/observer_reconciliation
+      - name: Freeze source and the full comparison before execution
+        run: PYTHONPATH=src:. .venv/bin/python -m experiments.observer_reconciliation.run freeze artifacts/observer-reconciliation-plan/plan.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: observer-reconciliation-plan
+          path: artifacts/observer-reconciliation-plan/plan.json
+          if-no-files-found: error
+          retention-days: 14
+  compare:
+    needs: freeze
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Refuse repeated live attempts
+        env:
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: test "$RUN_ATTEMPT" = 1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: make setup
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: observer-reconciliation-plan
+          path: artifacts/observer-reconciliation-plan
+      - name: Execute all eight assigned trials once, preserving failures
+        timeout-minutes: 45
+        run: PYTHONPATH=src:. .venv/bin/python -m experiments.observer_reconciliation.run run artifacts/observer-reconciliation-plan/plan.json ${{ matrix.shard }} artifacts/observer-reconciliation-shard-${{ matrix.shard }}
+      - name: Retain allowlisted original bytes, including unsuccessful attempts
+        if: always()
+        run: PYTHONPATH=src:. .venv/bin/python -m experiments.observer_reconciliation.run retain artifacts/observer-reconciliation-shard-${{ matrix.shard }}
+      - name: Upload original outcomes and separate post-step snapshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: observer-reconciliation-shard-${{ matrix.shard }}
+          path: artifacts/observer-reconciliation-shard-${{ matrix.shard }}/
+          if-no-files-found: error
+          retention-days: 14
+  reproduce:
+    needs: [freeze, compare]
+    if: always() && needs.freeze.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: uv sync --frozen
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: observer-reconciliation-plan
+          path: artifacts/observer-reconciliation-plan
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: observer-reconciliation-shard-*
+          path: artifacts/observer-reconciliation-download
+      - name: Reconstruct every trial and exercise copied-evidence corruptions
+        run: PYTHONPATH=src:. .venv/bin/python -m experiments.observer_reconciliation.run reproduce artifacts/observer-reconciliation-plan/plan.json artifacts/observer-reconciliation-download artifacts/observer-reconciliation-reproduction
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: observer-reconciliation-reproduction
+          path: artifacts/observer-reconciliation-reproduction/reproduction.json
+          if-no-files-found: error
+          retention-days: 14
