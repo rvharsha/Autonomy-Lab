@@ -1,0 +1,96 @@
+{
+  "conclusion": "No retained persistent comparison placed a metadata conflict at the second response or a protected controller change between recurrence and second-worker start. PR21-22 used separate single-operation cases, not prior successful repair on the same two-slot campaign budget.",
+  "corpora": [
+    {
+      "audit_file_hashes": {
+        "server-audit.json": "e30c6e9ffe017dac61429e9612a900fca9ee4a00e22b545cee871bf223a8cd3c"
+      },
+      "record_count": 30,
+      "records_and_declarations_sha256": "fe7561e6eb883c0d249a85718a3347623c78d60cb99e400f449e206508f5d86f",
+      "source": "a38b602",
+      "study": "operation-contract"
+    },
+    {
+      "audit_file_hashes": {
+        "server-audit.json": "7fbc07a18ca77dbe26d7a96df568006bdf89dc10365daa2344d39d3a554501ab"
+      },
+      "record_count": 30,
+      "records_and_declarations_sha256": "9ec7e73d3613e02170d2591a7e1c1fd8f7e81aaeae8f54488f71eeaae1931d97",
+      "source": "c74c94f",
+      "study": "operation-contract"
+    },
+    {
+      "audit_file_hashes": {
+        "server-audit.json": "6ded72c0b7def256074076233b7eb800d71e7f19edf4fa01f6a5a725fabdbbf0"
+      },
+      "record_count": 30,
+      "records_and_declarations_sha256": "816c571d50c6459368345b87a4b843608bc96ecd56bc4a33f406b672b3854439",
+      "source": "f6557ac",
+      "study": "operation-contract"
+    },
+    {
+      "audit_file_hashes": {
+        "server-audit.json": "020f7cbd17028f6d31808b1dc82bbda72fc58b1eeadccd57166468e21bcb3bd7"
+      },
+      "record_count": 32,
+      "records_and_declarations_sha256": "c7176c827f84f58dc3273bb83442713109cc7f5d3e335819c4d06c8d0b79e837",
+      "source": "4e8c72c",
+      "study": "durable-contract"
+    },
+    {
+      "audit_file_hashes": {
+        "server-audit.json": "168fa7ca08229e7ac08ee7ce7f8cd604aa684b0c71ff41cba1d4250bce3c9082"
+      },
+      "record_count": 32,
+      "records_and_declarations_sha256": "077e0d81afa09fdcdb8c6974283691de8f6de5a13c5f9739b5e845b2699edf60",
+      "source": "4f477bf",
+      "study": "durable-contract"
+    },
+    {
+      "audit_file_hashes": {
+        "server-audit.json": "0c0b9327ae9ed3bd3eedfbfddd2d786c182caf58152cdd802b910883e6e4153a"
+      },
+      "record_count": 32,
+      "records_and_declarations_sha256": "7757c655ebd010280cafbbabdb0e2a3d2462d81403b7dcd5e7a1a50b928618f5",
+      "source": "5cd69b4",
+      "study": "durable-contract"
+    },
+    {
+      "audit_file_hashes": {
+        "customer-benefit-shard-0/cases/legacy-quiet/server-audit.json": "bff66af65973c4a31bc159a553022d844bff06895fe98522eebae6f114cf3f5a",
+        "customer-benefit-shard-0/cases/precise-heartbeat_before/server-audit.json": "48ce677bdb1dd1b53677777ae90154a72bbd4a5b3dbdbea49f8131325237c917",
+        "customer-benefit-shard-1/cases/legacy-heartbeat_after/server-audit.json": "9b902ccdb73bc6baf3916bc02752a7626383ffadb0ceaa3c3fd5f347e7e0757a",
+        "customer-benefit-shard-1/cases/precise-heartbeat_after/server-audit.json": "065015066cce2a0740a993640ceaf4ea493b1779c88d25839ba8cf7449b0a2ec",
+        "customer-benefit-shard-2/cases/precise-protected_after/server-audit.json": "204a0c14542835536a57d7a513c1cfe5904dea2c5b5ea40ab188b2b6c0a04a7f",
+        "customer-benefit-shard-2/cases/precise-quiet/server-audit.json": "daea901b85e65a35ec40cdffc0e8d1b06bdc57f50536a0e323069443a56c08c6",
+        "customer-benefit-shard-3/cases/legacy-heartbeat_before/server-audit.json": "2087b48799d8565794b2659322087377baa75d696482f3e47184044666ac488e",
+        "customer-benefit-shard-3/cases/legacy-protected_after/server-audit.json": "3f95df9c0f09eb28aae44899770568d118671d20be65cdf18cfe40cf4382089b"
+      },
+      "record_count": 8,
+      "records_and_declarations_sha256": "588575c535598190a37f1b69cc107e0d99bda8f185dd4e0313dfc1a212983ea6",
+      "source": "9f57082",
+      "study": "customer-benefit"
+    },
+    {
+      "audit_file_hashes": {
+        "contract-confirmation-shard-0/cases/legacy-heartbeat_burst/server-audit.json": "7016891e2f7e55e66210b1b4866fb0946bd435681f69a8d56fa177c8c97ed88d",
+        "contract-confirmation-shard-0/cases/precise-heartbeat_annotation/server-audit.json": "d33fc1481997ed221591f10b1cb95a24ce9b6b922f0c8a8aca024f7f7f631b78",
+        "contract-confirmation-shard-1/cases/legacy-heartbeat_post_ack/server-audit.json": "08d36ada7e6767ce6e8ef1287123dbfc2d56e4e419e6f17439dc21303dd3e437",
+        "contract-confirmation-shard-1/cases/precise-heartbeat_burst/server-audit.json": "581945bb815d7ef9919c6fc2139e11d266f7e09c4789d0213f0c90618412990a",
+        "contract-confirmation-shard-2/cases/legacy-heartbeat_annotation/server-audit.json": "93ef9d5c1170b296fd4dd0afa894625bbe274dd8b2f69921d0f7c4f7ee88f070",
+        "contract-confirmation-shard-2/cases/legacy-heartbeat_return/server-audit.json": "3270f2575cf3f74ac1a3adc90565638a9045e9ae6d21c9776b412eb3bc549078",
+        "contract-confirmation-shard-3/cases/precise-heartbeat_post_ack/server-audit.json": "65ee44f0762bb19636245aa9c2eeb32b5a178523b533b9c7c1ccf5dc4a9095c1",
+        "contract-confirmation-shard-3/cases/precise-heartbeat_return/server-audit.json": "09ec2cc61156915596b6060a453061270613019ffbe1d861434575ca72199934"
+      },
+      "record_count": 8,
+      "records_and_declarations_sha256": "c60b06d6f73e8e61ea12b88e4c61c7cbe623d9a72098ea7ef5972bea82ed62f8",
+      "source": "bd63ed3",
+      "study": "contract-confirmation"
+    }
+  ],
+  "does_not_establish": "Novel API component semantics, production frequency, independent experiment designers, or a beneficial outcome.",
+  "full_inventory_sha256": "e6d0d090f2b7bf648f4d99b73729f65943e217b8857dd9559d2f7aa05c49d81a",
+  "new_combination": "quiet first repair, independently healthy recovery, recurrence, then final-slot contention or protected change before the second worker observation",
+  "scope": "All original locally retained PR21-24 source cohorts, including failed attempts; source archives/bundle copies excluded as duplicates. This inventories authored combinations, not statistical independence.",
+  "status": "passed"
+}
