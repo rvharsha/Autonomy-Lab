@@ -9,8 +9,9 @@ helpers. It changes the conflict phase and proves one quiet acknowledged first
 repair with one slot left. No runtime, authority, budget or candidate changes.
 The older contract-confirmation entry point remains retired development only.
 
-The workflow runs on PR opening, not on pushes, so reporting or reviewing a result
-cannot automatically repeat this cohort. Freeze and execute once; preserve failures.
+The workflow runs only on opening the declared experiment branch against the
+original baseline, with matching changed paths and run_attempt=1. Pushes, other
+branches, later baselines and workflow reruns cannot repeat the live cohort. Freeze and execute once; preserve failures.
 Offline reproduction makes no cloud writes or model calls:
 
     PYTHONPATH=src:scripts:. .venv/bin/python -m experiments.final_slot.run reproduce PLAN DOWNLOAD_DIRECTORY NEW_OUTPUT_DIRECTORY

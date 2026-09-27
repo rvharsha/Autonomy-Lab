@@ -43,7 +43,9 @@ def test_new_contexts_keep_exact_runtime_authority_and_bounded_cohort():
         assert spec["contract"]["admitted_procedure"] is None
     workflow = yaml.safe_load(Path(".github/workflows/final-slot.yml").read_text())
     trigger = workflow.get("on", workflow.get(True))
-    assert trigger == {"pull_request": {"types": ["opened"]}}
+    assert set(trigger) == {"pull_request"}
+    assert trigger["pull_request"]["types"] == ["opened"]
+    assert "experiments/final_slot/**" in trigger["pull_request"]["paths"]
 
 
 def test_selection_requires_strict_gain_and_no_regression_without_granting_authority():
@@ -222,3 +224,25 @@ def test_missing_second_fault_is_explicitly_refused_by_early_change_guard():
     del record["second_fault"]
     with pytest.raises(Refused, match="Early protected change not completed"):
         require_early_change(record)
+
+
+def test_response_phase_check_rejects_a_mislabeled_operation_even_with_matching_id():
+    from experiments.contract_confirmation.audit import require_conflict_boundary
+
+    points = [
+        {
+            "phase": "second",
+            "stage": "intent",
+            "operation_id": "authored-second",
+            "barrier": {"at": 140},
+        },
+        {
+            "phase": "first",
+            "stage": "preflight",
+            "operation_id": "authored-second",
+            "barrier": {"at": 141},
+            "changes": [{"kind": "tick-1"}],
+        },
+    ]
+    with pytest.raises(Refused, match="Conflict placed at wrong causal boundary"):
+        require_conflict_boundary(points, "second", ("tick-1",))

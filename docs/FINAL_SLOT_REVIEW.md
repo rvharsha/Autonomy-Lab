@@ -51,3 +51,13 @@ Three initial review scopes stopped at token preflight without generation. They
 are retained as failed preflights, not completed reviews. The narrower source
 scopes and their findings are retained with the local evidence package. Final
 source, test results and live execution remain separately identified.
+
+Final dependency review confirmed no substantiated remaining defect. Its two
+verification items were resolved: change() persists record.json both before the
+API call and after its response, and an additional unit counterexample isolates
+the response-phase conjunct with an otherwise matching operation ID. A fourth
+preflight stopped before generation while scoping that final review.
+
+Self-review also bound automatic live execution to the declared experiment branch
+and original baseline, matching changed paths and the first workflow attempt.
+Merely opening a later PR cannot rerun this exposed cohort.
