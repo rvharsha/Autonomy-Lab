@@ -1,5 +1,12 @@
 # Frozen-runtime confirmation
 
+**This corpus is retired from confirmation.** The original eight-case cohort
+completed, but a corruption builder crashed on an optional missing labels map.
+The original gate withheld selection. The corrected builder is validated only
+post hoc; see [the results](../../docs/CONTRACT_CONFIRMATION_RESULTS.md).
+Current commands are manual development regressions. No automatic PR rerun or
+confirmation claim is permitted for these now-exposed cases.
+
 This controller and evaluator are outside `src/autonomy_lab` because changing
 that directory changes the already-selected procedure/runtime identity. The
 measurement and audit checks derive from PR23, with explicit intermediate-write
@@ -19,7 +26,7 @@ PYTHONPATH=src:scripts:. .venv/bin/python -m experiments.contract_confirmation.r
 PYTHONPATH=src:scripts:. .venv/bin/python -m experiments.contract_confirmation.run reproduce artifacts/confirmation-plan.json artifacts/downloaded-shards artifacts/confirmation-replay
 ```
 
-The middle command is one of four declared shards, not the whole cohort. Live
+The middle command is one of four regression shards, not the whole cohort. Live
 execution requires the pinned Kubernetes/Docker tools installed by `make setup`.
 Replay requires the exact experiment source **and** the pinned runtime, including
 its dependency manifests. Archive the qualification commit and raw artifacts;

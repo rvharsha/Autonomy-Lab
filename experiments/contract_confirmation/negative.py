@@ -87,6 +87,11 @@ def corrupt_recovery_sample(directory):
     save(path, value)
 
 
+def corrupt_intermediate_response(point):
+    """A valid Kubernetes object need not have a labels map."""
+    point["changes"][0]["response"]["metadata"].setdefault("labels", {})["authored"] = "damage"
+
+
 def challenge(source):
     names = (
         "missing_snapshot",
@@ -219,7 +224,7 @@ def challenge(source):
                     elif name == "reordered_intermediate":
                         point["changes"].reverse()
                     elif name == "altered_intermediate":
-                        point["changes"][0]["response"]["metadata"]["labels"]["authored"] = "damage"
+                        corrupt_intermediate_response(point)
                     else:
                         action = point["changes"][0]
                         point["before_at"] = (action["requested_at"] + action["finished_at"]) / 2

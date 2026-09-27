@@ -11,7 +11,10 @@ from autonomy_lab.operation_contract import HEARTBEAT
 from autonomy_lab.procedures import Refused
 from experiments.contract_confirmation import gate
 from experiments.contract_confirmation.audit import controller_patch, verify_sequence
-from experiments.contract_confirmation.negative import require_rejection
+from experiments.contract_confirmation.negative import (
+    corrupt_intermediate_response,
+    require_rejection,
+)
 
 
 def test_exact_selected_runtime_and_combined_candidate_are_preserved():
@@ -25,7 +28,7 @@ def test_exact_selected_runtime_and_combined_candidate_are_preserved():
         assert spec["contract"]["max_dispatches"] == 2
         assert spec["contract"]["max_operator_starts"] == 3
         assert spec["contract"]["duration_seconds"] == 210
-        assert spec["evidence_use"] == "prospective_confirmation"
+        assert spec["evidence_use"] == "retired_confirmation_development"
         assert not spec["contract"]["admit_program"]
         assert spec["contract"]["admitted_procedure"] is None
         assert "experiments/contract_confirmation/audit.py" in spec["gate_sources"]
@@ -85,16 +88,16 @@ def measurements():
     }
 
 
-def test_tie_retains_baseline_and_burst_gain_only_earns_admission_consideration():
+def test_tie_retains_baseline_and_burst_gain_remains_development_only():
     values = measurements()
     assert gate.select(gate.plan(), values)["selected"] == "legacy"
     values["precise-heartbeat_burst"]["sample_counts"].update(
         verified_success=11, verified_failure=10
     )
     result = gate.select(gate.plan(), values)
-    assert result["decision"] == "candidate_confirmed_requires_combined_admission"
+    assert result["decision"] == "development_candidate_requires_new_confirmation"
     assert (
-        result["confirmation_run"]
+        not result["confirmation_run"]
         and not result["promotion"]
         and not result["selection_confers_authority"]
     )
@@ -213,3 +216,24 @@ def test_negative_control_requires_exact_rejection_not_crash_or_unrelated_failur
             require_rejection("omitted_intermediate", wrong)
     with pytest.raises(Refused, match="corruption passed"):
         require_rejection("omitted_intermediate", lambda: None)
+
+
+@pytest.mark.parametrize("existing_labels", [None, {"kept": "value"}])
+def test_intermediate_corruption_handles_valid_objects_without_labels(existing_labels):
+    point = sequence()
+    metadata = point["changes"][0]["response"]["metadata"]
+    if existing_labels is not None:
+        metadata["labels"] = dict(existing_labels)
+    original = copy.deepcopy(point)
+    corrupt_intermediate_response(point)
+    assert metadata["labels"]["authored"] == "damage"
+    assert all(metadata["labels"][k] == v for k, v in (existing_labels or {}).items())
+    assert point != original
+
+
+def test_retired_corpus_cannot_be_automatically_rerun_or_claim_confirmation():
+    workflow = yaml.safe_load(Path(".github/workflows/contract-confirmation.yml").read_text())
+    assert "pull_request" not in workflow.get("on", workflow.get(True, {}))
+    result = gate.select(gate.plan(), measurements())
+    assert result["confirmation_withheld"] and not result["confirmation_run"]
+    assert not result["selection_confers_authority"] and not result["promotion"]

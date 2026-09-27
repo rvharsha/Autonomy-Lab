@@ -1,11 +1,5 @@
-name: Fresh contract confirmation
+name: Retired contract cohort regression
 on:
-  pull_request:
-    paths:
-      - 'experiments/contract_confirmation/**'
-      - 'tests/test_contract_confirmation.py'
-      - 'docs/CONTRACT_CONFIRMATION_GATE.md'
-      - '.github/workflows/contract-confirmation.yml'
   workflow_dispatch:
 
 permissions:

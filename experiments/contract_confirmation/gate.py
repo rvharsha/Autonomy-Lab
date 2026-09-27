@@ -1,4 +1,4 @@
-"""Prospective confirmation evaluator for the unchanged PR23 runtime."""
+"""Retired confirmation corpus: development regression only; no promotion."""
 
 import hashlib
 import random
@@ -58,7 +58,7 @@ def declaration(arm, context):
     return {
         "arm": arm,
         "context": context,
-        "evidence_use": "prospective_confirmation",
+        "evidence_use": "retired_confirmation_development",
         "contract": contract,
         "program_pin": pin,
         "candidate": {**identity, "version": digest(identity)},
@@ -83,8 +83,8 @@ def plan():
     order = list(cases)
     random.Random(2026092602).shuffle(order)
     return {
-        "schema_version": 1,
-        "evidence_use": "prospective_confirmation",
+        "schema_version": 2,
+        "evidence_use": "retired_confirmation_development",
         "order_seed": 2026092602,
         "order": order,
         "shards": [order[i::SHARDS] for i in range(SHARDS)],
@@ -101,7 +101,7 @@ def plan():
         },
         "selection_rule": "Complete eligible evidence for both arms in all four contexts; precise has no fewer healthy slots and no more dispatches anywhere, and strictly more healthy slots in heartbeat_burst. Baseline wins ties. Selection grants no authority.",
         "limits": [
-            "Fresh authored combinations for a frozen candidate, not independent designers or production incident frequencies.",
+            "The original cohort failed negative-control qualification; these cases are now development evidence, not fresh confirmation.",
             "Sampled windows, not continuous availability or full economic return.",
             "No model proposal, admission, deployment or automatic learning.",
         ],
@@ -308,7 +308,7 @@ def evaluate(gate):
             for e in w["episodes"]
         ],
         "full_operator_request_cost_measured": False,
-        "evidence_use": "prospective_confirmation",
+        "evidence_use": "retired_confirmation_development",
     }
 
 
@@ -358,12 +358,13 @@ def select(declared, evaluations):
         "status": "complete",
         "decision": "withhold_selection_ineligible"
         if not eligible
-        else "candidate_confirmed_requires_combined_admission"
+        else "development_candidate_requires_new_confirmation"
         if gain
         else "retain_maintained_baseline",
         "selected": None if not eligible else "precise" if gain else "legacy",
         "selection_confers_authority": False,
-        "confirmation_run": True,
+        "confirmation_run": False,
+        "confirmation_withheld": True,
         "promotion": False,
         "evaluations": evaluations,
         "limits": declared["limits"],
