@@ -17,13 +17,16 @@ independently scheduled controller activity. It remains development work requiri
 fresh confirmation before any advancement.
 Generated improvement and model value remain unproved.
 
-Latest: the [fresh contract cohort](docs/CONTRACT_CONFIRMATION_RESULTS.md) observed
-17 healthy customer samples versus 11 in both heartbeat-burst and heartbeat-return
-contexts, under the same two-dispatch budget; two other contexts tied. All eight
-case evaluations reproduced, but an adversarial corruption builder crashed on an
-absent optional labels map. The original confirmation gate withheld selection.
-The corrected test passes post hoc; the cohort remains development evidence and
-is retired from fresh confirmation. Admission and deployment remain unchanged.
+Latest: the [six-case final-slot confirmation](docs/FINAL_SLOT_RESULTS.md) passed
+its frozen gate and all 24 corruption controls. With one repair slot left,
+heartbeat-only interference produced 17 healthy samples under precise conditions
+versus 11 under legacy conditions; protected-metadata contexts tied. Both arms
+used the same program and cumulative budget. This is an engineered improvement,
+not model learning. The earlier [eight-case cohort](docs/CONTRACT_CONFIRMATION_RESULTS.md)
+remains development evidence after its original checker failure. Selection grants
+no authority: [bound dispatch authorization](docs/BOUND_DISPATCH_AUTHORIZATION.md)
+is the prerequisite now being validated, with precise-contract admission still
+withheld pending qualification of a new runtime.
 
 The [80-trial fallback comparison](docs/RUNBOOK_FALLBACK_RESULTS.md) accounts for 79 finalized trials and one interrupted attempt. Original runbook: 14/16; verification fallback: 15/16 with one unknown; basic: 15/16; structured: 16/16, plus 16 unscored controls. The deterministic fallback closed both healthy observer-outage cases with zero model tokens, but a host service restart interrupted its final trial and automatic cleanup. Its promotion gate remains unmet; original evidence and manual cleanup are retained. The subsequent [service-recovery correction](docs/SERVICE_RECOVERY_RESULTS.md) passed real stop, restart and entire-group SIGKILL gates on GCP. Its separate model-free validation finalized **32/32 trials**, with **16/16 supported fallback completions**, complete scoped audits and automatic cleanup. The fallback is validated for that bounded policy and remains an explicit variant; the original runbook stays the default/control. The VM is stopped and both evidence archives are retained.
 

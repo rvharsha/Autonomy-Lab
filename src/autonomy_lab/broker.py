@@ -7,6 +7,7 @@ whose dispatch started can only be observed, never automatically sent again.
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import sqlite3
@@ -119,6 +120,7 @@ class ActionBroker:
         hook: Callable[[str], None] | None = None,
         *,
         authorize_dispatch: Callable[[Proposal], None] | None = None,
+        authorize_bound_dispatch: Callable[[Proposal, dict, list], None] | None = None,
     ) -> None:
         self.journal_path = str(journal_path)
         if self.journal_path == ":memory:":
@@ -126,7 +128,10 @@ class ActionBroker:
         self.policy = policy
         self.adapter = adapter
         self.hook = hook
+        if authorize_dispatch is not None and authorize_bound_dispatch is not None:
+            raise ValueError("Choose exactly one dispatch authorizer")
         self.authorize_dispatch = authorize_dispatch
+        self.authorize_bound_dispatch = authorize_bound_dispatch
         self.owner = str(uuid.uuid4())
         Path(journal_path).parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as db:
@@ -326,9 +331,12 @@ class ActionBroker:
                 reason = 'operation_conditions_changed'
             if reason is None and self._used(db, proposal.run_id) > self.policy.max_dispatches:
                 reason = "budget_revoked"
-            if reason is None and self.authorize_dispatch is not None:
+            if reason is None and (self.authorize_dispatch is not None or self.authorize_bound_dispatch is not None):
                 try:
-                    self.authorize_dispatch(proposal)
+                    if self.authorize_bound_dispatch is not None:
+                        self.authorize_bound_dispatch(proposal, copy.deepcopy(current_binding), copy.deepcopy(patch))
+                    else:
+                        self.authorize_dispatch(proposal)
                 except PermissionError:
                     reason = 'dispatch_authorization_refused'
                 except Exception:

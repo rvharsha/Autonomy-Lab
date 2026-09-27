@@ -451,3 +451,64 @@ def test_offline_admission_cannot_pass_contradictory_authorization(tmp_path, def
         f["evidence"]["operator-authored"][0]["records"].pop()
     with pytest.raises((Refused, KeyError, ValueError)):
         p.verify_admission(**f)
+
+
+@pytest.mark.parametrize('defect', ['none', 'missing', 'extra', 'binding', 'patch', 'audit', 'duplicate_audit'])
+def test_offline_checker_binds_permit_to_journal_and_independent_request(tmp_path, defect):
+    import sqlite3
+
+    from autonomy_lab.durable_contract import LEGACY, binding_for
+    from autonomy_lab.program_admission import execution_conditions
+
+    f = authored(True)
+    operations = f['card']['operations']
+    request = json.loads(operations[0]['request'])
+    bindings = {o['operation_id']: binding_for(json.loads(o['request']), LEGACY) for o in operations}
+    event = next(e for e in f['captured']['events']
+                 if e.get('userAgent') == 'autonomy-lab-operation/' + request['operation_id'])
+    conditions = execution_conditions(request, bindings[request['operation_id']], event['requestObject'])
+    admitted = {'authorizations': [{'operation_id': request['operation_id']}],
+                'authorization_conditions': [conditions]}
+    if defect == 'missing':
+        admitted['authorization_conditions'] = []
+    elif defect == 'extra':
+        admitted['authorization_conditions'].append({**conditions, 'operation_id': 'other'})
+    elif defect in {'binding', 'patch'}:
+        conditions[defect] = '{}'
+    elif defect == 'audit':
+        event['requestObject'][-1]['value'] = 9998
+    elif defect == 'duplicate_audit':
+        f['captured']['events'].append(copy.deepcopy(event))
+    with sqlite3.connect(tmp_path / 'operations.sqlite') as db:
+        db.execute('CREATE TABLE operation_contracts (operation_id TEXT PRIMARY KEY, binding TEXT)')
+        db.executemany('INSERT INTO operation_contracts VALUES (?,?)',
+                       [(key, json.dumps(value)) for key, value in bindings.items()])
+    if defect == 'none':
+        assert p.verify_execution_conditions(tmp_path, f['card'], admitted, f['captured'])
+    else:
+        with pytest.raises(ValueError):
+            p.verify_execution_conditions(tmp_path, f['card'], admitted, f['captured'])
+
+
+def test_gate_names_execution_condition_failure_and_withholds(tmp_path, monkeypatch):
+    from autonomy_lab.harness import save
+
+    spec = p.declaration('stable', 'experiment-01234567')
+    save(tmp_path / 'declaration.json', spec)
+    save(tmp_path / 'record.json', {})
+    save(tmp_path / 'server-audit.json', {})
+    monkeypatch.setattr(p.conflict, 'load_evidence', lambda *a: ({'sample_counts': {}}, [], {}))
+    monkeypatch.setattr(p.ambiguity, 'journal_events', lambda *a: [])
+    monkeypatch.setattr(p.refresh, 'assess_case', lambda *a: {'checks': {'authored_setup': True}})
+    monkeypatch.setattr(p, 'evaluate_calibration', lambda *a: {})
+    monkeypatch.setattr(p, 'admission_ledger', lambda *a: {})
+    monkeypatch.setattr(p, 'verify_admission', lambda *a: [])
+
+    def refused(*args):
+        raise Refused('Authored condition mismatch')
+
+    monkeypatch.setattr(p, 'verify_execution_conditions', refused)
+    result = p.evaluate(tmp_path)
+    assert result['status'] == 'failed'
+    assert result['checks']['bound_execution_conditions'] is False
+    assert result['admission']['evidence_stage'] == 'execution_conditions'

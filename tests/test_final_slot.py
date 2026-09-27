@@ -1,6 +1,7 @@
 """Authored checker inputs, never reported as experimental evidence."""
 
 import copy
+import json
 from pathlib import Path
 
 import pytest
@@ -9,6 +10,20 @@ import yaml
 from autonomy_lab.procedures import Refused
 from experiments.contract_confirmation.audit import require_early_change
 from experiments.final_slot import gate, negative
+
+
+@pytest.fixture(autouse=True)
+def historical_selection_inputs(request, monkeypatch):
+    """Authored selection tests use the old pin; this never approves current code."""
+    if request.node.name == 'test_historical_entry_refuses_current_runtime':
+        return
+    frozen = json.loads(Path('experiments/contract_confirmation/runtime-pin.json').read_text())
+    monkeypatch.setattr(gate.shared, 'freeze', lambda raw: copy.deepcopy(frozen['program_pin']))
+
+
+def test_historical_entry_refuses_current_runtime():
+    with pytest.raises(Refused, match='Selected runtime or program changed'):
+        gate.plan()
 
 
 def measurements():
@@ -64,7 +79,7 @@ def test_selection_requires_strict_gain_and_no_regression_without_granting_autho
     assert gate.select(gate.plan(), values)["selected"] == "legacy"
 
 
-@pytest.mark.parametrize("name", list(gate.plan()["cases"]))
+@pytest.mark.parametrize("name", [a + "-" + c for a in gate.shared.ARMS for c in gate.CONTEXTS])
 def test_one_ineligible_case_withholds(name):
     values = measurements()
     values[name]["eligible"] = False

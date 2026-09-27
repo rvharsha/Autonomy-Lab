@@ -17,6 +17,20 @@ from experiments.contract_confirmation.negative import (
 )
 
 
+@pytest.fixture(autouse=True)
+def historical_selection_inputs(request, monkeypatch):
+    """Authored selection tests use the old pin; this never approves current code."""
+    if request.node.name == 'test_historical_entry_refuses_current_runtime':
+        return
+    frozen = json.loads(Path('experiments/contract_confirmation/runtime-pin.json').read_text())
+    monkeypatch.setattr(gate, 'freeze', lambda raw: copy.deepcopy(frozen['program_pin']))
+
+
+def test_historical_entry_refuses_current_runtime():
+    with pytest.raises(Refused, match='Selected runtime or program changed'):
+        gate.plan()
+
+
 def test_exact_selected_runtime_and_combined_candidate_are_preserved():
     declared = gate.plan()
     frozen = json.loads(Path("experiments/contract_confirmation/runtime-pin.json").read_text())
@@ -107,7 +121,7 @@ def test_tie_retains_baseline_and_burst_gain_remains_development_only():
     assert gate.select(gate.plan(), values)["selected"] == "legacy"
 
 
-@pytest.mark.parametrize("case", list(gate.plan()["cases"]))
+@pytest.mark.parametrize("case", [a + "-" + c for a in gate.ARMS for c in gate.CONTEXTS])
 def test_any_ineligible_case_withholds(case):
     values = measurements()
     values[case]["eligible"] = False

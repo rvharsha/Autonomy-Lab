@@ -16,6 +16,7 @@ from test_procedures import (
 from autonomy_lab import procedures
 from autonomy_lab import program_admission as p
 from autonomy_lab.broker import ActionBroker, BrokerPolicy, Proposal
+from autonomy_lab.durable_contract import LEGACY, PRECISE, binding_for
 from autonomy_lab.experiments import planned_trials, release_manifest, validate_config
 from autonomy_lab.harness import save
 from autonomy_lab.kubernetes import ROOT
@@ -187,6 +188,26 @@ def proposal(operation_id="operation-1"):
     )
 
 
+def conditions(request):
+    # Authored legacy request at port index zero, not a cloud observation.
+    patch = [
+        {'op': 'test', 'path': '/metadata/uid', 'value': request.service_uid},
+        {'op': 'test', 'path': '/metadata/resourceVersion', 'value': request.resource_version},
+        {'op': 'test', 'path': '/spec/ports/0/name', 'value': request.port_name},
+        {'op': 'test', 'path': '/spec/ports/0/targetPort', 'value': request.expected_target_port},
+        {'op': 'replace', 'path': '/spec/ports/0/targetPort', 'value': request.target_port},
+    ]
+    return {'binding': binding_for(request.model_dump(), LEGACY), 'patch': patch}
+
+
+def authorize(registry, pin, request, raw):
+    return registry.authorize(pin, request, raw, **conditions(request))
+
+
+def authorization(registry, pin, request):
+    return registry.authorization(pin, request, **conditions(request))
+
+
 def rows(registry, table):
     with closing(sqlite3.connect(registry.path)) as db:
         db.row_factory = sqlite3.Row
@@ -195,12 +216,12 @@ def rows(registry, table):
 
 def test_withdrawal_blocks_new_authorization_in_existing_episode(registry):
     pin = registry.start_episode("episode-1")
-    first = registry.authorize(pin, proposal(), BASELINE)
+    first = authorize(registry, pin, proposal(), BASELINE)
     assert first["decision_revision"] == first["activation_revision"] == 1
     registry.withdraw(expected_revision=1)
     with pytest.raises(procedures.Refused, match="no longer active"):
-        registry.authorize(pin, proposal("operation-2"), BASELINE)
-    assert registry.authorization(pin, proposal()) == first
+        authorize(registry, pin, proposal("operation-2"), BASELINE)
+    assert authorization(registry, pin, proposal()) == first
     assert len(rows(registry, "authorizations")) == 1
     assert rows(registry, "refusals")[-1]["action"] == "authorize_dispatch"
     with pytest.raises(procedures.Refused):
@@ -223,28 +244,28 @@ def test_changed_pin_or_program_cannot_authorize(registry, defect):
     else:
         pin[defect] = "different"
     with pytest.raises(ValueError):
-        registry.authorize(pin, proposal(), raw)
+        authorize(registry, pin, proposal(), raw)
     assert rows(registry, "authorizations") == []
 
 
 def test_repeated_authorization_and_changed_request_are_refused(registry):
     pin = registry.start_episode("episode-1")
-    registry.authorize(pin, proposal(), BASELINE)
+    authorize(registry, pin, proposal(), BASELINE)
     for request in [proposal(), proposal().model_copy(update={"resource_version": "11"})]:
         with pytest.raises(procedures.Refused):
-            registry.authorize(pin, request, BASELINE)
+            authorize(registry, pin, request, BASELINE)
     with pytest.raises(procedures.Refused):
-        registry.authorization(pin, proposal().model_copy(update={"resource_version": "11"}))
+        authorization(registry, pin, proposal().model_copy(update={"resource_version": "11"}))
 
 
 def test_concurrent_authorization_and_withdrawal_have_one_ledger_order(registry):
     pin = registry.start_episode("episode-1")
     barrier = threading.Barrier(2)
 
-    def authorize():
+    def authorize_racing():
         barrier.wait()
         try:
-            return registry.authorize(pin, proposal(), BASELINE)
+            return authorize(registry, pin, proposal(), BASELINE)
         except procedures.Refused:
             return None
 
@@ -253,7 +274,7 @@ def test_concurrent_authorization_and_withdrawal_have_one_ledger_order(registry)
         return registry.withdraw(expected_revision=1)
 
     with ThreadPoolExecutor(max_workers=2) as pool:
-        a = pool.submit(authorize)
+        a = pool.submit(authorize_racing)
         w = pool.submit(withdraw)
         result = a.result()
         withdrawn = w.result()
@@ -262,20 +283,20 @@ def test_concurrent_authorization_and_withdrawal_have_one_ledger_order(registry)
     if result:
         assert result["decision_revision"] == 1
     with pytest.raises(procedures.Refused):
-        registry.authorize(pin, proposal("later"), BASELINE)
+        authorize(registry, pin, proposal("later"), BASELINE)
 
 
 def broker_for(tmp_path, registry, pin, adapter, callback=None):
-    def authorize(request):
+    def bound_authorize(request, binding, patch):
         try:
-            registry.authorize(pin, request, BASELINE)
+            registry.authorize(pin, request, BASELINE, binding=binding, patch=patch)
         except procedures.Refused as error:
             raise PermissionError("refused") from error
         if callback:
             callback()
 
     policy = BrokerPolicy("run-1", "lab-test", "inventory", "service-uid", max_dispatches=2)
-    return ActionBroker(tmp_path / "broker.sqlite", policy, adapter, authorize_dispatch=authorize)
+    return ActionBroker(tmp_path / "broker.sqlite", policy, adapter, authorize_bound_dispatch=bound_authorize)
 
 
 def test_broker_refuses_unsent_operation_and_releases_only_its_reservation(registry, tmp_path):
@@ -374,7 +395,7 @@ def test_rejected_candidate_does_not_relabel_active_pin(registry, program_eviden
         registry.promote(program_evidence, BASELINE, expected_revision=1, adverse=True)["kind"]
         == "rejected"
     )
-    authorization = registry.authorize(pin, proposal(), BASELINE)
+    authorization = authorize(registry, pin, proposal(), BASELINE)
     assert authorization["activation_revision"] == 1 and authorization["decision_revision"] == 2
 
 
@@ -382,9 +403,9 @@ def test_reactivation_requires_fresh_episode_authorization(registry, program_evi
     pin = registry.start_episode("old")
     registry.promote(program_evidence, BASELINE, expected_revision=1)
     with pytest.raises(procedures.Refused, match="no longer active"):
-        registry.authorize(pin, proposal(), BASELINE)
+        authorize(registry, pin, proposal(), BASELINE)
     fresh = registry.start_episode("new")
-    assert registry.authorize(fresh, proposal(), BASELINE)["activation_revision"] == 2
+    assert authorize(registry, fresh, proposal(), BASELINE)["activation_revision"] == 2
 
 
 def test_same_operation_racing_broker_calls_authorizes_once(registry, tmp_path):
@@ -487,7 +508,7 @@ def test_campaign_real_broker_enforces_pretransport_program_guards(
     monkeypatch.setattr(c, "active", lambda *args: None)
     if defect in {"authorization_read", "refusal_storage"}:
 
-        def refuse(*args):
+        def refuse(*args, **kwargs):
             raise procedures.Refused("Authored changed authorization")
 
         monkeypatch.setattr(registry, "authorization", refuse)
@@ -538,3 +559,163 @@ def test_campaign_real_broker_enforces_pretransport_program_guards(
         assert result["budget_used"] == int(not admitted or defect != "episode_pin")
         assert len(rows(registry, "authorizations")) == int(admitted and defect != "episode_pin")
         assert len(rows(registry, "refusals")) == int(admitted and defect != "refusal_storage")
+
+
+@pytest.mark.parametrize('defect', ['contract', 'request', 'hash', 'snapshot', 'extra_patch', 'bool_patch', 'index'])
+def test_unqualified_execution_conditions_never_receive_authorization(registry, defect):
+    request = proposal()
+    value = conditions(request)
+    if defect == 'contract':
+        value['binding'] = binding_for(request.model_dump(), PRECISE)
+    elif defect == 'request':
+        value['binding'] = binding_for(proposal('other').model_dump(), LEGACY)
+    elif defect == 'hash':
+        value['binding']['binding_sha256'] = 'changed'
+    elif defect == 'snapshot':
+        value['binding']['snapshot'] = {}
+    elif defect == 'extra_patch':
+        value['patch'].append({'op': 'remove', 'path': '/metadata/annotations'})
+    elif defect == 'bool_patch':
+        value['patch'][3]['value'] = True
+    else:
+        value['patch'][2]['path'] = '/spec/ports/01/name'
+    with pytest.raises(ValueError):
+        registry.authorize(registry.start_episode('episode-1'), request, BASELINE, **value)
+    assert rows(registry, 'authorizations') == rows(registry, 'authorization_conditions') == []
+    assert len(rows(registry, 'refusals')) == 1
+
+
+@pytest.mark.parametrize('defect', ['missing', 'binding', 'patch', 'different_valid_index'])
+def test_committed_permit_cannot_be_used_for_changed_conditions(registry, defect):
+    pin, request = registry.start_episode('episode-1'), proposal()
+    authorize(registry, pin, request, BASELINE)
+    value = conditions(request)
+    with registry.transaction() as db:
+        if defect == 'missing':
+            db.execute('DELETE FROM authorization_conditions')
+        elif defect in {'binding', 'patch'}:
+            db.execute('UPDATE authorization_conditions SET ' + defect + "='{}'")
+    if defect == 'different_valid_index':
+        for operation in value['patch']:
+            operation['path'] = operation['path'].replace('/ports/0/', '/ports/1/')
+    with pytest.raises(ValueError, match='conditions differ'):
+        registry.authorization(pin, request, **value)
+    # Reopening an old ledger never reconstructs an absent permit from its request.
+    reopened = p.ProgramRegistry(registry.path)
+    with pytest.raises(ValueError):
+        reopened.authorization(pin, request, **value)
+
+
+def test_admission_definition_must_explicitly_name_calibrated_contract(registry):
+    version = rows(registry, 'versions')[0]
+    definition = json.loads(version['definition'])
+    assert definition['operation_contract'] == LEGACY
+    for candidate in [PRECISE, None]:
+        definition['operation_contract'] = candidate
+        with pytest.raises(procedures.Refused, match='calibrated execution contract'):
+            registry._selection(definition)
+
+
+@pytest.mark.parametrize('withdrawn', [False, True])
+def test_sigkill_between_ledgers_never_adopts_or_replays_committed_permit(registry, tmp_path, withdrawn):
+    """Real process death and SQLite commits; authored adapter, no cloud claim."""
+    import multiprocessing
+    import os
+    import signal
+
+    pin = registry.start_episode('episode-1')
+    context = multiprocessing.get_context('fork')
+    receiver, sender = context.Pipe(duplex=False)
+    sent = tmp_path / 'transport-called'
+
+    def worker():
+        receiver.close()
+        adapter = MemoryAdapter()
+
+        def send(*args):
+            sent.write_text('unexpected transport call')
+            raise AssertionError('Test child must be killed before transport')
+
+        adapter.patch_service = send
+
+        def paused():
+            sender.send('authorization_committed')
+            # The parent kills this process while the broker claim is uncommitted.
+            signal.pause()
+
+        broker_for(tmp_path, registry, pin, adapter, paused).propose(proposal())
+
+    child = context.Process(target=worker)
+    child.start()
+    sender.close()
+    try:
+        assert receiver.poll(10), 'Worker did not reach the declared crash boundary'
+        assert receiver.recv() == 'authorization_committed'
+        assert len(rows(registry, 'authorizations')) == len(rows(registry, 'authorization_conditions')) == 1
+        if withdrawn:
+            registry.withdraw(expected_revision=1)
+        os.kill(child.pid, signal.SIGKILL)
+        child.join(10)
+        assert child.exitcode == -signal.SIGKILL and not sent.exists()
+        adapter = MemoryAdapter()
+        restarted = broker_for(tmp_path, p.ProgramRegistry(registry.path), pin, adapter)
+        retained = restarted.lookup('operation-1')
+        assert retained['status'] == 'prepared' and retained['budget_used'] == 1
+        assert not any(e['event'] == 'dispatching' for e in restarted.events('operation-1'))
+        assert restarted.reconcile('operation-1')['status'] == 'prepared'
+        # Even explicit resume cannot adopt the retained permit, before or after withdrawal.
+        refused = restarted.resume_prepared('operation-1')
+        assert refused['status'] == 'rejected' and refused['reason'] == 'dispatch_authorization_refused'
+        assert refused['budget_used'] == 0 and not adapter.patch_calls
+        assert len(rows(registry, 'authorizations')) == len(rows(registry, 'authorization_conditions')) == 1
+        assert rows(registry, 'refusals')[-1]['action'] == 'authorize_dispatch'
+        assert not sent.exists()
+    finally:
+        receiver.close()
+        if child.is_alive():
+            child.kill()
+            child.join(10)
+        child.close()
+
+
+def test_bound_authorizer_receives_validated_copies_under_claim(tmp_path):
+    adapter = MemoryAdapter()
+    observed = []
+
+    def authorize_copy(request, binding, patch):
+        observed.append(p.execution_conditions(request, binding, patch))
+        binding.clear()
+        patch.clear()
+
+    broker = ActionBroker(tmp_path / 'broker.sqlite',
+                          BrokerPolicy('run-1', 'lab-test', 'inventory', 'service-uid'), adapter,
+                          authorize_bound_dispatch=authorize_copy)
+    assert broker.propose(proposal())['status'] == 'acknowledged'
+    assert len(observed) == len(adapter.patch_calls) == 1
+    assert broker.contract_binding('operation-1') == conditions(proposal())['binding']
+    with pytest.raises(ValueError, match='exactly one'):
+        ActionBroker(tmp_path / 'other.sqlite', broker.policy, adapter,
+                     authorize_dispatch=lambda _: None, authorize_bound_dispatch=authorize_copy)
+
+
+def test_conditions_insert_failure_rolls_back_authorization_and_prevents_send(registry, tmp_path):
+    pin = registry.start_episode('episode-1')
+    with registry.transaction() as db:
+        db.execute("CREATE TRIGGER authored_storage_failure BEFORE INSERT ON authorization_conditions "
+                   "BEGIN SELECT RAISE(ABORT, 'authored condition write failure'); END")
+    adapter = MemoryAdapter()
+    result = broker_for(tmp_path, registry, pin, adapter).propose(proposal())
+    assert result['status'] == 'rejected' and result['reason'] == 'dispatch_authorization_unavailable'
+    assert result['budget_used'] == 0 and not adapter.patch_calls
+    assert rows(registry, 'authorizations') == rows(registry, 'authorization_conditions') == []
+    assert rows(registry, 'refusals')[-1]['action'] == 'authorize_dispatch'
+
+
+def test_malformed_binding_is_recorded_as_definite_refusal(registry):
+    value = conditions(proposal())
+    value['binding']['binding_sha256'] = 'changed'
+    with pytest.raises(procedures.Refused, match='Durable binding'):
+        registry.authorize(registry.start_episode('episode-1'), proposal(), BASELINE, **value)
+    refusal = json.loads(rows(registry, 'refusals')[-1]['details'])
+    assert refusal['error_type'] == 'Refused'
+    assert refusal['reason'] == 'Durable binding does not match the proposal'
