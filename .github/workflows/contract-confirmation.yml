@@ -1,0 +1,128 @@
+name: Fresh contract confirmation
+on:
+  pull_request:
+    paths:
+      - 'experiments/contract_confirmation/**'
+      - 'tests/test_contract_confirmation.py'
+      - 'docs/CONTRACT_CONFIRMATION_GATE.md'
+      - '.github/workflows/contract-confirmation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  freeze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: uv sync --frozen
+      - run: .venv/bin/ruff check experiments/contract_confirmation
+      - run: PYTHONPATH=src:scripts:. .venv/bin/python -m experiments.contract_confirmation.run freeze artifacts/contract-confirmation-plan/plan.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: contract-confirmation-plan
+          path: artifacts/contract-confirmation-plan/plan.json
+          if-no-files-found: error
+          retention-days: 14
+  compare:
+    needs: freeze
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: make setup
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: contract-confirmation-plan
+          path: artifacts/contract-confirmation-plan
+      - name: Execute each frozen case once
+        run: PYTHONPATH=src:scripts:. .venv/bin/python -m experiments.contract_confirmation.run run artifacts/contract-confirmation-plan/plan.json ${{ matrix.shard }} artifacts/contract-confirmation-${{ matrix.shard }}
+      - name: Retain credential-free evidence including failed attempts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: contract-confirmation-shard-${{ matrix.shard }}
+          path: |
+            artifacts/contract-confirmation-${{ matrix.shard }}/plan.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/result.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/declaration.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/manifest.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/record.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/result.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/scorecard-*.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/evaluation-*.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/server-audit.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/contract.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/program-definition.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/window.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/source.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/identities-*.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/operations.sqlite
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/operations.sqlite-wal
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/operations.sqlite-shm
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/finished.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/failed.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/finalization.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/cleanup.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/samples/*.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/workers/*/attempt.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/workers/*/ready.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/workers/*/finished.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/workers/*/failed.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/workers/*/escalation.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/workers/*/preflight/*/*.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/workers/*/intent/*/*.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/workers/*/episode-*/*.json
+            artifacts/contract-confirmation-${{ matrix.shard }}/cases/*/campaign/workers/*/episode-*/evidence.jsonl
+          if-no-files-found: error
+          retention-days: 14
+  reproduce-and-select:
+    needs: [freeze, compare]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: uv sync --frozen
+      - run: .venv/bin/ruff check experiments/contract_confirmation
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: contract-confirmation-plan
+          path: artifacts/contract-confirmation-plan
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: contract-confirmation-shard-*
+          path: artifacts/contract-confirmation-download
+      - name: Reproduce all eight cases and challenge their evidence before selection
+        run: PYTHONPATH=src:scripts:. .venv/bin/python -m experiments.contract_confirmation.run reproduce artifacts/contract-confirmation-plan/plan.json artifacts/contract-confirmation-download artifacts/contract-confirmation-selection
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: contract-confirmation-selection
+          path: artifacts/contract-confirmation-selection/reproduction.json
+          if-no-files-found: error
+          retention-days: 14
