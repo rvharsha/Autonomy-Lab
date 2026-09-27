@@ -43,6 +43,22 @@ def test_changed_runtime_cannot_be_silently_confirmed(monkeypatch):
         gate.plan()
 
 
+def test_recurrence_requires_all_three_exact_healthy_slots():
+    samples = [
+        {"scheduled_at": 1000 + offset, "verification": {"verdict": "verified_success"}}
+        for offset in (90, 100, 110)
+    ]
+    assert gate.recovered_before_recurrence(samples, 1000)
+    assert not gate.recovered_before_recurrence(samples[:-1], 1000)
+    for verdict in ("verified_failure", "indeterminate"):
+        altered = copy.deepcopy(samples)
+        altered[1]["verification"]["verdict"] = verdict
+        assert not gate.recovered_before_recurrence(altered, 1000)
+    altered = copy.deepcopy(samples)
+    altered[1]["scheduled_at"] += 1
+    assert not gate.recovered_before_recurrence(altered, 1000)
+
+
 def measurements():
     return {
         name: {

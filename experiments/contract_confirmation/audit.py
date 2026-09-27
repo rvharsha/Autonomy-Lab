@@ -490,7 +490,7 @@ def assess_operations(directory, spec, card, record, evidence, captured):
                 op["status"] == "rejected"
                 and op["budget_reserved"] == 0
                 and not preflights
-                and op["reason"] in {"budget_exhausted", "resource_version_changed"},
+                and op["reason"] == "budget_exhausted",
                 "Invalid unsent refusal",
             )
             require(

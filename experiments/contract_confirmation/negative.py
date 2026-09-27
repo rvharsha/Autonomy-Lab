@@ -21,7 +21,8 @@ EXPECTED = {
     "extra_broker_request": "Replay or missing prepared dispatch",
     "corrupted_effect": "Repair changed more than targetPort",
     "wrong_barrier_phase": "Conflict placed at wrong causal boundary",
-    "unverified_recurrence": "Controller schedule slipped",
+    "recurrence_timing": "Controller schedule slipped",
+    "unverified_recurrence": "Undeclared or unverified recurrence",
     "missing_database": "Missing or damaged independent verification evidence",
     "missing_corpus": "Missing or damaged independent verification evidence",
     "altered_verification_summary": "Verification summary does not reproduce",
@@ -61,6 +62,7 @@ def challenge(source):
         "corrupted_effect",
         "wrong_barrier_phase",
         "unverified_recurrence",
+        "recurrence_timing",
         "missing_database",
         "missing_corpus",
         "altered_verification_summary",
@@ -146,7 +148,7 @@ def challenge(source):
                         "authored/undeclared"
                     ] = "changed"
                 save(path, value)
-            elif name in {"wrong_barrier_phase", "unverified_recurrence"}:
+            elif name in {"wrong_barrier_phase", "recurrence_timing"}:
                 path = gate / "record.json"
                 value = read(path)
                 if name == "wrong_barrier_phase":
@@ -159,6 +161,43 @@ def challenge(source):
                     intent["changes"] = prepared.pop("changes")
                 else:
                     value["second_fault"]["requested_at"] = value["fault"]["finished_at"]
+                save(path, value)
+            elif name == "unverified_recurrence":
+                # Keep the schedule intact. In a copied t100 observation replace
+                # only its verification measurements with complete routing-failure
+                # measurements retained earlier in this same real campaign.
+                # Recompute the summary: malformed data must not mask the guard.
+                from collections import Counter
+
+                path = directory / "samples/0010.json"
+                value = read(path)
+                prior = next(
+                    read(p)["verification"]
+                    for p in sorted((directory / "samples").glob("*.json"))
+                    if read(p)["verification"]["verdict"] == "verified_failure"
+                )
+                verification = value["verification"]
+                require(
+                    len(verification["probes"]) == len(prior["probes"]),
+                    "Recurrence corruption requires matching probe counts",
+                )
+                for probe, failed in zip(verification["probes"], prior["probes"], strict=True):
+                    for key in ("observations", "verdict", "reasons"):
+                        probe[key] = copy.deepcopy(failed[key])
+                counts = Counter(p["verdict"] for p in verification["probes"])
+                verification.update(
+                    verdict="verified_failure",
+                    reasons=list(
+                        dict.fromkeys(r for p in verification["probes"] for r in p["reasons"])
+                    ),
+                    counts={
+                        "total": len(verification["probes"]),
+                        **{
+                            k: counts[k]
+                            for k in ("verified_success", "verified_failure", "indeterminate")
+                        },
+                    },
+                )
                 save(path, value)
             elif name in {
                 "omitted_intermediate",
