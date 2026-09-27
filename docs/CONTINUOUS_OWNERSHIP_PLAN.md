@@ -2,8 +2,10 @@
 
 The [purpose and alignment check](GOAL_ALIGNMENT.md) connects each milestone to the
 evidence needed for an autonomy or investment decision. The next implementation
-priority is one independently gated procedure improvement, followed by a fair
-sustained comparison. The bounded missing-evidence and supervised owner-termination
+priority is the [bounded shadow update loop](SHADOW_SELECTION.md), alongside the
+remaining admission requirements for sustained reuse. This separates testing an
+automatic known-configuration update from proving novel discovery or deploying it.
+A fair sustained comparison remains subsequent work. The bounded missing-evidence and supervised owner-termination
 slices now have [real results](LIFECYCLE_RESULTS.md).
 
 This is the next phase after the bounded experiments in [the findings](FINDINGS.md).

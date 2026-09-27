@@ -1,7 +1,26 @@
 # Purpose, evidence and next decisions
 
-Alignment review: 25 September 2026. This is a technical direction check, not a new
+Alignment review: 27 September 2026. This is a technical direction check, not a new
 experiment result or promotion decision. Historical study outcomes remain unchanged.
+
+## Current sequencing decision
+
+The execution foundation has advanced through exact authorization conditions,
+while autonomous improvement remains unproved. Do not make every production
+lifecycle feature a prerequisite for measuring a disposable update loop.
+The [shadow selection protocol](SHADOW_SELECTION.md) first reproduces historical
+experience, automatically selects a known contract, freezes it, and separately
+executes the selection and both starting and strongest maintained comparators.
+This can establish a bounded automatic configuration update, not discovery or
+learning value beyond maintained automation. Known contexts remain development
+data even when executed again; the eight-program search remains closed.
+
+The live deployment track still requires precise-contract admission and persistence
+across explicit durable grants. Neither requirement is waived by a successful
+shadow result. A later learning-value study must name a new operating gap, include
+an experience ablation and prospectively sealed causal cases, and count rejected
+proposals and evaluation cost. Do not invest in a model proposer before identifying
+where it could add value over the finite selector and strongest maintained policy.
 
 ## The purpose
 

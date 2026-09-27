@@ -53,6 +53,8 @@ Precise-contract admission still requires a trusted, runtime-bound evidence
 checker and newly executed qualification of that new runtime. The known final-slot
 contexts may serve as regression qualification, not another novel confirmation.
 Then test the same workload across explicit durable budget grants without hiding
-unresolved operations. Only a later separately evaluated proposer comparison can
-test learning; the current eight-program language requires an exhaustive
-non-model selector as a comparator.
+unresolved operations. A [disposable shadow selection test](SHADOW_SELECTION.md)
+can exercise an automatic known-configuration update before these deployment
+requirements are complete. Discovery and incremental learning value still require
+a separately evaluated proposer comparison; the small catalogue requires an
+exhaustive non-model comparator.
