@@ -16,7 +16,7 @@ from autonomy_lab.withdrawal import capture_audit
 from scripts.check_campaign import await_file, finalize_gate, wait_until
 from scripts.check_recurrence import stop_and_reap
 
-from .audit import bindings, controller_patch
+from .audit import SEQUENCES, bindings, controller_patch
 from .gate import (
     SHARDS,
     declaration,
@@ -27,9 +27,22 @@ from .gate import (
 )
 
 
-def run_case(gate, spec):
+def run_case(
+    gate,
+    spec,
+    *,
+    declaration_fn=None,
+    evaluate_fn=None,
+    conflict_phase="first",
+    sequences=None,
+    early_change=False,
+):
+    declaration_fn = declaration if declaration_fn is None else declaration_fn
+    evaluate_fn = evaluate if evaluate_fn is None else evaluate_fn
+    sequences = SEQUENCES if sequences is None else sequences
     require(
-        spec == declaration(spec["arm"], spec["context"]), "Frozen case changed before provisioning"
+        spec == declaration_fn(spec["arm"], spec["context"]),
+        "Frozen case changed before provisioning",
     )
     directory = gate / "campaign"
     save(gate / "declaration.json", spec)
@@ -137,11 +150,9 @@ def run_case(gate, spec):
                 first_id = next(
                     p["operation_id"] for p in record["checkpoints"] if p["phase"] == phase
                 )
-                if phase == "first" and op_id == first_id and stage == "preflight":
-                    from .audit import SEQUENCES
-
+                if phase == conflict_phase and op_id == first_id and stage == "preflight":
                     point["changes"] = []
-                    for kind in SEQUENCES[spec["context"]]:
+                    for kind in sequences[spec["context"]]:
                         entry = {}
                         point["changes"].append(entry)
                         # A separate real read and conditional API request for each change.
@@ -182,13 +193,16 @@ def run_case(gate, spec):
         if record["recurrence_opportunity"] == "realized":
             wait_until(start + spec["second_fault_offset"])
             change("second_fault", record, "second_fault")
+        if early_change and record["recurrence_opportunity"] == "realized":
+            wait_until(start + spec["early_change_offset"])
+            change("annotation", record, "early_change")
         response("second")
         owner.wait(timeout=max(1, window["end"] - time.time()) + 180)
         require(owner.returncode == 0, "Campaign owner failed")
         capture_audit(gate)
         for suffix in ("a", "b"):
             save(gate / f"scorecard-{suffix}.json", scorecard(directory))
-            save(gate / f"evaluation-{suffix}.json", evaluate(gate))
+            save(gate / f"evaluation-{suffix}.json", evaluate_fn(gate))
         for name in ("scorecard", "evaluation"):
             require(
                 (gate / f"{name}-a.json").read_bytes() == (gate / f"{name}-b.json").read_bytes(),
@@ -217,11 +231,13 @@ def run_case(gate, spec):
             save(gate / "result.json", result)
 
 
-def run_shard(plan_path, shard, destination):
+def run_shard(plan_path, shard, destination, *, plan_fn=None, runner=None, shards=SHARDS):
+    plan_fn = plan if plan_fn is None else plan_fn
+    runner = run_case if runner is None else runner
     destination = destination.resolve()
     declared = read(plan_path)
     require(
-        declared == plan() and type(shard) is int and 0 <= shard < SHARDS,
+        declared == plan_fn() and type(shard) is int and 0 <= shard < shards,
         "Frozen plan or shard differs",
     )
     destination.mkdir(parents=True, exist_ok=False)
@@ -242,7 +258,7 @@ def run_shard(plan_path, shard, destination):
             result["cases"][name] = {"status": "attempting", "started_at": time.time()}
             save(destination / "result.json", result)
             try:
-                run_case(gate, declared["cases"][name])
+                runner(gate, declared["cases"][name])
                 result["cases"][name] = read(gate / "result.json")
             except Exception as error:
                 result["cases"][name] = {
@@ -260,9 +276,23 @@ def run_shard(plan_path, shard, destination):
     require(result["status"] == "passed", "Comparison shard incomplete; all attempts retained")
 
 
-def reproduce(plan_path, source, destination):
+def reproduce(
+    plan_path,
+    source,
+    destination,
+    *,
+    plan_fn=None,
+    evaluate_fn=None,
+    challenge_fn=None,
+    select_fn=None,
+    shards=SHARDS,
+    artifact_prefix="contract-confirmation",
+):
+    plan_fn = plan if plan_fn is None else plan_fn
+    evaluate_fn = evaluate if evaluate_fn is None else evaluate_fn
+    select_fn = select if select_fn is None else select_fn
     declared, source, destination = read(plan_path), source.resolve(), destination.resolve()
-    require(declared == plan(), "Frozen plan or source changed")
+    require(declared == plan_fn(), "Frozen plan or source changed")
     destination.mkdir(parents=True, exist_ok=False)
     receipt = {
         "status": "incomplete",
@@ -272,8 +302,8 @@ def reproduce(plan_path, source, destination):
         "selection": None,
     }
     save(destination / "reproduction.json", receipt)
-    for shard in range(SHARDS):
-        path = source / f"contract-confirmation-shard-{shard}"
+    for shard in range(shards):
+        path = source / f"{artifact_prefix}-shard-{shard}"
         try:
             require(read(path / "plan.json") == declared, "Shard used different plan")
             ledger = read(path / "result.json")
@@ -304,7 +334,7 @@ def reproduce(plan_path, source, destination):
                     == "passed",
                     "Original case did not pass",
                 )
-                value = evaluate(gate)
+                value = evaluate_fn(gate)
                 require(
                     value == read(gate / "evaluation-a.json") == read(gate / "evaluation-b.json"),
                     "Original exports differ",
@@ -323,10 +353,14 @@ def reproduce(plan_path, source, destination):
         try:
             from .negative import challenge
 
-            receipt["negative_controls"] = challenge(source)
-            receipt["selection"] = select(declared, receipt["evaluations"])
+            receipt["negative_controls"] = (challenge if challenge_fn is None else challenge_fn)(
+                source
+            )
+            receipt["selection"] = select_fn(declared, receipt["evaluations"])
             receipt["status"] = "complete"
-        except (OSError, KeyError, ValueError, TypeError, AssertionError) as error:
+        except Exception as error:
+            # Every checker failure is retained and withholds selection; crashes
+            # are never counted as successful negative controls.
             receipt["errors"]["qualification"] = {
                 "type": type(error).__name__,
                 "message": str(error),

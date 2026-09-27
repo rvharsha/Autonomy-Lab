@@ -135,12 +135,15 @@ def recovered_before_recurrence(samples, start):
     )
 
 
-def evaluate(gate):
+def evaluate(gate, *, declaration_fn=None, operation_auditor=None):
     from .audit import assess_operations
+
+    declaration_fn = declaration if declaration_fn is None else declaration_fn
+    operation_auditor = assess_operations if operation_auditor is None else operation_auditor
 
     spec = read(gate / "declaration.json")
     require(
-        spec == declaration(spec["arm"], spec["context"]), "Frozen declaration or source changed"
+        spec == declaration_fn(spec["arm"], spec["context"]), "Frozen declaration or source changed"
     )
     card, samples, evidence = load_evidence(gate, spec)
     directory, record = gate / "campaign", read(gate / "record.json")
@@ -188,7 +191,7 @@ def evaluate(gate):
     actual = [(record[k], spec[v]) for k, v in timing]
     actual.extend(
         (record[k]["requested_at"], spec[k + "_offset"])
-        for k in ("fixture", "fault", "second_fault", "post_ack")
+        for k in ("fixture", "fault", "second_fault", "post_ack", "early_change")
         if k in record
     )
     require(
@@ -244,7 +247,7 @@ def evaluate(gate):
             ),
             "Second fault not independently observed",
         )
-    detail = assess_operations(
+    detail = operation_auditor(
         directory, spec, card, record, evidence, read(gate / "server-audit.json")
     )
     verify_bindings(
@@ -308,13 +311,13 @@ def evaluate(gate):
             for e in w["episodes"]
         ],
         "full_operator_request_cost_measured": False,
-        "evidence_use": "retired_confirmation_development",
+        "evidence_use": spec["evidence_use"],
     }
 
 
-def select(declared, evaluations):
+def compare(declared, evaluations, *, expected_plan, contexts, gain_context):
     require(
-        declared == plan() and set(evaluations) == set(declared["cases"]),
+        declared == expected_plan and set(evaluations) == set(declared["cases"]),
         "Incomplete or changed comparison",
     )
     for name, value in evaluations.items():
@@ -343,7 +346,7 @@ def select(declared, evaluations):
             "Invalid authority accounting",
         )
     eligible = all(v["eligible"] for v in evaluations.values())
-    pairs = [(evaluations["precise-" + c], evaluations["legacy-" + c]) for c in CONTEXTS]
+    pairs = [(evaluations["precise-" + c], evaluations["legacy-" + c]) for c in contexts]
     gain = (
         eligible
         and all(
@@ -351,8 +354,19 @@ def select(declared, evaluations):
             and a["spent_dispatches"] <= b["spent_dispatches"]
             for a, b in pairs
         )
-        and evaluations["precise-heartbeat_burst"]["sample_counts"]["verified_success"]
-        > evaluations["legacy-heartbeat_burst"]["sample_counts"]["verified_success"]
+        and evaluations["precise-" + gain_context]["sample_counts"]["verified_success"]
+        > evaluations["legacy-" + gain_context]["sample_counts"]["verified_success"]
+    )
+    return eligible, gain
+
+
+def select(declared, evaluations):
+    eligible, gain = compare(
+        declared,
+        evaluations,
+        expected_plan=plan(),
+        contexts=CONTEXTS,
+        gain_context="heartbeat_burst",
     )
     return {
         "status": "complete",
