@@ -1,0 +1,87 @@
+{
+  "scope": "Prospective bounded parameter-learning experiment; source reviews only, no live result yet",
+  "reviews": [
+    {
+      "receipt_sha256": "ead6571d5e72e2670873e02be9750ea853df6f948ecfe9c1aac92b0960a6c38d",
+      "started_at": "2026-09-28T00:30:44.179936+00:00",
+      "model": "claude-fable-5-1",
+      "status": "failed",
+      "generation_attempts": 0,
+      "input_tokens": 22980,
+      "estimated_cost_usd": 0,
+      "snapshot_id": "2d7d711fa8833dc17fb1bfb33b237f46d553e477f58a8fc2474147dabd4fd130"
+    },
+    {
+      "receipt_sha256": "def2b7a2bdc578d5933a697673306598e8e1d8e2d28e3095d4d078fe033d90e8",
+      "started_at": "2026-09-28T00:31:08.637084+00:00",
+      "model": "claude-fable-5-1",
+      "status": "failed",
+      "generation_attempts": 0,
+      "input_tokens": 17732,
+      "estimated_cost_usd": 0,
+      "snapshot_id": "0ca36e19553953ff2d571cad5e34436956221951a801608bcd000d93ed2099b9"
+    },
+    {
+      "receipt_sha256": "5c4485507abd877f8f78fc112a5ba09dd482d35abc209ddb180d0e072d8d7109",
+      "started_at": "2026-09-28T00:31:30.979044+00:00",
+      "model": "claude-fable-5-1",
+      "status": "incomplete",
+      "generation_attempts": 1,
+      "input_tokens": 17759,
+      "estimated_cost_usd": 0.47759,
+      "snapshot_id": "0ca36e19553953ff2d571cad5e34436956221951a801608bcd000d93ed2099b9"
+    },
+    {
+      "receipt_sha256": "0321ed0685526c777649f680eda31982a5495f012e69ab45eac011a605f9bc4e",
+      "started_at": "2026-09-28T00:34:46.606629+00:00",
+      "model": "claude-fable-5-1",
+      "status": "completed",
+      "generation_attempts": 1,
+      "input_tokens": 12413,
+      "estimated_cost_usd": 0.48703,
+      "snapshot_id": "94fbd3a506db7427e7312025f97691ae9232c7187defe6f1616ba000e5e69059"
+    },
+    {
+      "receipt_sha256": "b13c9b9b6222832b622f5af713e8ac712370f653dbd72a2126e9e71121691566",
+      "started_at": "2026-09-28T00:35:01.173326+00:00",
+      "model": "claude-fable-5-1",
+      "status": "completed",
+      "generation_attempts": 1,
+      "input_tokens": 9731,
+      "estimated_cost_usd": 0.37266,
+      "snapshot_id": "c4ccdabb5e80e5610ae10a4038209bf81e64b839e87fce1dda386bf12517e10b"
+    },
+    {
+      "receipt_sha256": "5dc12b90ebe65030bc9f599213eaa7f7db35c33119d1f535548e785469b95000",
+      "started_at": "2026-09-28T00:41:00.436420+00:00",
+      "model": "claude-fable-5-1",
+      "status": "completed",
+      "generation_attempts": 1,
+      "input_tokens": 13890,
+      "estimated_cost_usd": 0.6246,
+      "snapshot_id": "e37a7c45c2c79e611fbb0191a129d67487c53921314db0994c26b58e614730ea"
+    }
+  ],
+  "total_estimated_review_cost_usd": 1.96188,
+  "final_review": "No substantiated defects; not runtime validation or production approval",
+  "final_reviewed_files": {
+    "experiments/experience_learning/__init__.py": "0a99ab07e7a6c0f4a37fb94c71ba2cb6518e2f325fe95eb6daa2c3a31e08eb79",
+    "experiments/experience_learning/evaluate.py": "b4544dea6e1e3d1aa4fb1a4fec172ff1ab542ce2a5956824402867197a945c26",
+    "experiments/experience_learning/negative.py": "23a02a68ea1cff33580a0d8890c6df44e38f7fc58027b1be9708898164a213ec",
+    "experiments/experience_learning/policy.py": "7fe808e9035f1d72fee71a022353e76efb3fa6294ac7d0df56b766515bb587d6",
+    "experiments/experience_learning/protocol.py": "9e0d735d00ee72ee366af96065a6d1f94134b62506a759f5642af538a1a765c1",
+    "experiments/experience_learning/run.py": "2e23f5b59eb692321b6b78394929b6e86ccaef7b49ba28706564f35d720d31a3"
+  },
+  "validation": {
+    "unit_tests_passed": 1906,
+    "existing_dependency_warnings": 2,
+    "lint": "passed"
+  },
+  "dispositions": [
+    "Fixed mismatch at the five-second drain boundary.",
+    "Replaced absolute AIMD threshold with an own-history latency reference; intermediate AIMD limits are supported.",
+    "Reported re-sampling separately and required no post-relearning regression in every block.",
+    "Rejected review trace claiming all128 queued requests execute serially: new admissions stop at1second. Added controller wall budget and bounded database queries.",
+    "Retained two rejected token preflights and one incomplete output-limited review, including its cost."
+  ]
+}
