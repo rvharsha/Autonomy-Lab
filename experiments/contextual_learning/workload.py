@@ -69,7 +69,9 @@ def check(destination):
         deadline = time.monotonic() + 60
         while True:
             try:
-                command(['docker', 'exec', name, 'pg_isready', '-U', 'postgres', '-d', 'lab'], timeout=5)
+                # The image uses a temporary Unix-only server during initdb.
+                # TCP readiness identifies the final server, after database setup.
+                command(['docker', 'exec', name, 'pg_isready', '-h', '127.0.0.1', '-U', 'postgres', '-d', 'lab'], timeout=5)
                 break
             except RuntimeError:
                 require(time.monotonic() < deadline, 'Probe database unavailable')

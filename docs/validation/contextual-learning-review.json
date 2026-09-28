@@ -176,5 +176,11 @@
       "decision": "Reviewer conflated two bounds. Request dispatch duration<2.5s, zero-reader drain wait<5s in both live driver and independent auditor. Clarified docs and declaration without changing these limits."
     }
   ],
-  "draft_change": "Before any freeze or service measurement, historical1.22pp observed context-selection headroom motivated declared50ms delay and fixed2/fixed8 comparators. Preliminary drafts and reviews retained privately."
+  "draft_change": "Before any freeze or service measurement, historical1.22pp observed context-selection headroom motivated declared50ms delay and fixed2/fixed8 comparators. Preliminary drafts and reviews retained privately.",
+  "self_review_pre_execution_fix": {
+    "issue": "Postgres probe could observe temporary Unix-only bootstrap server",
+    "change": "Require TCP readiness before fixture DDL",
+    "source": "https://github.com/docker-library/postgres/blob/master/docker-entrypoint.sh",
+    "lineage": "Original published declaration retained; v2 before any study workflow or service batch; numerical contract unchanged"
+  }
 }

@@ -101,7 +101,7 @@ jobs:
       - run: make setup
       - name: Execute one persistent block once, preserving failures
         timeout-minutes: 50
-        run: PYTHONPATH=src:. .venv/bin/python -m experiments.contextual_learning.run run docs/validation/contextual-learning/declaration.json ${{ matrix.block }} artifacts/contextual-learning-block-${{ matrix.block }}
+        run: PYTHONPATH=src:. .venv/bin/python -m experiments.contextual_learning.run run docs/validation/contextual-learning-v2/declaration.json ${{ matrix.block }} artifacts/contextual-learning-block-${{ matrix.block }}
       - name: Upload original and partial outcomes
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -131,7 +131,7 @@ jobs:
           pattern: contextual-learning-block-*
           path: artifacts/contextual-learning-download
       - name: Reconstruct every request and exercise copied-evidence corruptions
-        run: PYTHONPATH=src:. .venv/bin/python -m experiments.contextual_learning.run reproduce docs/validation/contextual-learning/declaration.json artifacts/contextual-learning-download artifacts/contextual-learning-reproduction
+        run: PYTHONPATH=src:. .venv/bin/python -m experiments.contextual_learning.run reproduce docs/validation/contextual-learning-v2/declaration.json artifacts/contextual-learning-download artifacts/contextual-learning-reproduction
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:

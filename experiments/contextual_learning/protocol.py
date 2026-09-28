@@ -13,7 +13,7 @@ PHASES = ('acquire', 'retention', 'changed', 'return')
 CONTEXTS = ('mode-a', 'mode-b')
 BLOCKS = 6
 BLOCK_SECONDS = 45 * 60
-DECLARATION = 'docs/validation/contextual-learning/declaration.json'
+DECLARATION = 'docs/validation/contextual-learning-v2/declaration.json'
 GENERATED = 'docs/validation/generated-policy-v2/proposal.json'
 
 
@@ -72,7 +72,7 @@ def plan():
     for folder in ('experience_learning', 'generated_policy', 'contextual_learning'):
         names.extend(str(p.relative_to(ROOT)) for p in sorted((ROOT / 'experiments' / folder).glob('*.py')))
     files.update({n: hashlib.sha256((ROOT / n).read_bytes()).hexdigest() for n in names})
-    return {'version': 1, 'files': files, 'blocks': [schedule(b) for b in range(BLOCKS)],
+    return {'version': 2, 'files': files, 'blocks': [schedule(b) for b in range(BLOCKS)],
             'policy_sha256': {a: hashlib.sha256(source_for(a).encode()).hexdigest() for a in ARMS},
             'block_seconds': BLOCK_SECONDS, 'attempts': 1, 'model_calls': 0,
             'batch_size': 128, 'deadline_seconds': 1, 'database_read_delay_seconds': .05,

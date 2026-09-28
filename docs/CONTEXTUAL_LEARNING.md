@@ -10,6 +10,14 @@ The next uncertainty is whether durable, context-specific action/outcome estimat
 improve later recurrences. This protocol is frozen before any new service traffic.
 No favorable result is assumed. No previous candidate or outcome is replaced.
 
+The first declaration was published before execution. A final self-review then
+identified that the database probe could mistake the container image's temporary
+Unix-only initialization server for its final server. Version 2 requires TCP
+readiness and preserves the entire first declaration. It changes no schedule,
+policy, threshold, comparator or budget. No study workflow or service batch ran
+under version 1. This is a pre-execution correction, not a retry after outcomes.
+The current freeze is `docs/validation/contextual-learning-v2/declaration.json`.
+
 ## What learning means here
 
 An authored, frozen update algorithm starts without reward estimates. It updates
@@ -125,7 +133,7 @@ conditions before persistent canary admission or a continuous-improvement claim.
 ## Reproduction and failure accounting
 
 Freeze source, policies, schedule, workflow, tests and these criteria to
-`docs/validation/contextual-learning/declaration.json` before traffic. A one-use
+the versioned declaration before traffic. A one-use
 workflow refuses repeated attempts. Wholly skipped runs from unrelated labels do not consume the attempt;
 any earlier executed or uncertain freeze does. The pinned PR30 base intentionally
 refuses a moved base; it requires a new prospective declaration, not a bypass.
