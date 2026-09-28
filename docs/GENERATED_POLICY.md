@@ -118,3 +118,26 @@ a new pre-generation freeze. The candidate need not pass to merge an honest stud
 A qualified result only supports planning a scoped persistent canary. Durable
 admission, grants, withdrawal, rollback, unattended recurrence and independent
 replication remain necessary before a continuously improving deployment claim.
+
+
+## Explicit execution amendment after the authored boundary failure
+
+Workflow 36368302162 stopped at its authored output-flood probe. No real service
+block or candidate decision ran. Docker auto-removal raced explicit removal; the
+cleanup check treated the race as uncertainty. A missing parent directory then
+prevented writing the boundary artifact. Original workflow logs and skipped jobs
+are retained; the original study is incomplete, not a negative policy result.
+
+The corrected harness confirms exact container-name absence through the Docker
+daemon, creates the artifact directory before any probe, and preserves image/setup
+failures. Separate repeatable executor tests run before the one-use confirmation
+workflow. They are implementation tests, not repeated service experiments.
+
+The post-proposal execution declaration in
+`docs/validation/generated-policy-confirmation/` embeds the original pre-generation
+declaration and retains the identical candidate. Its verifier requires every
+non-source contract field (schedules, criteria, budgets and comparators) to equal
+the original. It makes no model call. This is an explicit source amendment after
+the proposal was visible and before any service outcomes; reports must disclose
+that qualification rather than claim all executed source preceded generation.
+The failed original workflow is never rerun or relabeled as successful.

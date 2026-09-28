@@ -10,8 +10,9 @@ from .runtime import image, invoke
 
 
 def check(destination):
-    results = []
-    image_id = image()
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    results, image_id = [], None
+    save(destination, {'kind': 'authored_executor_checks_not_service_outcomes', 'status': 'started', 'probes': results})
     observation = {'step': 0, 'memory': {}, 'previous': None}
     probes = {
         'valid': 'def step(o): return {"action": 4, "memory": {"seen": o["step"]}}',
@@ -25,6 +26,7 @@ def check(destination):
         'missing_step': 'x = 4',
     }
     try:
+        image_id = image()
         source = 'def step(o): return {"action":1+(hash("x")%16),"memory":{}}'
         first, second = (invoke(source, observation, image_id) for _ in range(2))
         require(first['result'] == second['result'] and first['stdout_sha256'] == second['stdout_sha256'], 'Hash seed changed between containers')
@@ -33,7 +35,7 @@ def check(destination):
             try:
                 result = invoke(source, observation, image_id)
             except Exception as error:
-                results.append({'probe': name, 'rejected': True, 'error_type': type(error).__name__})
+                results.append({'probe': name, 'rejected': True, 'error_type': type(error).__name__, 'policy_error_type': getattr(error, 'policy_error_type', None), 'cleanup_error_type': getattr(error, 'cleanup_error_type', None)})
                 require(name not in ('valid', 'compact_memory') and isinstance(error, Refused), 'Executor infrastructure or valid decision failed')
             else:
                 results.append({'probe': name, 'rejected': False, 'result': result['result']})

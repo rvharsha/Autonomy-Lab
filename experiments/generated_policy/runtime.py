@@ -67,6 +67,20 @@ def container_args(image_id, name):
             '--env=PYTHONHASHSEED=0', '-i', image_id, 'python', '-s', '-B', '-P', '-c', WRAPPER]
 
 
+def remove_container(name):
+    subprocess.run(['docker', 'rm', '-f', name], stdout=subprocess.DEVNULL,
+                   stderr=subprocess.DEVNULL, timeout=30)
+    # --rm can race explicit removal. Confirm absence through the daemon
+    # instead of classifying Docker's human-readable error strings.
+    cleanup_deadline = time.monotonic() + 5
+    while True:
+        remaining = command(['docker', 'ps', '-aq', '--filter', f'name=^/{name}$'], timeout=5).strip()
+        if not remaining:
+            break
+        require(time.monotonic() < cleanup_deadline, 'Policy container still present')
+        time.sleep(.05)
+
+
 def invoke(source, observation, image_id):
     require(type(source) is str and len(source.encode()) <= SOURCE_LIMIT, 'Invalid source size')
     payload = {'source': source, 'observation': observation}
@@ -102,10 +116,7 @@ def invoke(source, observation, image_id):
         if not process.stdin.closed:
             process.stdin.close()
         try:
-            removed = subprocess.run(['docker', 'rm', '-f', name], stdout=subprocess.DEVNULL,
-                                     stderr=subprocess.PIPE, timeout=30)
-            require(removed.returncode == 0 or b'No such container' in removed.stderr,
-                    'Policy container cleanup uncertain')
+            remove_container(name)
         except Exception as error:
             cleanup_error = error
         finally:

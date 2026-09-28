@@ -112,3 +112,48 @@ def test_trace_compaction_preserves_every_value_and_original_interleaving():
         for row in group['rows']:
             restored.append([b, phase, row[0], packed['arms'][row[1]], capacity, *row[2:]])
     assert restored == original
+
+
+def test_cleanup_accepts_removal_race_only_after_daemon_confirms_absence(monkeypatch):
+    from experiments.generated_policy import runtime
+    monkeypatch.setattr(runtime.subprocess, 'run', lambda *a, **kw: None)
+    responses = iter(['unit-container-id', ''])
+    monkeypatch.setattr(runtime, 'command', lambda *a, **kw: next(responses))
+    monkeypatch.setattr(runtime.time, 'sleep', lambda *a: None)
+    runtime.remove_container('unit-only')
+    clock = iter([0, 6])
+    monkeypatch.setattr(runtime.time, 'monotonic', lambda: next(clock))
+    monkeypatch.setattr(runtime, 'command', lambda *a, **kw: 'still-present')
+    with pytest.raises(Refused, match='still present'):
+        runtime.remove_container('unit-only')
+
+
+def test_boundary_retains_image_failure_in_new_artifact_directory(tmp_path, monkeypatch):
+    import json
+
+    from experiments.generated_policy import boundary
+    def fail():
+        raise RuntimeError('authored image failure')
+    monkeypatch.setattr(boundary, 'image', fail)
+    target = tmp_path / 'new' / 'boundary.json'
+    with pytest.raises(RuntimeError, match='authored image failure'):
+        boundary.check(target)
+    record = json.loads(target.read_text())
+    assert record['image'] is None and record['probes'] == []
+
+
+def test_execution_amendment_cannot_change_the_pre_generation_contract(monkeypatch):
+    from experiments.experience_learning.evaluate import read
+    from experiments.generated_policy import amend
+    original = read(amend.ORIGINAL / 'declaration.json')
+    proposal = read(amend.ORIGINAL / 'proposal.json')
+    current = amend.plan()
+    declaration = {'plan': current, 'proposal_declaration': original,
+                   'frozen_at': proposal['finished_at'] + 1}
+    amend.verify_execution(declaration, proposal)
+    changed = copy.deepcopy(current)
+    changed['batch_size'] = 127
+    monkeypatch.setattr(amend, 'plan', lambda: changed)
+    declaration['plan'] = changed
+    with pytest.raises(Refused, match='contract changed'):
+        amend.verify_execution(declaration, proposal)

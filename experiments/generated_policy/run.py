@@ -19,8 +19,8 @@ from experiments.experience_learning.run import (
     feedback_from_responses,
 )
 
+from .amend import verify_execution
 from .evaluate import audit_block, decide, observation
-from .propose import verify_proposal
 from .protocol import BLOCK_SECONDS, BLOCKS, plan, schedule
 from .runtime import image, invoke, source_for
 
@@ -29,7 +29,7 @@ def run_block(bundle, block, destination):
     declaration = read(bundle / 'declaration.json')
     proposal = read(bundle / 'proposal.json')
     require(declaration['plan'] == plan(), 'Frozen source differs')
-    verify_proposal(declaration, proposal)
+    verify_execution(declaration, proposal)
     require(0 <= block < BLOCKS, 'Invalid block')
     destination.mkdir(parents=True, exist_ok=False)
     raw = destination / 'raw'

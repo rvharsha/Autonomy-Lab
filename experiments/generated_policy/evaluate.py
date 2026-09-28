@@ -28,8 +28,8 @@ def audit_block(directory, declaration, block, image_id):
     raw = directory / 'raw'
     require(inventory(raw) == ledger['raw_sha256'], 'Raw inventory changed')
     proposal = read(raw / 'proposal.json')
-    from .propose import verify_proposal
-    verify_proposal(declaration, proposal)
+    from .amend import verify_execution
+    verify_execution(declaration, proposal)
     require(proposal == read(ROOT / 'docs/validation/generated-policy-v2/proposal.json'), 'Official proposal differs')
     expected = read(ROOT / 'fixtures/expectations.json')
     require(read(raw / 'expectations.json') == expected, 'Oracle changed')
