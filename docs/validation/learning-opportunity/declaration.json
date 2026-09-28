@@ -1,0 +1,1356 @@
+{
+  "frozen_at": 1790580585.675905,
+  "plan": {
+    "attempts_per_block": 1,
+    "batch_size": 128,
+    "block_seconds_max": 600,
+    "blocks": [
+      [
+        {
+          "action": 4,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 4,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 8,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 16,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 16,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 4,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 1,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 2,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 1,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 16,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 16,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 2,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 2,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 1,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 16,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 2,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 1,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 4,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 1,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 8,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 16,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 2,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 4,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 8,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 8,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 2,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 4,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 1,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 8,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 8,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 4,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 8,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 2,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 16,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 2,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 4,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 1,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 8,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 16,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 1,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 1,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 8,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 2,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 2,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 8,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 1,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 8,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 4,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 4,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 4,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 16,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 2,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 4,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 8,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 1,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 16,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 1,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 16,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 2,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 16,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 2,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 2,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 1,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 1,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 16,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 16,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 8,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 1,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 16,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 2,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 16,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 16,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 8,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 8,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 4,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 1,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 16,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 2,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 4,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 4,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 2,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 2,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 8,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 8,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 8,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 4,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 1,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 1,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 4,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 4,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 2
+        }
+      ],
+      [
+        {
+          "action": 1,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 8,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 1,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 2,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 2,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 4,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 4,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 16,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 1,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 8,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 8,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 16,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 4,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 16,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 1,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 16,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 2,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 8,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 2,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 4,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 2,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 1,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 1,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 4,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 0
+        },
+        {
+          "action": 8,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 16,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 8,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 4,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 2,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 16,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 0
+        },
+        {
+          "action": 4,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 1,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 4,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 1,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 8,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 2,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 16,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 8,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 1,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 16,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 2,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 1,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 2,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 16,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 8,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 2,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 8,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 1,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 4,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 16,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 2,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 16,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 8,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 4,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 4,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 4,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 8,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 1,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 16,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 1
+        },
+        {
+          "action": 2,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 1
+        },
+        {
+          "action": 8,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 1,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 8,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 2,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 2,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 16,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 4,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 2,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 8,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 2,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 4,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 16,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 2,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 8,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 16,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 4,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 4,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 16,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 8,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 1,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 1,
+          "capacity": 16,
+          "context": "context-5",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 16,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 1,
+          "capacity": 16,
+          "context": "context-4",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 4,
+          "capacity": 1,
+          "context": "context-1",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 1,
+          "capacity": 2,
+          "context": "context-3",
+          "delay": 0.1,
+          "repeat": 2
+        },
+        {
+          "action": 16,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 4,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 2,
+          "capacity": 2,
+          "context": "context-2",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 1,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 2
+        },
+        {
+          "action": 8,
+          "capacity": 1,
+          "context": "context-0",
+          "delay": 0.05,
+          "repeat": 2
+        }
+      ]
+    ],
+    "candidate_selection": "post-outcome best measured fixed action per condition; optimistic descriptive diagnostic",
+    "files": {
+      ".github/workflows/learning-settlement.yml": "d9da21cb8d8729789bc583b7137cbaaa0e3bf674b1b222fa5b96d3562bca493a",
+      "Dockerfile": "1d9ebe2adbf8017bd0d53992ec43465874d9944c243c425e2f63872052fae4ce",
+      "docs/LEARNING_SETTLEMENT.md": "94d8a3b2b2cfec1a3a002f021c24d497a4182f80ef14f6bb0f8bcbac7e379228",
+      "experiments/__init__.py": "2f3f6abd0167139df091f70465aaff8e9f897abd1b792ae972529a6d2cefb40e",
+      "experiments/request_settlement/__init__.py": "58dddb956cae72b755cebdd73fdc5b20eb095f76671d08da5251788362d15dbe",
+      "experiments/request_settlement/audit.py": "0c0c199a5f366b53edb8d1743053c43d34508f17d3fc588a44e4c419f80fb945",
+      "experiments/request_settlement/harness.py": "a0d532b09ea368ee82680e61fef30855a087c95b7fed41694827d05d7ee4a4a9",
+      "experiments/request_settlement/opportunity.py": "95750cd49d67b78c2112e724f91d31dcfe4bfdfe234d7e9acd2320c0fd83e0bf",
+      "experiments/request_settlement/probe.py": "0ed6b3f29671daba5b3535550b4544cfd47365bee23c0e3386dc9988a32faa16",
+      "experiments/request_settlement/services.py": "7cc356e33f0ad3049cf13a1549f369f5a18c2a87fdeee638a7a7983a305321cb",
+      "fixtures/database.sql": "595e6bff667e696fb51a6cfa51a86d6f7e016f2c90187d43429cb1b36c6355d2",
+      "fixtures/expectations.json": "95c4b01a604ef152d536d7046aadee50d29003445081ffd68858b63103a06c1d",
+      "infra/agent.Dockerfile": "3e7f431db2c398634da305c4c1d73a7ff62a3a3fa0632a7988d3abe0d57e808b",
+      "infra/kind.yaml": "e6e61938dbf0179c3f0a7e97a525d24d11fad2624d6df9520da1de6ba212a38c",
+      "infra/toolchain.json": "807227f6bcd89185af3089a389269ae2a18322f2f013aaa17eea775b74b7e49f",
+      "pyproject.toml": "1561306507cf080b841cd501034ca0fd4a00dba3a8236e48279b81a66bb182d7",
+      "requirements.lock": "f3942559084c82ee95a26e1a5014f89f68b2200f37867dd0e0c4757e0a72ea28",
+      "src/autonomy_lab/__init__.py": "e0e75b2f3231733dc848918b71c8f65d3d836009d920b6de6ba8b13946eaa933",
+      "src/autonomy_lab/agent.py": "0a9cde266d9a5c2a76d417155d1482d289e743872e45ad8a5ebc2e1d16859e2f",
+      "src/autonomy_lab/ambiguity.py": "65cd0203103ebebea7ea504a00acce04abe1b10959221a304bc01bc6586d81be",
+      "src/autonomy_lab/audit.py": "8afe5d4352d5fe83f70878408e1be414605248523d796657bee7614b68a7025f",
+      "src/autonomy_lab/authority_worker.py": "cc6cf51973c263ebb4b5e9dfee77e5b4cc9a5f7026312359ead35ce154804d82",
+      "src/autonomy_lab/ax_runtime.py": "7d1977025c41113e139e0f90e16dc967568fd319812ebb09e746d1e92c2dcebc",
+      "src/autonomy_lab/bounded_http.py": "907e5b2f22dc197a629f706a26c81ebdff17914db0deef4c391ac4177b096067",
+      "src/autonomy_lab/broker.py": "17ef2b00343b99de18e8031ef89d32ec1aeb3832ab93b9fb4df6b06b5f240cf5",
+      "src/autonomy_lab/budget_horizon.py": "39093f854b76e5b3d109ebd505f97eef535b0e2c89e32f579bb3f3d90e14f457",
+      "src/autonomy_lab/campaign.py": "c420c48684b8c4fd31e364b9a2716ad021fe77269df0d3b7897db22ce217d163",
+      "src/autonomy_lab/campaign_report.py": "97be3b05182fa48d280d6dce597e4ee4e6a4b18066df1dd58bbe4ea25f7241fc",
+      "src/autonomy_lab/campaign_stop.py": "f35352f07a53bc14a9e5336866a4f26a25d0522c9bf6b1b4a72257488184445b",
+      "src/autonomy_lab/cli.py": "517c32e89395b13d2acff8e0d86149e1247419666260401b178bb0bd2ecc8944",
+      "src/autonomy_lab/conflict.py": "36e52c4b7df49f274dec5544002232be6ca754eb73b589a4dde6601191fbad36",
+      "src/autonomy_lab/context.py": "b36eb6a628a7ec084a48d64e0d14cd37dd5e027e7825ec0d225cced57a01aaba",
+      "src/autonomy_lab/crash_worker.py": "64ac43f215d31b1c73c3fd27d7aed72bf513871912b20996b8d125c2b4455701",
+      "src/autonomy_lab/credentials.py": "889e7ae960883c16930bce85d710863275150abf550aa693dc3e1bdf4294a099",
+      "src/autonomy_lab/customer_benefit.py": "cd3baa476d38b266b55aa5b9fa2d5ce1ebbd36639f444aa28bce1bcb269c7b9b",
+      "src/autonomy_lab/customer_benefit_audit.py": "4e8eeeb6ad66824df153b8754cdfcae5c957bbd02baae832b0f16743fb6dc7ae",
+      "src/autonomy_lab/customer_benefit_negative.py": "10cf3f34d07cea4179a719a54e76d3697787b3a2b3524932c8fddaee11874b7c",
+      "src/autonomy_lab/desired_state.py": "af20665bf54bf621f340f8dc97db8ae1d31f25393abf3192f008f9428acd6d17",
+      "src/autonomy_lab/durable_contract.py": "3585798b138879d76e62f0db103e0367af6b3d4e86449315603d40db7aa83921",
+      "src/autonomy_lab/durable_contract_gate.py": "5c23ae262e3deb622a4f8da2334206b715cf731e80af9702480d4a1df231d324",
+      "src/autonomy_lab/environment.py": "026fdb8aee08c6f04c9682d4986359a9f38b5ed87eab2d961cb0d09af51b67ce",
+      "src/autonomy_lab/experiments.py": "0b3bf1e936c5404880e9ac85ed75b38ceaa5fe3d9e43be1d5255124ce725f1b1",
+      "src/autonomy_lab/frozen_experiment.py": "932e476b298411d337dc673f5de489b180f00abc13b8bf8a21e2c9c918268cd0",
+      "src/autonomy_lab/gemini.py": "c259ef6eab36b5c955c2d01db4bb4c5002e9597552caf5c878820ba20fd6745b",
+      "src/autonomy_lab/harness.py": "a4ceac690e08c63e391082fbc46d1fd693b54b7a3634b96c2445ef24201d2322",
+      "src/autonomy_lab/information_gate.py": "bd931593f52bb78e820bd1a4c17c37652a9078deba07f603a20940f0980c7238",
+      "src/autonomy_lab/inventory.py": "f4e64c0858342474fa0cb5396b589d659e13585aa21910dd48702551e4800422",
+      "src/autonomy_lab/isolated_agent.py": "33146f8dfad4b450b62dc33738ec016c55896fe85417914ca2d759a3bbe9a0fd",
+      "src/autonomy_lab/isolated_runtime.py": "b2c0db0775aef66a67b3ea1fc7442cfcfda3e6ef90d7b8282f6339f47ab53b91",
+      "src/autonomy_lab/janitor.py": "5684c4cfa853b5623cec87fba62964b241eb1302380979e35f2316aaf97e2829",
+      "src/autonomy_lab/kubernetes.py": "1812c19cb4cc63a723b06e085efab881bb548742573d20f42113c42b677f7730",
+      "src/autonomy_lab/mailbox.py": "4e86574ec83080be70e2eb131a9c74a149f6e0dd7435ea4c4d7a0038b5a5af0b",
+      "src/autonomy_lab/operation_contract.py": "85ebebf4713bcba3d81633faecf395e413e79f32e74f2453c385abdd431b5f13",
+      "src/autonomy_lab/policy_search.py": "0d1e3424ea458a0ebd901ac053071cab0e6976ef8ee6119e44d620c1f5d3efba",
+      "src/autonomy_lab/procedure.py": "6e508650c8a94a3339441278f3599f8e5f6aa1d245d4eb053837d1ca38eb299a",
+      "src/autonomy_lab/procedures.py": "ab197102f740d4a0c8d591c70a875c243dd4aa8919e168c311c2a48507325fb2",
+      "src/autonomy_lab/program_admission.py": "6aaa6dd7bd7f990eea67e1cddcfb45baed5589d4060339b42bb4fbdb7d58d409",
+      "src/autonomy_lab/program_lifecycle.py": "7d17aa8dc82e3f2ce1d548a70133865038d4cf2f05f27d0a1bd05d27d2513de8",
+      "src/autonomy_lab/quote.py": "f83b02b37071fb471e5d3861938b62af936f6781f1630a208d85777bb408cbbc",
+      "src/autonomy_lab/recurrence.py": "825cada7b234d1d7649b90d3d138093d97439919925299519a724c8ea54fe7b3",
+      "src/autonomy_lab/refresh.py": "79061e806c7b99e7e004df51b7b7b96d3d5d21fac486501fb1550a6b11b7a3ae",
+      "src/autonomy_lab/rpc.py": "cf3f3c8b843db87ea613d1f5552392dd0f38a668a194470f52b3f781ab28f617",
+      "src/autonomy_lab/runbook.py": "e03607b33e9b0f30dc032af6aedccb6567e3265e43fc36970418a9ad56fd2819",
+      "src/autonomy_lab/scoring.py": "f2bbc8c7e8eeb6c8974507383fb7bb7d9df34ebb9d1ebc4dde8b5cf74d67c2f2",
+      "src/autonomy_lab/supervisor.py": "333943faf548ed5e76f6b0392aec873b00eaae86cdd0a4d04ee91db3e1d658d5",
+      "src/autonomy_lab/telemetry.py": "aee6697a4f0660dcbbd351c256075e611d0d2b18ae778ac813e3f0e91214389b",
+      "src/autonomy_lab/toolbox.py": "fa8d28ee980a4a03b26b20995e43f7a7c3f5dbb4ba20105e3a09bf28bcbd76fe",
+      "src/autonomy_lab/trial_worker.py": "d0983730b2c7059895938584b2adbdbcdb30362065e2ffb6f2725110f7648076",
+      "src/autonomy_lab/value_scenarios.py": "e2e01e69b3cbc3a9936007c0fa929438f736e96d97681cb572e31ed74f741b87",
+      "src/autonomy_lab/verifier.py": "4f61c4e917aa297f4591a7594bef950de98ea3ed3ce0d040984092ac3d36a434",
+      "src/autonomy_lab/withdrawal.py": "f8c9361821631e1885a6df6a36bce9f3665a03a86d3a1968877f95ea62625e5d",
+      "tests/test_request_settlement.py": "20eb1e1e39e9e0eb43dc34bef06507c2e751ce29fea8a8a975f2776553830f85",
+      "uv.lock": "49feee672b6047f3b8057f5fdde14bac5d4e6030b0aa968c7ad1e2279438280a"
+    },
+    "go_for_fresh_learning_study": "pooled selector gain >=5pp and each of two blocks >=3pp above its strongest fixed action; no guarantee about learning cost or generalization",
+    "kind": "development_opportunity_not_learning_proof",
+    "model_calls": 0,
+    "queue_inclusive_deadline_seconds": 1,
+    "settlement_timeout_seconds": 8
+  },
+  "source_commit": "8f2ed0133322015a10c612319cf5a554c8ae523b"
+}

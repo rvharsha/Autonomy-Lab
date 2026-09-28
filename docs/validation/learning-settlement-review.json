@@ -1,0 +1,69 @@
+{
+  "reviews": [
+    {
+      "record": "20260928T071334.550622Z-broker.json",
+      "kind": "learning_settlement_boundary",
+      "status": "completed",
+      "snapshot_id": "e3a798a91342beb7694a7f502ac0772fea897761d4184fe85ec3c523ead1f8f3",
+      "cost_estimate_usd": 0.44238,
+      "findings": "**Findings (2)**\n\n**1. Harness restart leaves stale wiring; a restarted service is silently accepted as \"the same\" dependency**\n`experiments/request_settlement/harness.py:39-72, 93-97`; used at `probe.py:192-193`.\n\n`start()` allocates a new port and writes `self.urls[service]`, but never updates `self.instances[service]`, and the Quote process's `INVENTORY_URL` was fixed at its own start (line 51). After `services.stop(\"inventory\"); services.start(\"inventory\")`:\n- `services.instances[\"inventory\"]` still names the dead instance, so `services.open()` would pass a downstream identity that no longer exists (Quote's gate accepts any 32-hex string).\n- Quote still forwards to the old port \u2192 `ECONNREFUSED`/503, which the ledger would record as a \"finished\" Quote operation with no Inventory entry \u2014 an accepted-looking settlement on a broken topology.\n\nTrace: after `probe.py:193`, call `services.open(); request(services, 0); services.close(); services.await_settled({0},{0})` \u2192 `settled` passes (inventory ledger empty, `\u2205 \u2286 quote`), yet no real Inventory work happened. The probe only avoids this because it ends immediately; the harness gives no protection.\n\nMinimal fix: in `start()`, `require(service not in self.processes or self.processes[service].poll() is not None, ...)`, then set `self.instances[service] = state[\"instance\"]` and, if `service == \"inventory\"` and Quote is running, raise (or restart Quote) because its `INVENTORY_URL` is now stale. Optionally, in `audit.settled`, require `identities[\"inventory\"] == identities[\"quote\"]` when `known_admitted` includes a Quote op that returned 200 (or record downstream contact per op) so a dead downstream cannot settle as quiescent.\n\n**2. Forwarding hook is not fail-closed and is untested; any Inventory call outside a gated Quote operation crashes or leaks**\n`experiments/request_settlement/services.py:123-124, 130, 163-168`.\n\n`propagate` does `FORWARD.get()` with no default. Any use of `app.state.inventory_client` outside `handle_quote` (a warm-up in `quote.lifespan`, a health probe, a retry scheduled after `FORWARD.reset` on line 168, or a background task that inherits a stale context) raises `LookupError` inside httpx, surfacing as an opaque 500 rather than a 409 refusal, and the request is not attributed to any operation. Conversely, if `quote.quote` retries the downstream call (not visible here), the second attempt reuses the same forwarded operation id and is 409'd by Inventory's gate, turning a would-be success into an error that the ledger cannot distinguish from a real downstream failure.\n\nTest gap: `tests/test_request_settlement.py` never constructs `factory(\"quote\")`; correlation is exercised only indirectly by the probe's healthy case. No test covers the hook when `FORWARD` is unset, nor an Inventory 409 on a forwarded duplicate.\n\nMinimal fix:\n```python\nasync def propagate(request):\n    headers = FORWARD.get(None)\n    if headers is None or headers[\"x-lab-instance\"] is None:\n        raise HTTPException(409, \"downstream call outside admitted operation\")\n    request.headers.update(headers)\n```\nAdd a unit test with `TestClient(factory(\"quote\"))` and a mocked `inventory_client` transport asserting (a) forwarded headers equal the admitted identity, (b) an ungated client call is refused, (c) Quote's `finished` is recorded exactly once when the downstream returns 409.\n\nNo other defects substantiated from the supplied source; the lock-shared close/admit fence, canonical id parsing, and sync-worker terminal write behave as described.",
+      "error": null
+    },
+    {
+      "record": "20260928T072124.394031Z-broker.json",
+      "kind": "learning_settlement_calibration",
+      "status": "failed",
+      "snapshot_id": "666acd3f2d6acfd319a582a124ffb916b58eb79065e76e3a92d943332679cc7d",
+      "cost_estimate_usd": 0,
+      "findings": null,
+      "error": "Token preflight exceeds 14,999 input tokens or returned an invalid count"
+    },
+    {
+      "record": "20260928T072156.520410Z-broker.json",
+      "kind": "learning_settlement_calibration",
+      "status": "incomplete",
+      "snapshot_id": "5930bfa56837d3a87d8318705c2c0dc3237467c38a05cb339d2a3990eeda7cab",
+      "cost_estimate_usd": 0.1413,
+      "findings": null,
+      "error": "Review incomplete: stop_reason='refusal'; no continuation requested"
+    },
+    {
+      "record": "20260928T072610.830920Z-broker.json",
+      "kind": "learning_settlement_calibration_focused",
+      "status": "completed",
+      "snapshot_id": "85ecd936de433d6fe3a8c9fff8362d830f4749944909dd3b0c7c65754ce2050a",
+      "cost_estimate_usd": 0.39766,
+      "findings": "**Findings**\n\n**1. `block_seconds_max` (600 s) is declared in the frozen plan but neither enforced in `run` nor checked in `audit`** \u2014 `experiments/request_settlement/opportunity.py` lines 68, 222, 237, 328\u2013337.\n\nTrigger: `run` only requires 20 s of budget remaining before *starting* a batch (line 237). A single batch can legitimately consume ~1 s dispatch + up to 6 s httpx timeout + up to 8 s settlement wait (audit accepts `wait_seconds < 8`, line 369) plus service open/close, i.e. >15 s. So a block can finish at ~615 s with `status == \"complete\"`, and `audit` never compares `finished_at - started_at` against the declared 600 s. The plan field is therefore a documented control that the evidence never verifies \u2014 a run that overran the frozen budget (e.g. a slow host distorting all latency-dependent `timely_correct` counts) still yields a decision.\n\nTrace: batch 89 starts at monotonic 590 s (passes `590 + 20 < 600`... actually passes only if <580; take batch 88 starting at 579 s), runs 15 s, batch 89 starts at 594 s \u2192 check fails \u2192 whole block aborts as \"Development budget exhausted\" *after* 89 completed batches, wasting the block. Conversely with 8 s settlement waits early, no audit check flags a 605 s block.\n\nMinimal fix: in `run`, make the pre-batch margin match the worst case (`+ 1 + 6 + 8 + margin`), and in `audit` add\n```python\nrequire(result[\"finished_at\"] - result[\"started_at\"] <= declared[\"plan\"][\"block_seconds_max\"], \"Block budget exceeded\")\n```\n(or drop the field from the plan if it is not a control).\n\n**2. Silent hash-key override in `plan()`** \u2014 lines 73\u201376.\n\nTrigger: `{**release_manifest({})[\"files\"], **{explicit hashes}}` lets the explicit list overwrite any same-path entry from the release manifest without detecting a disagreement. If `release_manifest` ever hashes `src/autonomy_lab/quote.py` (or `pyproject.toml`) differently (different normalization, stale cache), the plan quietly takes the later value and the freeze/run/audit equality check compares only that, so a manifest/source divergence is hidden rather than failing closed.\n\nFix:\n```python\nmanifest = release_manifest({})[\"files\"]\nexplicit = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}\nfor k in manifest.keys() & explicit.keys():\n    require(manifest[k] == explicit[k], f\"Manifest hash differs: {k}\")\n```\n\n**Checked and not found defective**\n- Full population accounting: 128 offered per batch, undispatched records must be the exact null shape, `dispatched`/`known`/`known_downstream` nested subsets enforced in `settled`; `completed == 90` and `batch-000..089` presence checked; batch hashes recomputed.\n- Concurrency check: `(t,-1)` sorts before `(t,1)` so touching intervals don't false-trip; shared iterator across coroutines is safe (no await between `next()` and `start` assignment).\n- Scoring: transport errors and slow (`end > 1`) responses are excluded from `timely_correct`; bool\u2192int accumulation reproduces exactly on replay (`score == b[\"score\"]`).\n- Diagnostic arithmetic: equal `offered` per cell, per-context mean of rates, selector vs. max fixed, per-block and pooled thresholds \u2014 correct as specified and labelled post-hoc.\n- Freeze ordering: `frozen_at < started_at <= finished_at`, declaration equality, oracle equality.\n\n**Limits of this review**\n`harness.py` (`Services`, `await_settled`, `open/close`, `empty_database`), `release_manifest`, `require`, and the service wrappers were not in the packet; correctness of receipt semantics (e.g. whether 503 truly implies quote-handler admission, line 148, and whether 404 implies downstream admission, lines 268/379) is assumed from the stated separate review. If those assumptions are wrong the audit fails closed rather than inflating results. No tests were executed.",
+      "error": null
+    }
+  ],
+  "dispositions": [
+    {
+      "finding": "Boundary: restarted service silently adopted",
+      "assessment": "Claim disproved: the pinned prior instance already causes new Inventory open to return409 and await_settled also rejects the changed instance. Do not update the pinned identity or automatically repair routing. Added explicit real restart/open409 probe and a separate guard against replacing a still-running process."
+    },
+    {
+      "finding": "Boundary: missing forwarding context",
+      "assessment": "Missing context already raised before HTTP send; changed to an explicit409 refusal and added a pre-network test. Original Quote has no background retries. Successful downstream responses now also require matching Inventory admissions; omission is rejected."
+    },
+    {
+      "finding": "Calibration: final600secondbudget notchecked",
+      "assessment": "Fixed: record monotonic elapsed time through cleanup, mark over-budget runs failed, independently check elapsed and wall timestamps during audit. Four unit cases reject overruns and invalid clock fields. The existing20secondpre-batch margin remains an early refusal, not the proof of completion within budget."
+    },
+    {
+      "finding": "Calibration: overlapping manifest keys",
+      "assessment": "Existing manifest and explicit hashes read the same source bytes. Added equality check for overlaps so a concurrent source change cannot be silently overwritten."
+    }
+  ],
+  "self_review": [
+    "Closing admission precedes ledger and database quiescence observations.",
+    "Audit reconstructs all180declaredbatches; incomplete evidence withholds the opportunity decision.",
+    "Successful200/404requirescorrelateddownstreamledger; slow/transport errors remain inoffereddenominator.",
+    "The selector is explicitly post-outcome and optimistic; no learning or generalization claim.",
+    "Earlier frozen cohorts unchanged; no new learner or production authority."
+  ],
+  "full_suite": "1963testsandlint passed before final observer/correlation/budget additions. All28targetedtests passed after final changes; expectedfullsuite1967. RealPGprobe3passedlatestboundaryanddatabasequiescence. CIpending.",
+  "raw_provider_records_published": false,
+  "cost_estimate_usd": 0.98134,
+  "learning_proved": false
+}
