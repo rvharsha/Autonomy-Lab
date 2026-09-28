@@ -1,0 +1,31 @@
+{
+  "attempts": 1,
+  "candidate": {
+    "rationale": "Empirical analysis across all traces shows that when capacity is 2, action 4 or 3 achieves around 80-90 timely correct responses but incurs 10-25 server errors. Action 2 guarantees 0 server errors and yields ~80-84 timely correct responses (outperforming action 1 at ~55-60). However, when capacity is 16, action 8 delivers ~100-106 timely responses without errors, beating action 4 (~95-100) and action 2 (~80-86), while action 16 slows down due to queuing and 1-second SLO budget limits. Therefore, detecting capacity congestion via server_errors > 0 or elevated p90 dispatch latencies allows rapid switching between action 2 (when constrained) and action 8 (when unconstrained), falling back smoothly to 4 or 2.",
+    "source": "def step(observation):\n    memory = observation.get('memory') or {}\n    prev = observation.get('previous')\n    action = memory.get('action', 4)\n    \n    if prev is not None:\n        fb = prev.get('feedback', {})\n        errors = fb.get('server_errors', 0)\n        durations = sorted(fb.get('dispatch_seconds', []))\n        p90 = durations[min(len(durations) - 1, int(0.9 * len(durations)))] if durations else 0.0\n        \n        # If server errors occur, DB pool is saturated (capacity 2 limit)\n        if errors > 0:\n            action = 2\n        elif p90 > 0.08:\n            # High latency under higher concurrency suggests queue backup\n            if action > 4:\n                action = 4\n            elif action == 4 and errors > 0:\n                action = 2\n        else:\n            # Healthy and error-free: if action 2 or 4 was clean, attempt 4 or 8\n            if action < 4:\n                action = 4\n            elif action == 4 and errors == 0 and p90 < 0.06:\n                action = 8\n            elif action >= 8:\n                action = 8\n    else:\n        # Start conservatively at 4, which performs robustly on both regimes\n        action = 4\n        \n    memory['action'] = action\n    return {'action': action, 'memory': memory}"
+  },
+  "cost_is_invoice": false,
+  "counted_input_tokens": 46540,
+  "declaration_sha256": "9320ecaef4f6d5477fbf12ba3f1393c1c5234bdfe607c8be38e0e27f594bbd12",
+  "estimated_token_cost_usd": 0.03706875,
+  "final_text": "{\"rationale\": \"Empirical analysis across all traces shows that when capacity is 2, action 4 or 3 achieves around 80-90 timely correct responses but incurs 10-25 server errors. Action 2 guarantees 0 server errors and yields ~80-84 timely correct responses (outperforming action 1 at ~55-60). However, when capacity is 16, action 8 delivers ~100-106 timely responses without errors, beating action 4 (~95-100) and action 2 (~80-86), while action 16 slows down due to queuing and 1-second SLO budget limits. Therefore, detecting capacity congestion via server_errors > 0 or elevated p90 dispatch latencies allows rapid switching between action 2 (when constrained) and action 8 (when unconstrained), falling back smoothly to 4 or 2.\", \"source\": \"def step(observation):\\n    memory = observation.get('memory') or {}\\n    prev = observation.get('previous')\\n    action = memory.get('action', 4)\\n    \\n    if prev is not None:\\n        fb = prev.get('feedback', {})\\n        errors = fb.get('server_errors', 0)\\n        durations = sorted(fb.get('dispatch_seconds', []))\\n        p90 = durations[min(len(durations) - 1, int(0.9 * len(durations)))] if durations else 0.0\\n        \\n        # If server errors occur, DB pool is saturated (capacity 2 limit)\\n        if errors > 0:\\n            action = 2\\n        elif p90 > 0.08:\\n            # High latency under higher concurrency suggests queue backup\\n            if action > 4:\\n                action = 4\\n            elif action == 4 and errors > 0:\\n                action = 2\\n        else:\\n            # Healthy and error-free: if action 2 or 4 was clean, attempt 4 or 8\\n            if action < 4:\\n                action = 4\\n            elif action == 4 and errors == 0 and p90 < 0.06:\\n                action = 8\\n            elif action >= 8:\\n                action = 8\\n    else:\\n        # Start conservatively at 4, which performs robustly on both regimes\\n        action = 4\\n        \\n    memory['action'] = action\\n    return {'action': action, 'memory': memory}\"}",
+  "finished_at": 1790560911.948738,
+  "model_version": "gemini-3.8-flash",
+  "pricing_source": "https://ai.google.dev/gemini-api/docs/pricing#gemini-3.8-flash",
+  "request_sha256": "be919f5c281f29952f8b3f4782e069a89807d4edce3eaa78e60c7c138acf18ad",
+  "source_sha256": "8eeeeea0221f02864ba9bf2a6cc8ae5b4eeab3c9539883b30e32067ba225224e",
+  "started_at": 1790560908.34534,
+  "status": "candidate",
+  "usage": {
+    "candidatesTokenCount": 577,
+    "promptTokenCount": 46540,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 46540
+      }
+    ],
+    "serviceTier": "standard",
+    "totalTokenCount": 47117
+  }
+}

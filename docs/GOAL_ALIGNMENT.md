@@ -161,3 +161,18 @@ separate, and label proposed capabilities. Its current shareable PDF is a dated
 research snapshot; these later persistent-service results belong in a clearly dated
 update before it is presented as the latest full account. Keep the public report's
 technical framing neutral.
+
+## Generated policy evidence boundary
+
+PR29's retained-experience study failed both frozen gates. Its +4.61pp retention
+gain was below the declared 5pp margin, the advantage disappeared after the erased
+arm relearned, and fixed concurrency 4 beat the learner in every evaluation block.
+That supports a warm-start effect, not sustained useful improvement.
+
+The next [generated-policy study](GENERATED_POLICY.md) freezes fresh, varied dwell
+lengths before one Gemini proposal using only PR29 development traces. It compares
+against fixed4, the unchanged learner and a memory-erased copy, with fresh workload
+identities per arm. A generated-improvement pass and a retained-memory pass are
+separate claims. No model necessity, unattended continuous improvement, production
+admission or dollar return is implied. Preserve rejected proposals and original
+failed studies. Advance to persistent adoption only after fresh qualification.

@@ -1,0 +1,4598 @@
+{
+  "development_sha256": "9cf570c6a4cb519998e093ecbebf2d3103523cbccf272bbf150111034de773e7",
+  "frozen_at": 1790560578.122763,
+  "plan": {
+    "attempts": 1,
+    "batch_size": 128,
+    "block_seconds": 2400,
+    "blocks": [
+      [
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 7,
+          "step": 7
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 8,
+          "step": 8
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 9,
+          "step": 9
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 10,
+          "step": 10
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 0,
+          "step": 11
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 1,
+          "step": 12
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 2,
+          "step": 13
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 3,
+          "step": 14
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 4,
+          "step": 15
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 5,
+          "step": 16
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 6,
+          "step": 17
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 0,
+          "step": 18
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 1,
+          "step": 19
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 2,
+          "step": 20
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 3,
+          "step": 21
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 4,
+          "step": 22
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 5,
+          "step": 23
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 6,
+          "step": 24
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 7,
+          "step": 25
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 8,
+          "step": 26
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 9,
+          "step": 27
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 10,
+          "step": 28
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 11,
+          "step": 29
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 12,
+          "step": 30
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 0,
+          "step": 31
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 1,
+          "step": 32
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 2,
+          "step": 33
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 3,
+          "step": 34
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 4,
+          "step": 35
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 5,
+          "step": 36
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 6,
+          "step": 37
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 7,
+          "step": 38
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 8,
+          "step": 39
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 7,
+          "step": 7
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 8,
+          "step": 8
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 9,
+          "step": 9
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 10,
+          "step": 10
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 0,
+          "step": 11
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 1,
+          "step": 12
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 2,
+          "step": 13
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 3,
+          "step": 14
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 4,
+          "step": 15
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 5,
+          "step": 16
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 6,
+          "step": 17
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 0,
+          "step": 18
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 1,
+          "step": 19
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 2,
+          "step": 20
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 3,
+          "step": 21
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 4,
+          "step": 22
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 5,
+          "step": 23
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 6,
+          "step": 24
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 7,
+          "step": 25
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 8,
+          "step": 26
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 9,
+          "step": 27
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 10,
+          "step": 28
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 11,
+          "step": 29
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 12,
+          "step": 30
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 0,
+          "step": 31
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 1,
+          "step": 32
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 2,
+          "step": 33
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 3,
+          "step": 34
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 4,
+          "step": 35
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 5,
+          "step": 36
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 6,
+          "step": 37
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 7,
+          "step": 38
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 8,
+          "step": 39
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 7,
+          "step": 7
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 8,
+          "step": 8
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 9,
+          "step": 9
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 10,
+          "step": 10
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 0,
+          "step": 11
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 1,
+          "step": 12
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 2,
+          "step": 13
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 3,
+          "step": 14
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 4,
+          "step": 15
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 5,
+          "step": 16
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 6,
+          "step": 17
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 0,
+          "step": 18
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 1,
+          "step": 19
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 2,
+          "step": 20
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 3,
+          "step": 21
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 4,
+          "step": 22
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 5,
+          "step": 23
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 6,
+          "step": 24
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 7,
+          "step": 25
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 8,
+          "step": 26
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 9,
+          "step": 27
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 10,
+          "step": 28
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 11,
+          "step": 29
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 12,
+          "step": 30
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 0,
+          "step": 31
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 1,
+          "step": 32
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 2,
+          "step": 33
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 3,
+          "step": 34
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 4,
+          "step": 35
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 5,
+          "step": 36
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 6,
+          "step": 37
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 7,
+          "step": 38
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 8,
+          "step": 39
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 7,
+          "step": 7
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 8,
+          "step": 8
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 9,
+          "step": 9
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 10,
+          "step": 10
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 0,
+          "step": 11
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 1,
+          "step": 12
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 2,
+          "step": 13
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 3,
+          "step": 14
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 4,
+          "step": 15
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 5,
+          "step": 16
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 6,
+          "step": 17
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 0,
+          "step": 18
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 1,
+          "step": 19
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 2,
+          "step": 20
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 3,
+          "step": 21
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 4,
+          "step": 22
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 5,
+          "step": 23
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 6,
+          "step": 24
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 7,
+          "step": 25
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 8,
+          "step": 26
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 9,
+          "step": 27
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 10,
+          "step": 28
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 11,
+          "step": 29
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 12,
+          "step": 30
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 0,
+          "step": 31
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 1,
+          "step": 32
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 2,
+          "step": 33
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 3,
+          "step": 34
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 4,
+          "step": 35
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 5,
+          "step": 36
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 6,
+          "step": 37
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 7,
+          "step": 38
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 8,
+          "step": 39
+        }
+      ],
+      [
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 7,
+          "step": 7
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 8,
+          "step": 8
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 0,
+          "step": 9
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 1,
+          "step": 10
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 2,
+          "step": 11
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 3,
+          "step": 12
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 4,
+          "step": 13
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 5,
+          "step": 14
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 6,
+          "step": 15
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 7,
+          "step": 16
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 8,
+          "step": 17
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 9,
+          "step": 18
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 10,
+          "step": 19
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 11,
+          "step": 20
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 12,
+          "step": 21
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 0,
+          "step": 22
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 1,
+          "step": 23
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 2,
+          "step": 24
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 3,
+          "step": 25
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 4,
+          "step": 26
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 5,
+          "step": 27
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 6,
+          "step": 28
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 0,
+          "step": 29
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 1,
+          "step": 30
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 2,
+          "step": 31
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 3,
+          "step": 32
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 4,
+          "step": 33
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 5,
+          "step": 34
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 6,
+          "step": 35
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 7,
+          "step": 36
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 8,
+          "step": 37
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 9,
+          "step": 38
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 10,
+          "step": 39
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 7,
+          "step": 7
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 8,
+          "step": 8
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 0,
+          "step": 9
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 1,
+          "step": 10
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 2,
+          "step": 11
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 3,
+          "step": 12
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 4,
+          "step": 13
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 5,
+          "step": 14
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 6,
+          "step": 15
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 7,
+          "step": 16
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 8,
+          "step": 17
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 9,
+          "step": 18
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 10,
+          "step": 19
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 11,
+          "step": 20
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 12,
+          "step": 21
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 0,
+          "step": 22
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 1,
+          "step": 23
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 2,
+          "step": 24
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 3,
+          "step": 25
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 4,
+          "step": 26
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 5,
+          "step": 27
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 6,
+          "step": 28
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 0,
+          "step": 29
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 1,
+          "step": 30
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 2,
+          "step": 31
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 3,
+          "step": 32
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 4,
+          "step": 33
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 5,
+          "step": 34
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 6,
+          "step": 35
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 7,
+          "step": 36
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 8,
+          "step": 37
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 9,
+          "step": 38
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 10,
+          "step": 39
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 7,
+          "step": 7
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 8,
+          "step": 8
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 0,
+          "step": 9
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 1,
+          "step": 10
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 2,
+          "step": 11
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 3,
+          "step": 12
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 4,
+          "step": 13
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 5,
+          "step": 14
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 6,
+          "step": 15
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 7,
+          "step": 16
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 8,
+          "step": 17
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 9,
+          "step": 18
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 10,
+          "step": 19
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 11,
+          "step": 20
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 12,
+          "step": 21
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 0,
+          "step": 22
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 1,
+          "step": 23
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 2,
+          "step": 24
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 3,
+          "step": 25
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 4,
+          "step": 26
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 5,
+          "step": 27
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 6,
+          "step": 28
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 0,
+          "step": 29
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 1,
+          "step": 30
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 2,
+          "step": 31
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 3,
+          "step": 32
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 4,
+          "step": 33
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 5,
+          "step": 34
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 6,
+          "step": 35
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 7,
+          "step": 36
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 8,
+          "step": 37
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 9,
+          "step": 38
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 10,
+          "step": 39
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 7,
+          "step": 7
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 8,
+          "step": 8
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 0,
+          "step": 9
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 1,
+          "step": 10
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 2,
+          "step": 11
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 3,
+          "step": 12
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 4,
+          "step": 13
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 5,
+          "step": 14
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 6,
+          "step": 15
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 7,
+          "step": 16
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 8,
+          "step": 17
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 9,
+          "step": 18
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 10,
+          "step": 19
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 11,
+          "step": 20
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 12,
+          "step": 21
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 0,
+          "step": 22
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 1,
+          "step": 23
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 2,
+          "step": 24
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 3,
+          "step": 25
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 4,
+          "step": 26
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 5,
+          "step": 27
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 6,
+          "step": 28
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 0,
+          "step": 29
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 1,
+          "step": 30
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 2,
+          "step": 31
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 3,
+          "step": 32
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 4,
+          "step": 33
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 5,
+          "step": 34
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 6,
+          "step": 35
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 7,
+          "step": 36
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 8,
+          "step": 37
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 9,
+          "step": 38
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 10,
+          "step": 39
+        }
+      ],
+      [
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 7,
+          "step": 7
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 8,
+          "step": 8
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 9,
+          "step": 9
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 10,
+          "step": 10
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 11,
+          "step": 11
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 12,
+          "step": 12
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 0,
+          "step": 13
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 1,
+          "step": 14
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 2,
+          "step": 15
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 3,
+          "step": 16
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 4,
+          "step": 17
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 5,
+          "step": 18
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 6,
+          "step": 19
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 7,
+          "step": 20
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 8,
+          "step": 21
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 0,
+          "step": 22
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 1,
+          "step": 23
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 2,
+          "step": 24
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 3,
+          "step": 25
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 4,
+          "step": 26
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 5,
+          "step": 27
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 6,
+          "step": 28
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 7,
+          "step": 29
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 8,
+          "step": 30
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 9,
+          "step": 31
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 10,
+          "step": 32
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 0,
+          "step": 33
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 1,
+          "step": 34
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 2,
+          "step": 35
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 3,
+          "step": 36
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 4,
+          "step": 37
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 5,
+          "step": 38
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "return",
+          "round": 6,
+          "step": 39
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 7,
+          "step": 7
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 8,
+          "step": 8
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 9,
+          "step": 9
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 10,
+          "step": 10
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 11,
+          "step": 11
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 12,
+          "step": 12
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 0,
+          "step": 13
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 1,
+          "step": 14
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 2,
+          "step": 15
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 3,
+          "step": 16
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 4,
+          "step": 17
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 5,
+          "step": 18
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 6,
+          "step": 19
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 7,
+          "step": 20
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 8,
+          "step": 21
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 0,
+          "step": 22
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 1,
+          "step": 23
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 2,
+          "step": 24
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 3,
+          "step": 25
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 4,
+          "step": 26
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 5,
+          "step": 27
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 6,
+          "step": 28
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 7,
+          "step": 29
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 8,
+          "step": 30
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 9,
+          "step": 31
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 10,
+          "step": 32
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 0,
+          "step": 33
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 1,
+          "step": 34
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 2,
+          "step": 35
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 3,
+          "step": 36
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 4,
+          "step": 37
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 5,
+          "step": 38
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "return",
+          "round": 6,
+          "step": 39
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 7,
+          "step": 7
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 8,
+          "step": 8
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 9,
+          "step": 9
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 10,
+          "step": 10
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 11,
+          "step": 11
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 12,
+          "step": 12
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 0,
+          "step": 13
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 1,
+          "step": 14
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 2,
+          "step": 15
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 3,
+          "step": 16
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 4,
+          "step": 17
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 5,
+          "step": 18
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 6,
+          "step": 19
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 7,
+          "step": 20
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 8,
+          "step": 21
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 0,
+          "step": 22
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 1,
+          "step": 23
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 2,
+          "step": 24
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 3,
+          "step": 25
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 4,
+          "step": 26
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 5,
+          "step": 27
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 6,
+          "step": 28
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 7,
+          "step": 29
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 8,
+          "step": 30
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 9,
+          "step": 31
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 10,
+          "step": 32
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 0,
+          "step": 33
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 1,
+          "step": 34
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 2,
+          "step": 35
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 3,
+          "step": 36
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 4,
+          "step": 37
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 5,
+          "step": 38
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "return",
+          "round": 6,
+          "step": 39
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 7,
+          "step": 7
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 8,
+          "step": 8
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 9,
+          "step": 9
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 10,
+          "step": 10
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 11,
+          "step": 11
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "acquire",
+          "round": 12,
+          "step": 12
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 0,
+          "step": 13
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 1,
+          "step": 14
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 2,
+          "step": 15
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 3,
+          "step": 16
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 4,
+          "step": 17
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 5,
+          "step": 18
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 6,
+          "step": 19
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 7,
+          "step": 20
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "retention",
+          "round": 8,
+          "step": 21
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 0,
+          "step": 22
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 1,
+          "step": 23
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 2,
+          "step": 24
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 3,
+          "step": 25
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 4,
+          "step": 26
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 5,
+          "step": 27
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 6,
+          "step": 28
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 7,
+          "step": 29
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 8,
+          "step": 30
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 9,
+          "step": 31
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "changed",
+          "round": 10,
+          "step": 32
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 0,
+          "step": 33
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 1,
+          "step": 34
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 2,
+          "step": 35
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 3,
+          "step": 36
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 4,
+          "step": 37
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 5,
+          "step": 38
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "return",
+          "round": 6,
+          "step": 39
+        }
+      ],
+      [
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 0,
+          "step": 7
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 1,
+          "step": 8
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 2,
+          "step": 9
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 3,
+          "step": 10
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 4,
+          "step": 11
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 5,
+          "step": 12
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 6,
+          "step": 13
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 7,
+          "step": 14
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 8,
+          "step": 15
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 9,
+          "step": 16
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 10,
+          "step": 17
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 0,
+          "step": 18
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 1,
+          "step": 19
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 2,
+          "step": 20
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 3,
+          "step": 21
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 4,
+          "step": 22
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 5,
+          "step": 23
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 6,
+          "step": 24
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 7,
+          "step": 25
+        },
+        {
+          "arm": "legacy",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 8,
+          "step": 26
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 0,
+          "step": 27
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 1,
+          "step": 28
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 2,
+          "step": 29
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 3,
+          "step": 30
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 4,
+          "step": 31
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 5,
+          "step": 32
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 6,
+          "step": 33
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 7,
+          "step": 34
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 8,
+          "step": 35
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 9,
+          "step": 36
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 10,
+          "step": 37
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 11,
+          "step": 38
+        },
+        {
+          "arm": "legacy",
+          "capacity": 16,
+          "phase": "return",
+          "round": 12,
+          "step": 39
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 0,
+          "step": 7
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 1,
+          "step": 8
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 2,
+          "step": 9
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 3,
+          "step": 10
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 4,
+          "step": 11
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 5,
+          "step": 12
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 6,
+          "step": 13
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 7,
+          "step": 14
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 8,
+          "step": 15
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 9,
+          "step": 16
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 10,
+          "step": 17
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 0,
+          "step": 18
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 1,
+          "step": 19
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 2,
+          "step": 20
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 3,
+          "step": 21
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 4,
+          "step": 22
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 5,
+          "step": 23
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 6,
+          "step": 24
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 7,
+          "step": 25
+        },
+        {
+          "arm": "candidate",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 8,
+          "step": 26
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 0,
+          "step": 27
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 1,
+          "step": 28
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 2,
+          "step": 29
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 3,
+          "step": 30
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 4,
+          "step": 31
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 5,
+          "step": 32
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 6,
+          "step": 33
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 7,
+          "step": 34
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 8,
+          "step": 35
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 9,
+          "step": 36
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 10,
+          "step": 37
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 11,
+          "step": 38
+        },
+        {
+          "arm": "candidate",
+          "capacity": 16,
+          "phase": "return",
+          "round": 12,
+          "step": 39
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 0,
+          "step": 7
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 1,
+          "step": 8
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 2,
+          "step": 9
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 3,
+          "step": 10
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 4,
+          "step": 11
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 5,
+          "step": 12
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 6,
+          "step": 13
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 7,
+          "step": 14
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 8,
+          "step": 15
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 9,
+          "step": 16
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 10,
+          "step": 17
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 0,
+          "step": 18
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 1,
+          "step": 19
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 2,
+          "step": 20
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 3,
+          "step": 21
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 4,
+          "step": 22
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 5,
+          "step": 23
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 6,
+          "step": 24
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 7,
+          "step": 25
+        },
+        {
+          "arm": "erased",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 8,
+          "step": 26
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 0,
+          "step": 27
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 1,
+          "step": 28
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 2,
+          "step": 29
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 3,
+          "step": 30
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 4,
+          "step": 31
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 5,
+          "step": 32
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 6,
+          "step": 33
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 7,
+          "step": 34
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 8,
+          "step": 35
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 9,
+          "step": 36
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 10,
+          "step": 37
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 11,
+          "step": 38
+        },
+        {
+          "arm": "erased",
+          "capacity": 16,
+          "phase": "return",
+          "round": 12,
+          "step": 39
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 0,
+          "step": 0
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 1,
+          "step": 1
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 2,
+          "step": 2
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 3,
+          "step": 3
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 4,
+          "step": 4
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 5,
+          "step": 5
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "acquire",
+          "round": 6,
+          "step": 6
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 0,
+          "step": 7
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 1,
+          "step": 8
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 2,
+          "step": 9
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 3,
+          "step": 10
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 4,
+          "step": 11
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 5,
+          "step": 12
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 6,
+          "step": 13
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 7,
+          "step": 14
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 8,
+          "step": 15
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 9,
+          "step": 16
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "retention",
+          "round": 10,
+          "step": 17
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 0,
+          "step": 18
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 1,
+          "step": 19
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 2,
+          "step": 20
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 3,
+          "step": 21
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 4,
+          "step": 22
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 5,
+          "step": 23
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 6,
+          "step": 24
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 7,
+          "step": 25
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 2,
+          "phase": "changed",
+          "round": 8,
+          "step": 26
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 0,
+          "step": 27
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 1,
+          "step": 28
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 2,
+          "step": 29
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 3,
+          "step": 30
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 4,
+          "step": 31
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 5,
+          "step": 32
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 6,
+          "step": 33
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 7,
+          "step": 34
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 8,
+          "step": 35
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 9,
+          "step": 36
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 10,
+          "step": 37
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 11,
+          "step": 38
+        },
+        {
+          "arm": "fixed-4",
+          "capacity": 16,
+          "phase": "return",
+          "round": 12,
+          "step": 39
+        }
+      ]
+    ],
+    "claim": "one generated operating policy, not model necessity, novel cloud procedure or production improvement",
+    "deadline_seconds": 1,
+    "files": {
+      ".github/workflows/generated-policy.yml": "a03d422d3596e972462b58dfd9d1ce0bddc8dcad370137de2ba1f58a3f14fec5",
+      "Dockerfile": "1d9ebe2adbf8017bd0d53992ec43465874d9944c243c425e2f63872052fae4ce",
+      "docs/GENERATED_POLICY.md": "7921436c48866057b594da12521752fa98a2b460fe13afa11546e2deac1a4aba",
+      "experiments/__init__.py": "2f3f6abd0167139df091f70465aaff8e9f897abd1b792ae972529a6d2cefb40e",
+      "experiments/experience_learning/__init__.py": "0a99ab07e7a6c0f4a37fb94c71ba2cb6518e2f325fe95eb6daa2c3a31e08eb79",
+      "experiments/experience_learning/evaluate.py": "b4544dea6e1e3d1aa4fb1a4fec172ff1ab542ce2a5956824402867197a945c26",
+      "experiments/experience_learning/negative.py": "23a02a68ea1cff33580a0d8890c6df44e38f7fc58027b1be9708898164a213ec",
+      "experiments/experience_learning/policy.py": "7fe808e9035f1d72fee71a022353e76efb3fa6294ac7d0df56b766515bb587d6",
+      "experiments/experience_learning/protocol.py": "9e0d735d00ee72ee366af96065a6d1f94134b62506a759f5642af538a1a765c1",
+      "experiments/experience_learning/run.py": "2e23f5b59eb692321b6b78394929b6e86ccaef7b49ba28706564f35d720d31a3",
+      "experiments/generated_policy/__init__.py": "58de72f2b46aee2021bda1809e59a3bda6135b08b02d828a98c7c189ab6e76fd",
+      "experiments/generated_policy/boundary.py": "040d929c6b5a2a302bbb56e6fd932a01e177b802e5df77dc79c606228db4a4d8",
+      "experiments/generated_policy/evaluate.py": "b4ee01b3995734727308bffd93a07c28e273524f5774b8b3bdf5f31ca50debd1",
+      "experiments/generated_policy/negative.py": "331f1ed1264776e8f5eaf9c7b504bf61bb8e10ca5fa6248aa2de93ff546fc7a1",
+      "experiments/generated_policy/propose.py": "2cffb0ef7f0e41bcf0668417103bb395e20749f3040f509c8475d127f4473e91",
+      "experiments/generated_policy/protocol.py": "ea74ff8cc381cb32a295509a40090baf43f9b4d820c9f5d8e2e50f0f16bd2003",
+      "experiments/generated_policy/run.py": "cdff918bf7ce679af9f7c3726cc1170a097f5d5d5f2ae284c2d9e8c36f5b37f0",
+      "experiments/generated_policy/runtime.py": "550c85cd246d2a4f4d21f77138c8c4121ad82af51203d2c91bef8305b829a24e",
+      "fixtures/database.sql": "595e6bff667e696fb51a6cfa51a86d6f7e016f2c90187d43429cb1b36c6355d2",
+      "fixtures/expectations.json": "95c4b01a604ef152d536d7046aadee50d29003445081ffd68858b63103a06c1d",
+      "infra/agent.Dockerfile": "3e7f431db2c398634da305c4c1d73a7ff62a3a3fa0632a7988d3abe0d57e808b",
+      "infra/kind.yaml": "e6e61938dbf0179c3f0a7e97a525d24d11fad2624d6df9520da1de6ba212a38c",
+      "infra/toolchain.json": "0b4826e9ecc9f8c21ea1357b182f4dce2e53b9d8ac47c11a73e7add0d495c1fb",
+      "pyproject.toml": "1561306507cf080b841cd501034ca0fd4a00dba3a8236e48279b81a66bb182d7",
+      "requirements.lock": "f3942559084c82ee95a26e1a5014f89f68b2200f37867dd0e0c4757e0a72ea28",
+      "src/autonomy_lab/__init__.py": "e0e75b2f3231733dc848918b71c8f65d3d836009d920b6de6ba8b13946eaa933",
+      "src/autonomy_lab/agent.py": "0a9cde266d9a5c2a76d417155d1482d289e743872e45ad8a5ebc2e1d16859e2f",
+      "src/autonomy_lab/ambiguity.py": "65cd0203103ebebea7ea504a00acce04abe1b10959221a304bc01bc6586d81be",
+      "src/autonomy_lab/audit.py": "8afe5d4352d5fe83f70878408e1be414605248523d796657bee7614b68a7025f",
+      "src/autonomy_lab/authority_worker.py": "cc6cf51973c263ebb4b5e9dfee77e5b4cc9a5f7026312359ead35ce154804d82",
+      "src/autonomy_lab/ax_runtime.py": "7d1977025c41113e139e0f90e16dc967568fd319812ebb09e746d1e92c2dcebc",
+      "src/autonomy_lab/bounded_http.py": "907e5b2f22dc197a629f706a26c81ebdff17914db0deef4c391ac4177b096067",
+      "src/autonomy_lab/broker.py": "17ef2b00343b99de18e8031ef89d32ec1aeb3832ab93b9fb4df6b06b5f240cf5",
+      "src/autonomy_lab/budget_horizon.py": "39093f854b76e5b3d109ebd505f97eef535b0e2c89e32f579bb3f3d90e14f457",
+      "src/autonomy_lab/campaign.py": "c420c48684b8c4fd31e364b9a2716ad021fe77269df0d3b7897db22ce217d163",
+      "src/autonomy_lab/campaign_report.py": "97be3b05182fa48d280d6dce597e4ee4e6a4b18066df1dd58bbe4ea25f7241fc",
+      "src/autonomy_lab/campaign_stop.py": "f35352f07a53bc14a9e5336866a4f26a25d0522c9bf6b1b4a72257488184445b",
+      "src/autonomy_lab/cli.py": "517c32e89395b13d2acff8e0d86149e1247419666260401b178bb0bd2ecc8944",
+      "src/autonomy_lab/conflict.py": "36e52c4b7df49f274dec5544002232be6ca754eb73b589a4dde6601191fbad36",
+      "src/autonomy_lab/context.py": "b36eb6a628a7ec084a48d64e0d14cd37dd5e027e7825ec0d225cced57a01aaba",
+      "src/autonomy_lab/crash_worker.py": "64ac43f215d31b1c73c3fd27d7aed72bf513871912b20996b8d125c2b4455701",
+      "src/autonomy_lab/credentials.py": "889e7ae960883c16930bce85d710863275150abf550aa693dc3e1bdf4294a099",
+      "src/autonomy_lab/customer_benefit.py": "cd3baa476d38b266b55aa5b9fa2d5ce1ebbd36639f444aa28bce1bcb269c7b9b",
+      "src/autonomy_lab/customer_benefit_audit.py": "4e8eeeb6ad66824df153b8754cdfcae5c957bbd02baae832b0f16743fb6dc7ae",
+      "src/autonomy_lab/customer_benefit_negative.py": "10cf3f34d07cea4179a719a54e76d3697787b3a2b3524932c8fddaee11874b7c",
+      "src/autonomy_lab/desired_state.py": "af20665bf54bf621f340f8dc97db8ae1d31f25393abf3192f008f9428acd6d17",
+      "src/autonomy_lab/durable_contract.py": "3585798b138879d76e62f0db103e0367af6b3d4e86449315603d40db7aa83921",
+      "src/autonomy_lab/durable_contract_gate.py": "5c23ae262e3deb622a4f8da2334206b715cf731e80af9702480d4a1df231d324",
+      "src/autonomy_lab/environment.py": "026fdb8aee08c6f04c9682d4986359a9f38b5ed87eab2d961cb0d09af51b67ce",
+      "src/autonomy_lab/experiments.py": "0b3bf1e936c5404880e9ac85ed75b38ceaa5fe3d9e43be1d5255124ce725f1b1",
+      "src/autonomy_lab/frozen_experiment.py": "932e476b298411d337dc673f5de489b180f00abc13b8bf8a21e2c9c918268cd0",
+      "src/autonomy_lab/gemini.py": "c259ef6eab36b5c955c2d01db4bb4c5002e9597552caf5c878820ba20fd6745b",
+      "src/autonomy_lab/harness.py": "a4ceac690e08c63e391082fbc46d1fd693b54b7a3634b96c2445ef24201d2322",
+      "src/autonomy_lab/information_gate.py": "bd931593f52bb78e820bd1a4c17c37652a9078deba07f603a20940f0980c7238",
+      "src/autonomy_lab/inventory.py": "f4e64c0858342474fa0cb5396b589d659e13585aa21910dd48702551e4800422",
+      "src/autonomy_lab/isolated_agent.py": "33146f8dfad4b450b62dc33738ec016c55896fe85417914ca2d759a3bbe9a0fd",
+      "src/autonomy_lab/isolated_runtime.py": "b2c0db0775aef66a67b3ea1fc7442cfcfda3e6ef90d7b8282f6339f47ab53b91",
+      "src/autonomy_lab/janitor.py": "5684c4cfa853b5623cec87fba62964b241eb1302380979e35f2316aaf97e2829",
+      "src/autonomy_lab/kubernetes.py": "1812c19cb4cc63a723b06e085efab881bb548742573d20f42113c42b677f7730",
+      "src/autonomy_lab/mailbox.py": "4e86574ec83080be70e2eb131a9c74a149f6e0dd7435ea4c4d7a0038b5a5af0b",
+      "src/autonomy_lab/operation_contract.py": "85ebebf4713bcba3d81633faecf395e413e79f32e74f2453c385abdd431b5f13",
+      "src/autonomy_lab/policy_search.py": "0d1e3424ea458a0ebd901ac053071cab0e6976ef8ee6119e44d620c1f5d3efba",
+      "src/autonomy_lab/procedure.py": "6e508650c8a94a3339441278f3599f8e5f6aa1d245d4eb053837d1ca38eb299a",
+      "src/autonomy_lab/procedures.py": "ab197102f740d4a0c8d591c70a875c243dd4aa8919e168c311c2a48507325fb2",
+      "src/autonomy_lab/program_admission.py": "6aaa6dd7bd7f990eea67e1cddcfb45baed5589d4060339b42bb4fbdb7d58d409",
+      "src/autonomy_lab/program_lifecycle.py": "7d17aa8dc82e3f2ce1d548a70133865038d4cf2f05f27d0a1bd05d27d2513de8",
+      "src/autonomy_lab/quote.py": "f83b02b37071fb471e5d3861938b62af936f6781f1630a208d85777bb408cbbc",
+      "src/autonomy_lab/recurrence.py": "825cada7b234d1d7649b90d3d138093d97439919925299519a724c8ea54fe7b3",
+      "src/autonomy_lab/refresh.py": "79061e806c7b99e7e004df51b7b7b96d3d5d21fac486501fb1550a6b11b7a3ae",
+      "src/autonomy_lab/rpc.py": "cf3f3c8b843db87ea613d1f5552392dd0f38a668a194470f52b3f781ab28f617",
+      "src/autonomy_lab/runbook.py": "e03607b33e9b0f30dc032af6aedccb6567e3265e43fc36970418a9ad56fd2819",
+      "src/autonomy_lab/scoring.py": "f2bbc8c7e8eeb6c8974507383fb7bb7d9df34ebb9d1ebc4dde8b5cf74d67c2f2",
+      "src/autonomy_lab/supervisor.py": "333943faf548ed5e76f6b0392aec873b00eaae86cdd0a4d04ee91db3e1d658d5",
+      "src/autonomy_lab/telemetry.py": "aee6697a4f0660dcbbd351c256075e611d0d2b18ae778ac813e3f0e91214389b",
+      "src/autonomy_lab/toolbox.py": "fa8d28ee980a4a03b26b20995e43f7a7c3f5dbb4ba20105e3a09bf28bcbd76fe",
+      "src/autonomy_lab/trial_worker.py": "d0983730b2c7059895938584b2adbdbcdb30362065e2ffb6f2725110f7648076",
+      "src/autonomy_lab/value_scenarios.py": "e2e01e69b3cbc3a9936007c0fa929438f736e96d97681cb572e31ed74f741b87",
+      "src/autonomy_lab/verifier.py": "4f61c4e917aa297f4591a7594bef950de98ea3ed3ce0d040984092ac3d36a434",
+      "src/autonomy_lab/withdrawal.py": "f8c9361821631e1885a6df6a36bce9f3665a03a86d3a1968877f95ea62625e5d",
+      "tests/test_generated_policy.py": "a3409a2830c85d7980d4fdbce41323db421928cc60d5d6f0f4aa70cf35048382",
+      "uv.lock": "49feee672b6047f3b8057f5fdde14bac5d4e6030b0aa968c7ad1e2279438280a"
+    },
+    "input_tokens_max": 50000,
+    "isolation": "fresh network-none read-only nonroot container for each decision; stdin only",
+    "memory_bytes_max": 16384,
+    "memory_gate": ">=3pp pooled retention gain over erased; positive in all blocks; retention rounds >=5 nonnegative in each block; nonnegative full evaluation gain",
+    "model": "gemini-3.8-flash",
+    "model_calls": 1,
+    "output_tokens_max": 8192,
+    "policy_seconds_max": 10,
+    "source_bytes_max": 16384,
+    "stop": "any incomplete original, changed source, invalid action, nondeterministic replay or unconfirmed cleanup withholds all benefit decisions",
+    "value_gate": ">=3pp pooled gain over BOTH fixed4 and legacy in evaluation and lifetime; nonnegative gain in each block for both windows; no capacity-pooled regression >1pp; lifetime timely responses per measured batch+decision second >= both baselines",
+    "version": 1
+  },
+  "request_sha256": "d14ff6f2d2c60ff10eac4318b42deda2184961717288f8593f996d4b92b28de0",
+  "source_commit": "c18544c2fcda5372cb963b0c9483c44efd19584a"
+}

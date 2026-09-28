@@ -1,0 +1,140 @@
+name: Generated policy corrected-harness confirmation
+on:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: generated-policy-confirmation-v3
+  cancel-in-progress: false
+
+jobs:
+  freeze:
+    if: >-
+      github.event.label.name == 'generated-policy-confirmation-v3' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'codex/generated-policy' &&
+      github.event.pull_request.base.sha == 'd1ecdab6704e104f858ab73edea93d17ac358f6a'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Refuse repeated live attempts
+        env:
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: test "$RUN_ATTEMPT" = 1
+      - name: Refuse another PR or workflow execution of this declared study
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURRENT_RUN: ${{ github.run_id }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os, subprocess
+          def get(path):
+              return json.loads(subprocess.check_output(['gh', 'api', path], text=True))
+          base = 'repos/' + os.environ['GITHUB_REPOSITORY'] + '/actions/'
+          current = int(os.environ['CURRENT_RUN'])
+          run = get(base + 'runs/' + str(current))
+          runs = get(base + 'workflows/' + str(run['workflow_id']) + '/runs?branch=codex%2Fgenerated-policy&event=pull_request&per_page=100')
+          assert runs['total_count'] == 1 and [r['id'] for r in runs['workflow_runs']] == [current], 'Earlier study execution exists; automatic replacement refused'
+          PYTHON
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: uv sync --frozen
+      - run: .venv/bin/ruff check experiments/generated_policy
+      - name: Verify the pre-generation freeze, exact candidate and isolated boundary
+        run: |
+          PYTHONPATH=src:. .venv/bin/python - <<'PYTHON'
+          from pathlib import Path
+          from experiments.experience_learning.evaluate import read
+          from experiments.generated_policy.amend import verify_execution
+          from experiments.generated_policy.propose import digest
+          from experiments.generated_policy.protocol import plan
+          b = Path('docs/validation/generated-policy-confirmation')
+          original = Path('docs/validation/generated-policy-v2')
+          d = read(b / 'declaration.json')
+          assert d['plan'] == plan()
+          assert digest(read(original / 'request.json')) == d['proposal_declaration']['request_sha256']
+          assert digest(read(original / 'development.json')) == d['proposal_declaration']['development_sha256']
+          verify_execution(d, read(b / 'proposal.json'))
+          PYTHON
+          PYTHONPATH=src:. .venv/bin/python -m experiments.generated_policy.boundary artifacts/generated-policy-boundary.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: generated-policy-boundary
+          path: artifacts/generated-policy-boundary.json
+          if-no-files-found: error
+          retention-days: 14
+  compare:
+    needs: freeze
+    strategy:
+      fail-fast: false
+      matrix:
+        block: [0, 1, 2, 3]
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Refuse repeated live attempts
+        env:
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: test "$RUN_ATTEMPT" = 1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: make setup
+      - name: Execute one persistent block once, preserving failures
+        timeout-minutes: 45
+        run: PYTHONPATH=src:. .venv/bin/python -m experiments.generated_policy.run run docs/validation/generated-policy-confirmation ${{ matrix.block }} artifacts/generated-policy-block-${{ matrix.block }}
+      - name: Upload original and partial outcomes
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: generated-policy-block-${{ matrix.block }}
+          path: artifacts/generated-policy-block-${{ matrix.block }}/
+          if-no-files-found: error
+          retention-days: 14
+  reproduce:
+    needs: [freeze, compare]
+    if: always() && needs.freeze.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: uv sync --frozen
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: generated-policy-block-*
+          path: artifacts/generated-policy-download
+      - name: Reconstruct every request and exercise copied-evidence corruptions
+        run: PYTHONPATH=src:. .venv/bin/python -m experiments.generated_policy.run reproduce docs/validation/generated-policy-confirmation artifacts/generated-policy-download artifacts/generated-policy-reproduction
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: generated-policy-reproduction
+          path: artifacts/generated-policy-reproduction/reproduction.json
+          if-no-files-found: error
+          retention-days: 14

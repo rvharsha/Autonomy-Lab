@@ -1,0 +1,31 @@
+name: Generated policy executor checks
+on:
+  pull_request:
+    paths:
+      - experiments/generated_policy/runtime.py
+      - experiments/generated_policy/boundary.py
+      - .github/workflows/generated-policy-boundary.yml
+permissions:
+  contents: read
+jobs:
+  boundary:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          version: '0.9.3'
+      - run: uv sync --frozen
+      - run: PYTHONPATH=src:. .venv/bin/python -m experiments.generated_policy.boundary artifacts/generated-policy-boundary.json
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: generated-policy-executor-checks
+          path: artifacts/generated-policy-boundary.json
+          if-no-files-found: error
+          retention-days: 14

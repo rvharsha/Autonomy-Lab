@@ -1,0 +1,10 @@
+{
+  "attempts": 0,
+  "counted_input_tokens": 57149,
+  "declaration_sha256": "04c31878241e9e92fcf39e0aab9760df98efbd437c18aa0749547f48131d7e68",
+  "error_type": "Refused",
+  "finished_at": 1790560706.717725,
+  "request_sha256": "d14ff6f2d2c60ff10eac4318b42deda2184961717288f8593f996d4b92b28de0",
+  "started_at": 1790560706.3136141,
+  "status": "rejected_or_incomplete"
+}
