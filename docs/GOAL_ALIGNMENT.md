@@ -176,3 +176,20 @@ identities per arm. A generated-improvement pass and a retained-memory pass are
 separate claims. No model necessity, unattended continuous improvement, production
 admission or dollar return is implied. Preserve rejected proposals and original
 failed studies. Advance to persistent adoption only after fresh qualification.
+
+## Contextual learning checkpoint
+
+PR30 completed one corrected, independently replayed service cohort. Its generated
+policy gained 1.61pp over fixed4 during evaluation, below the frozen 3pp margin;
+both improvement and retained-memory gates failed. No policy was admitted. The
+original preflight and executor failures remain retained. A generated reactive
+controller is not evidence of useful accumulated operating knowledge.
+
+The [contextual-learning protocol](CONTEXTUAL_LEARNING.md) makes that missing
+knowledge explicit. A frozen authored algorithm learns empirical action rewards
+for visible recurring contexts using real service outcomes. Matched erasure and
+context-blind controls test whether retaining the knowledge and its context matters;
+fixed2/fixed4/fixed8, contextual conventional control and the exact PR30 policy test operating
+value. Context labels, their capacity association and a declared 50 ms database read delay are authored lab conditions,
+not discovered environments. This is a prospective parameter-learning test, not
+LLM algorithm discovery, production adoption or a claim of continuous improvement.

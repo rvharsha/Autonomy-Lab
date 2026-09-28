@@ -1,0 +1,213 @@
+{
+  "phase": "pre-execution review; no study outcomes yet",
+  "reviews": [
+    {
+      "record": "20260928T045618.649639Z-broker.json",
+      "status": "completed",
+      "snapshot": {
+        "files": {
+          ".github/workflows/contextual-learning.yml": "aa577aabdd58e3a0540eaf64f1794610dd2fabdada496e036fef7bf61f4b3baa",
+          "docs/CONTEXTUAL_LEARNING.md": "42a90aabcf7a47f119df5737b772852d8b852c6423fa1c55b37cb5b9fbe2f055",
+          "experiments/contextual_learning/protocol.py": "c9cabb24511e8ed82ead9dfdc3372b2d5a9fdb90a301fd44cd72323bf6a8e7a6",
+          "experiments/contextual_learning/run.py": "66674d1089c3adc3579481596adcdfe47044ad199c7e47af852c0993f060df5f",
+          "experiments/generated_policy/runtime.py": "882cb59b3394dd19b33184a3066ff35d6eb12f9195fc07025b13998b0c127840"
+        },
+        "prompt_sha256": "dbeb39120f3b296d7d5b8d7c45b8c5637c198fb68c976e9d5f0ddc3f10683942",
+        "review_kind": "contextual_learning_execution",
+        "scope": "broker",
+        "snapshot_id": "311de558b8aa187459687e80f15177054bea47131e26af88d559c837c71134a3",
+        "source_bytes": 37706
+      },
+      "generation_attempts": 1,
+      "findings": "**Finding 1 \u2014 `experiments/generated_policy/runtime.py:116-117` \u2014 unguarded `stdin.close()` in `invoke`'s `finally` can mask the primary error and skip container/process cleanup**\n\nTrigger: the wrapper exits early (e.g. `json.loads` of a truncated/oversized first line at WRAPPER line 23, or RLIMIT_AS kill during `exec`) while `PipeWriter(...).write(payload, deadline)` (line 95) is still pushing a payload near the 64 KiB cap. The write raises `BrokenPipeError`; `process.stdin` is a `BufferedWriter` with unflushed bytes and is *not* closed (line 96 never ran).\n\nTrace: control enters `finally` (line 112) \u2192 `primary` = BrokenPipeError \u2192 line 116 `not process.stdin.closed` is True \u2192 line 117 `process.stdin.close()` flushes the buffer and raises a *second* `BrokenPipeError` from outside any `try`. Consequences: `remove_container(name)` and the `process.kill()/wait()` block (lines 118-129) never execute, the docker client process is left as a zombie/child, and the exception that reaches `run_block` (line 85) is the secondary one, so `policy_error_type`/`cleanup_error_type` are `None` and the batch is recorded with a misleading `error.type`. Because a block is one attempt, this converts a well-defined policy failure into an unclassified failure with unconfirmed cleanup (which the protocol says must invalidate the block, but here it is silently misattributed).\n\nFix: wrap the close so it cannot escape or be conflated with the primary error:\n\n```python\nif not process.stdin.closed:\n    try:\n        process.stdin.close()\n    except OSError:\n        pass  # pipe already broken; primary error preserved\n```\n\n(Same pattern `subprocess.Popen.communicate` uses.)\n\n**Finding 2 \u2014 `experiments/generated_policy/runtime.py:107` \u2014 `docker run --rm` client exit lag is charged against the policy deadline and surfaces as an infrastructure `TimeoutExpired`, aborting the block**\n\nTrigger: any policy whose container stdout EOF arrives with < ~0.1 s left before `deadline`. With `--rm` the `docker run` CLI does not exit when the container's PID 1 closes stdout; it blocks on `ContainerWait(condition=removed)` until the daemon has removed the container, typically 50-300 ms on a loaded runner (six sequential arms, kind cluster on the same host).\n\nTrace: loop at lines 99-106 breaks on EOF with `deadline - time.monotonic()` \u2248 0 \u2192 line 107 calls `process.wait(timeout=max(.001, ...))` \u2192 `subprocess.TimeoutExpired` (not a `require` failure) \u2192 `finally` runs cleanup (fine) \u2192 `run_block:85` records `error.type == 'TimeoutExpired'`, `policy_error_type == None`, re-raises \u2192 the whole block (all six arms, up to 384 batches) is marked `failed` with no retry (workflow line 27/82, `attempts: 1`). Even when the wait succeeds, `seconds` at line 110 includes daemon removal time, so the \"decision goodput\" term in the value gate (protocol line 77) is inflated by docker teardown variance unrelated to any arm's algorithm.\n\nFix (minimal): decouple container removal from the policy deadline and stop timing after EOF/validation:\n\n```python\nrequire(process.wait(timeout=max(5.0, deadline - time.monotonic())) == 0, 'Policy failed')\ndecided = time.monotonic()\nresult = validate_result(json.loads(output))\nrequire(decided - started <= POLICY_SECONDS, 'Policy time limit')\nreturn {'result': result, 'seconds': decided - started, ...}\n```\n\nand either drop `--rm` (line 64; `remove_container` already removes explicitly) or accept the wider wait. Add this scenario to the boundary test that CI already runs.\n\n**Not substantiated (verify before traffic):** `run.py:72/92` pass `identity` (which contains `capacity` and `phase`) and the full prior batch record into `observation(...)`; `evaluate.py` is not shown, so whether these fields are stripped before crossing into the container cannot be confirmed here. If they are not, the \"learner never receives capacity/phase\" claim (doc lines 55-56) is false.",
+      "error": null,
+      "estimate_usd": 0.41111
+    },
+    {
+      "record": "20260928T045624.400272Z-broker.json",
+      "status": "failed",
+      "snapshot": {
+        "files": {
+          "docs/CONTEXTUAL_LEARNING.md": "42a90aabcf7a47f119df5737b772852d8b852c6423fa1c55b37cb5b9fbe2f055",
+          "experiments/contextual_learning/evaluate.py": "18670caaed0f556d6528b4159b46f43ecd1110a7cdb878b6a3d2a85e8b604231",
+          "experiments/contextual_learning/negative.py": "3fc1a94dad10d80df923264b894d3e1e1ed3d49b10c180323ebb5b0de15dd23d",
+          "experiments/contextual_learning/policy.py": "8feba9bb41fc928c2ea1afd85015650d2235d5d4fbe003fc5d1fc79ce755e17d",
+          "experiments/contextual_learning/protocol.py": "c9cabb24511e8ed82ead9dfdc3372b2d5a9fdb90a301fd44cd72323bf6a8e7a6",
+          "experiments/experience_learning/evaluate.py": "b4544dea6e1e3d1aa4fb1a4fec172ff1ab542ce2a5956824402867197a945c26"
+        },
+        "prompt_sha256": "d055d103b50db8f1dc8e7c6ed52cf84be71a26cbebb3d66827ff6401d1f6785b",
+        "review_kind": "contextual_learning_learning",
+        "scope": "broker",
+        "snapshot_id": "a2580aef3397fbc06b30e3f4c8c170f15b33a4e1c0b307571aa63bdfe91e034b",
+        "source_bytes": 42506
+      },
+      "generation_attempts": 0,
+      "findings": null,
+      "error": "Token preflight exceeds 14,999 input tokens or returned an invalid count",
+      "estimate_usd": 0
+    },
+    {
+      "record": "20260928T045702.728988Z-broker.json",
+      "status": "completed",
+      "snapshot": {
+        "excerpted_files": {
+          "experiments/experience_learning/evaluate.py": "full classification/helpers before audit_block; historical study auditor omitted"
+        },
+        "files": {
+          "docs/CONTEXTUAL_LEARNING.md": "42a90aabcf7a47f119df5737b772852d8b852c6423fa1c55b37cb5b9fbe2f055",
+          "experiments/contextual_learning/evaluate.py": "18670caaed0f556d6528b4159b46f43ecd1110a7cdb878b6a3d2a85e8b604231",
+          "experiments/contextual_learning/negative.py": "3fc1a94dad10d80df923264b894d3e1e1ed3d49b10c180323ebb5b0de15dd23d",
+          "experiments/contextual_learning/policy.py": "8feba9bb41fc928c2ea1afd85015650d2235d5d4fbe003fc5d1fc79ce755e17d",
+          "experiments/contextual_learning/protocol.py": "c9cabb24511e8ed82ead9dfdc3372b2d5a9fdb90a301fd44cd72323bf6a8e7a6",
+          "experiments/experience_learning/evaluate.py": "b4544dea6e1e3d1aa4fb1a4fec172ff1ab542ce2a5956824402867197a945c26"
+        },
+        "prompt_sha256": "695104eb4a59a3f509de1f60b7513bcb1763d1da652b113cd1de85d88efd0544",
+        "review_kind": "contextual_learning_learning",
+        "scope": "broker",
+        "snapshot_id": "a2580aef3397fbc06b30e3f4c8c170f15b33a4e1c0b307571aa63bdfe91e034b",
+        "source_bytes": 35863
+      },
+      "generation_attempts": 1,
+      "findings": "**Finding 1 \u2014 Negative controls are vacuous for any block other than 0 (and whenever the environment already rejects the unmutated copy)**\n\n`experiments/contextual_learning/negative.py:73`\n\n```python\naudit_block(target, declared, 0, image_id)\n```\n\nThe block index is hardcoded to `0`, but `controls()` accepts an arbitrary `source` directory. `audit_block` (evaluate.py:25) requires `ledger['block'] == block` before it looks at any raw evidence.\n\nTrigger / trace: call `controls(<block-3 directory>, declared, image_id)`. For every one of the ten mutations (including `wrong_body`, `learned_state`, `wrong_context`), the audit raises `Refused('Original block incomplete')` at evaluate.py:25, before reaching the inventory, observation-replay, classifier or timing checks. Line 74 catches `Refused`, appends `{'rejected': True, 'reason': 'Original block incomplete'}`, and the function returns ten \"successful\" rejections. The same vacuous pass occurs if `declared['plan'] != plan()`, if `image_id` is stale, or if the declaration file differs \u2014 each fails at lines 22/23/27 for every mutation. Nothing in `controls()` asserts (a) that the unmutated copy is accepted, or (b) that the recorded `reason` is the one the mutation was designed to provoke. The doc's promise (\"Ten altered copies of actual evidence must be rejected, including wrong context and forged learned state\", CONTEXTUAL_LEARNING.md:119\u2013120) is therefore not evidenced by this code: a broken audit that rejects everything satisfies it.\n\nMinimal fix:\n\n```python\ndef controls(source, declared, block, image_id, progress=lambda items: None):\n    audit_block(source, declared, block, image_id)   # unmutated copy must pass\n    expected_reason = {\n        'wrong_body': 'Feedback differs', 'omitted_request': 'Offered population missing',\n        'changed_action': 'Action differs', 'changed_state': 'Observation does not replay',\n        'wrong_context': 'Observation does not replay',\n        'learned_state': 'Nondeterministic or altered policy result',\n        'wrong_capacity': 'Control identity or capacity differs',\n        'overlap': 'Overlapping or invalid decision/batch timing',\n        'missing_batch': None, 'failed_original': 'Original block incomplete'}\n    ...\n            try:\n                audit_block(target, declared, block, image_id)\n            except (Refused, FileNotFoundError) as error:\n                want = expected_reason[name]\n                require(want is None and isinstance(error, FileNotFoundError)\n                        or want is not None and str(error) == want,\n                        f'Control {name} rejected for wrong reason: {error}')\n                results.append({'control': name, 'rejected': True, 'reason': str(error)})\n```\n\n(`changed_action`/`learned_state` may instead fail at the pre-check `validate_result` line 67; if so, put the actual first-raised message in the table \u2014 the point is to pin one specific downstream reason, not \"any Refused\".)\n\n**Finding 2 \u2014 none further substantiated.**\n\nI checked the remaining candidates and could not confirm a defect: the `blind` override at protocol.py:24 correctly follows policy.py:49; erased-arm erasure (evaluate.py:14) matches the schedule's first retention step (16); Latin rotation, counterbalancing (`block % 2`), late-slice rounds (6,7 of 0\u20137), batch/request totals (2,304 / 294,912), cross-arm `last` reset (evaluate.py:78\u201379), monotone timing chain with `prior_end` carried across arms, and `set(ledger['raw_sha256']) == expected_files` all replay consistently against the frozen protocol. Policy reset/rebind at policy.py:28\u201335 is coherent (new `known` is stored and then updated).",
+      "error": null,
+      "estimate_usd": 0.40168
+    },
+    {
+      "record": "20260928T045914.005274Z-broker.json",
+      "status": "completed",
+      "snapshot": {
+        "excerpted_files": {
+          "experiments/experience_learning/evaluate.py": "full classification/helpers before audit_block; historical study auditor omitted"
+        },
+        "files": {
+          "docs/CONTEXTUAL_LEARNING.md": "e080ae1e9b33b66c300dc8b33a3b39513d4869f50cb9a15bcd980c020cacf7e8",
+          "experiments/contextual_learning/evaluate.py": "18670caaed0f556d6528b4159b46f43ecd1110a7cdb878b6a3d2a85e8b604231",
+          "experiments/contextual_learning/negative.py": "bc2568c0ab14569ac6dbc0e19e9de77074b4ca26c6d24da51fdba8adf2d22948",
+          "experiments/contextual_learning/policy.py": "8feba9bb41fc928c2ea1afd85015650d2235d5d4fbe003fc5d1fc79ce755e17d",
+          "experiments/contextual_learning/protocol.py": "c9cabb24511e8ed82ead9dfdc3372b2d5a9fdb90a301fd44cd72323bf6a8e7a6",
+          "experiments/experience_learning/evaluate.py": "b4544dea6e1e3d1aa4fb1a4fec172ff1ab542ce2a5956824402867197a945c26"
+        },
+        "prompt_sha256": "0605f59c506a6463aca689eeeae66f7dd638ecddfb50d55fb1a6f4903da1192f",
+        "review_kind": "contextual_learning_learning",
+        "scope": "broker",
+        "snapshot_id": "c39126ec3f51de7b1baae14f2cfe3292065ea2a60f50d5fb0d38778253ef7370",
+        "source_bytes": 38158
+      },
+      "generation_attempts": 1,
+      "findings": "**Finding 1 \u2014 negative-control false rejection blocks every benefit decision (`experiments/contextual_learning/negative.py:84-87`)**\n\nTrigger: the `missing_batch` control unlinks `raw/batch-000.json`, refreshes `raw_sha256`, and expects `audit_block` to raise `FileNotFoundError` with `error.filename == str(target / 'raw/batch-000.json')`.\n\nTrace: `audit_block` reaches `read(raw / f'batch-{index:03}.json')` (evaluate.py:66) \u2192 `Path(path).read_text()` \u2192 `io.open(<PosixPath>)`. CPython's `FileIO` raises via `PyErr_SetFromErrnoWithFilenameObject(..., nameobj)` where `nameobj` is the original argument object, so `error.filename` is a `PosixPath`, not a `str`:\n\n```\n>>> try: open(pathlib.Path('nope'))\n... except OSError as e: type(e.filename)\n<class 'pathlib.PosixPath'>\n```\n\n`PosixPath(...) == 'str'` is `False`, so line 86 `require(...)` raises `Refused('Wrong missing-file rejection')`. The auditor actually rejected the corrupted copy correctly, but the control suite reports its own failure. Under the declared stop rule (\"failed replay ... withholds benefit decisions\"), a genuine, fully valid block is marked undecidable \u2014 with one attempt and no replacement, the experiment is unrecoverable. This is exactly the correction the prior review asked to verify; it is not yet correct.\n\nMinimal fix (negative.py:86-87):\n\n```python\nrequire(isinstance(error, FileNotFoundError) and\n        Path(error.filename) == target / 'raw' / 'batch-000.json',\n        'Wrong missing-file rejection')\n```\n\n(add `from pathlib import Path`). Alternatively compare `str(error.filename)`. Add an authored engineering check that `controls()` completes on a synthetic accepted block so this path is exercised before any service traffic.\n\n**Finding 2 \u2014 none substantiated.**\n\nChecked and found consistent: erasure point (step 16 = retention start, 16 batches/phase), arm-boundary `last` reset, `CONTEXT_BLIND` override via appended assignment, tie-break `(mean, -n)`, pre-replay reward validation ordering versus each pinned rejection reason (`wrong_body`, `omitted_request`, `changed_action`, `changed_state`, `wrong_context`, `learned_state`, `wrong_capacity`, `overlap`, `failed_original` all hit the expected `require` first), `raw_sha256`/`expected_files` closure, timing monotonicity across arms, and goodput denominator including decision time for all arms. Minor non-defects not reported: shuffled two-visit runs can merge into runs of four (doc wording only); `wrong_body` assumes `total_minor` exists in a matched 200 body (would fail loudly, not silently accept).",
+      "error": null,
+      "estimate_usd": 0.46264
+    },
+    {
+      "record": "20260928T050722.186404Z-broker.json",
+      "status": "completed",
+      "snapshot": {
+        "excerpted_files": {
+          "experiments/experience_learning/evaluate.py": "full classification/helpers before audit_block; historical study auditor omitted"
+        },
+        "files": {
+          "docs/CONTEXTUAL_LEARNING.md": "68d294d21ced6fe8386a679d21581c47a438b66bd05edbc884b2e89509eba39d",
+          "experiments/contextual_learning/evaluate.py": "2526f07d25ea976de20b00798e6638f70182b37f771620f98a8c6a0c1860f665",
+          "experiments/contextual_learning/negative.py": "bc2568c0ab14569ac6dbc0e19e9de77074b4ca26c6d24da51fdba8adf2d22948",
+          "experiments/contextual_learning/policy.py": "8feba9bb41fc928c2ea1afd85015650d2235d5d4fbe003fc5d1fc79ce755e17d",
+          "experiments/contextual_learning/protocol.py": "c9f99caf765a683228ff5321a53e712551f93e4eadf8651e02a76f2252ab1202",
+          "experiments/experience_learning/evaluate.py": "b4544dea6e1e3d1aa4fb1a4fec172ff1ab542ce2a5956824402867197a945c26"
+        },
+        "prompt_sha256": "8ea0fba7833e64c76d38e9e1275f1bbf719a0b99ac37e3b6f6d0d18c0a48d65a",
+        "review_kind": "contextual_learning_learning",
+        "scope": "broker",
+        "snapshot_id": "a841f58ace7f60ca1921e234c740c634f4cc2c3cefb7a3f059628bc341b0a9f1",
+        "source_bytes": 39958
+      },
+      "generation_attempts": 1,
+      "findings": "**Findings**\n\nAfter tracing the schedule construction, observation handoff, replay ordering, negative-control mutation paths, and gate arithmetic, I could not substantiate a correctness, leakage, or evidence-integrity defect that would let corrupted or misattributed evidence pass, or that would miscount a gate. Rotation/reversal average-position balance checks out (each arm's six positions sum to 21). The erased clearing (step 16 = first retention batch), the reset-and-include-trigger logic in `policy.py:28-33`, the pre-loop reward check, and the ten control mutations each reach the asserted `Refused` reason in the stated order.\n\nOne weaker, but concrete, accounting mismatch:\n\n**1. Auditor drain tolerance is looser than the declared invariant**\n\n- File: `experiments/contextual_learning/evaluate.py:84`\n  ```python\n  require(batch['drain']['reader_connections'] == 0 and number(batch['drain']['wait_seconds']) < 5, 'Unconfirmed drain')\n  ```\n- Context: `docs/CONTEXTUAL_LEARNING.md:94-96` states that duration \u22652.5 s or \"unconfirmed cleanup invalidates the original block\", and the live `batch_requests` drain check is described as `<2.5s`. `classify` enforces `end - start < 2.5` per request (`experience_learning/evaluate.py:46`), but the block-level drain wait is only bounded at 5 s here.\n- Trigger: a batch whose recorded `drain.wait_seconds` lies in `[2.5, 5)` \u2014 e.g. Postgres readers lingering 3 s after the last response \u2014 is accepted by the independent audit even though the declared protocol and the live harness treat that as an invalidating condition. The audit therefore cannot independently detect a harness regression that relaxed or skipped its own 2.5 s drain check; the \"replays all decisions and verifies drain\" claim (doc line 129-131) is weaker than stated.\n- Trace: `audit_block` \u2192 per-batch loop \u2192 line 84 passes with `wait_seconds = 3.0` \u2192 row appended \u2192 gates computed with that batch included.\n- Minimal fix: align the auditor with the frozen invariant (and expose the constant in the plan so it is frozen):\n  ```python\n  require(batch['drain']['reader_connections'] == 0 and\n          number(batch['drain']['wait_seconds']) < 2.5, 'Unconfirmed drain')\n  ```\n  and add `'drain_wait_seconds': 2.5` to `plan()` in `protocol.py:77-78`.\n\nNo second defect is substantiated from the supplied source. Items I checked and could not fault: `strict_equal` on replayed memory (all values are JSON-stable ints/floats; rewards are always `float` via true division), `overlap` control ordering (line 94 fires before line 96), `missing_batch` filename comparison (retained probe), blind-arm constant override (appended after line 49), `context_round` late-slice matching, and `gain` denominator matching across arms.",
+      "error": null,
+      "estimate_usd": 0.52918
+    },
+    {
+      "record": "20260928T050722.565426Z-broker.json",
+      "status": "completed",
+      "snapshot": {
+        "excerpted_files": {},
+        "files": {
+          ".github/workflows/contextual-learning.yml": "072360b5a789e38160867b60afc850d1283fd57a3330fe32f466fbcc932b9e4f",
+          "experiments/contextual_learning/protocol.py": "c9f99caf765a683228ff5321a53e712551f93e4eadf8651e02a76f2252ab1202",
+          "experiments/contextual_learning/run.py": "551c3268d606412279d94da67b22c32541f3424de8365e7fe31325bebe8fac21",
+          "experiments/contextual_learning/workload.py": "821a5f9c6e2f8fa18a1bc86607dc772a3ff9ef4cab1c41c57107b8284c212eee",
+          "experiments/generated_policy/runtime.py": "882cb59b3394dd19b33184a3066ff35d6eb12f9195fc07025b13998b0c127840"
+        },
+        "prompt_sha256": "8d3204a8db0be7c072e7ac4cbf45e352587d998057a3352f47180c72593d73f8",
+        "review_kind": "contextual_learning_execution",
+        "scope": "broker",
+        "snapshot_id": "e3cacfc6a9646e0f2e743baafecde7e7de6a6db4c3f129d52247a20673014911",
+        "source_bytes": 36149
+      },
+      "generation_attempts": 1,
+      "findings": "**Finding 1 \u2014 Block wall budget is arithmetically infeasible; a single overrun permanently voids the study**\n\n`experiments/contextual_learning/protocol.py:15` sets `BLOCK_SECONDS = 45*60`; `run.py:65` aborts with `'Block wall budget exhausted'` when fewer than 30 s remain before any batch.\n\nTrace of the minimum per-block cost from the frozen protocol itself: 8 arms \u00d7 64 batches = 512 batches (`run.py:41`). Each batch requires, at minimum, the 1 s admission window of `batch_requests` (plan `deadline_seconds: 1`), then awaiting all dispatched calls (at capacity 2 with a 50 ms view delay, up to 128 queued reads \u2248 3.2 s), then `drain` (bounded at 2.5 s), plus one `docker run` container lifecycle in `invoke` (\u22481\u20132 s startup+removal, measured intentionally). That is \u22485\u20138 s per batch \u21d2 43\u201368 min for batches alone, before adding kind provisioning (`run.py:48`), 7 \u00d7 `reset_application` (`run.py:56`), 7 \u00d7 `install_delay`, and \u22655 control measurements per arm. The 45 min budget is therefore exceeded in the expected case, not the tail.\n\nConsequence: `require` raises mid-arm, `ledger['status']` stays `'failed'` (`run.py:40,118`), and because `plan()['stop']` withholds all decisions on any invalid original, and the workflow refuses `run_attempt != 1` (`contextual-learning.yml:27,85`) and any second run (`yml:41`), one slow block irrevocably converts the whole six-block study into \"no decision\". Note also the GitHub step timeout is 50 min (`yml:97`), so the budget check is not protecting anything the runner wouldn't.\n\nMinimal fix: before freezing, size `BLOCK_SECONDS` from a measured pilot of one arm (or reduce `batch_size`/arms per block), and raise `timeout-minutes` accordingly; alternatively split arms across matrix jobs so each job carries \u22642 arms. Whatever is chosen must be frozen in `plan()` before traffic, per the protocol's own rule.\n\n**Finding 2 \u2014 Any unrelated label event on the PR permanently blocks the study**\n\n`.github/workflows/contextual-learning.yml:3-4` triggers on every `labeled` event. The `freeze` job's `if:` (lines 16-20) only skips the *job*; the *workflow run* is still created and recorded. The guard at line 40-41 then queries all `pull_request` runs of this workflow on `codex/contextual-learning` and asserts `total_count == 1`.\n\nReproduction: apply label `needs-review` to the PR (run #1 created, jobs skipped). Later apply `contextual-learning-v1` (run #2). The guard sees `total_count == 2` and fails with \"Earlier study execution exists\". Because the same guard forbids reruns and `cancel-in-progress: false` provides no reset path, the declared study can never execute from this PR; a new PR would need a different head ref, which the `if:` also forbids (line 19). Likewise `base.sha == 'f3de\u2026'` (line 20) fails as soon as the base branch receives any push, since the event's `base.sha` reflects the current base head.\n\nMinimal fix: filter the guard to runs that actually executed the study, e.g. include `&status=completed` plus exclude runs whose `conclusion == 'skipped'`, or gate the trigger with `if: github.event.label.name == 'contextual-learning-v1'` at the workflow level via a preliminary job and count only runs where that job ran (check `jobs` endpoint for a non-skipped `compare`). Also either drop the `base.sha` pin or document that it intentionally refuses execution after any base-branch movement.\n\nNo other defects in the supplied source were substantiated; earlier claims about `error.filename` and `PipeWriter` buffering remain disproved by the retained probes.",
+      "error": null,
+      "estimate_usd": 0.3382
+    },
+    {
+      "record": "20260928T051944.042367Z-broker.json",
+      "status": "completed",
+      "snapshot": {
+        "files": {
+          ".github/workflows/contextual-learning-confirmation.yml": "d79ea70a9e0a57ec8dbd4d063690a42d2f48143f159eab3ea96cadce2ca24def",
+          "docs/CONTEXTUAL_LEARNING.md": "4cd4062b5dd1744a0599aafdc038404283e5547d4c4d50b96c226f2ddd3bd48d",
+          "experiments/contextual_learning/protocol.py": "7a231a6d3cba2ab5bfff32204f079c01eef19973dd2f343fde977862631a7105",
+          "scripts/bootstrap.py": "e977a0920adb36c352c97502584034e3a4e3db59a39603a8d16ecd622e78f477",
+          "tests/test_bootstrap.py": "7eedb887ef287235dd90e20377f6782fbf6a91f2e2c55e3949a419234767a3fe"
+        },
+        "prompt_sha256": "7db2837e3e1b02f43badb9d37e5417ebb56d0d7dc5c4807b6c4132968db9f5dc",
+        "review_kind": "contextual_learning_confirmation",
+        "scope": "broker",
+        "snapshot_id": "29b0095711f4391e874de78a9392258315e96f25fb5fd25e0abb8849e4043d2f",
+        "source_bytes": 30155
+      },
+      "generation_attempts": 1,
+      "findings": "**Findings (1 substantiated defect; nothing else confirmed)**\n\n### 1. `scripts/bootstrap.py:60-63` \u2014 kubectl \"checksum verification\" is vacuous when the pinned hash is absent\n\n```python\nexpected = config.get(f\"kubectl_{operating_system}_{architecture}_sha256\")\nif expected is None:\n    expected = download(kubectl_url + \".sha256\").decode().strip()\ninstall(\"kubectl\", kubectl_url, expected)\n```\n\n**Trigger:** `infra/toolchain.json` lacks the `kubectl_<os>_<arch>_sha256` key for the runner platform (`linux-amd64` on `ubuntu-latest`), or the key is removed/renamed in a later commit.\n\n**Trace:** `config.get(...)` \u2192 `None` \u2192 the expected digest is fetched from `dl.k8s.io` \u2014 the same origin that serves the binary. `install()` then compares `sha256(binary)` against a value chosen by that origin. Any substituted binary paired with its own `.sha256` passes; the log still prints `kubectl: installed and checksum verified`. This contradicts the module docstring (line 1, \"checksum-verified\") and `docs/CONTEXTUAL_LEARNING.md:35` (\"Bootstrap source and its tests are now explicitly included in the freeze\"): freezing `bootstrap.py` and its tests does not freeze the kubectl expectation, because the expectation is either an unfrozen JSON value or a live network response. Note also that `protocol.plan()` (`protocol.py:70-75`) does not list `infra/toolchain.json`; unless `release_manifest({})['files']` includes it, `kind_version`/`kubectl_version`/the kubectl digest can change without breaking `d['plan'] == plan()` at `.github/workflows/...yml:66`. For kind this fails closed (hardcoded `KIND_HASHES`); for kubectl it fails open. The compare job runs `make setup` \u2192 this bootstrap \u2192 then executes the frozen experiment with an unverified `kubectl`, so cluster provisioning/cleanup evidence rests on an unpinned tool.\n\n**Minimal fix:**\n\n```python\n# scripts/bootstrap.py:60-63\nexpected = config.get(f\"kubectl_{operating_system}_{architecture}_sha256\")\nif expected is None:\n    raise RuntimeError(f\"kubectl: no pinned sha256 for {host} in infra/toolchain.json\")\ninstall(\"kubectl\", kubectl_url, expected)\n```\n\nand add `'infra/toolchain.json'` to `names` in `experiments/contextual_learning/protocol.py:70-72` so the tool versions and digests are part of the frozen declaration (this requires regenerating the declaration before the confirmation label is applied \u2014 it is still a pre-execution correction, no outcomes inspected).\n\nAdd a test to `tests/test_bootstrap.py` asserting `main()` raises when the key is missing and that `urlopen` is never called with a `.sha256` URL.\n\n---\n\n**Checked and not defective (brief):**\n- `download()` retry set/bounds/backoff (lines 21-28) match the declared behaviour; loop cannot fall through to `return None` because `attempt == 2` raises.\n- `install()` write \u2192 chmod \u2192 `replace` is atomic for the final path; wrong-hash download leaves no file.\n- `schedule()` produces 16 visits/phase (8 per context), 64 steps/arm, 512/block, 3,072 total = doc; rotation by 2 plus reversal gives every arm summed position 21 \u2014 \"same average position\" claim is correct.\n- Workflow one-use guard fails closed on concurrent/in-progress prior runs; `compare` is skipped if `freeze` fails; `reproduce` gated on `needs.freeze.result == 'success'`.\n- Non-`HTTPError` transport failures (`URLError`, timeout) are not retried \u2014 consistent with the declaration, so not flagged.",
+      "error": null,
+      "estimate_usd": 0.31053
+    }
+  ],
+  "estimated_cost_usd": 2.45334,
+  "cost_is_invoice": false,
+  "dispositions": [
+    {
+      "issue": "Negative controls can reject for an unrelated reason",
+      "decision": "Fixed: positive original acceptance, actual block id and specific rejection reasons. Added reject-everything regression test."
+    },
+    {
+      "issue": "Unrelated label event consumes the one-use study",
+      "decision": "Fixed before freeze: ignore only prior runs with exactly one demonstrably skipped freeze; unknown/executed freezes refuse another attempt. Base pin is intentional."
+    },
+    {
+      "issue": "Buffered stdin close can flush and mask the primary error",
+      "decision": "Not substantiated: PipeWriter writes with os.write, never buffers through the stream. Actual closed-child probe raised BrokenPipeError on write, then closed successfully."
+    },
+    {
+      "issue": "Missing-file filename is a pathlib.Path",
+      "decision": "Disproved on the actual Python3.12 reader: error.filename is str and matches exactly. Probe retained."
+    },
+    {
+      "issue": "Block budget is infeasible",
+      "decision": "Unsupported minimum-time assumptions: admissions stop at1s and only in-flight requests are awaited; drain is not a mandatory sleep. Prior640batches measured1.282s/batch+decision and0.332s/decision;512newbatches have2700s controllerbudget. New delays and actual totals remain measured; no outcome guaranteed."
+    },
+    {
+      "issue": "Drain wait should be2.5s",
+      "decision": "Reviewer conflated two bounds. Request dispatch duration<2.5s, zero-reader drain wait<5s in both live driver and independent auditor. Clarified docs and declaration without changing these limits."
+    },
+    {
+      "issue": "kubectl expectation fetched live when platform pin missing",
+      "decision": "Pinned official v1.35.8 hashes for all supported platforms and fail before network on missing pin. Regression check covers missing pins and unchanged checksum refusal. infra/toolchain.json was already frozen by release_manifest; confirmed directly."
+    }
+  ],
+  "draft_change": "Before any freeze or service measurement, historical1.22pp observed context-selection headroom motivated declared50ms delay and fixed2/fixed8 comparators. Preliminary drafts and reviews retained privately.",
+  "self_review_pre_execution_fix": {
+    "issue": "Postgres probe could observe temporary Unix-only bootstrap server",
+    "change": "Require TCP readiness before fixture DDL",
+    "source": "https://github.com/docker-library/postgres/blob/master/docker-entrypoint.sh",
+    "lineage": "Original published declaration retained; v2 before any study workflow or service batch; numerical contract unchanged"
+  },
+  "confirmation_review": "Original cohort incomplete due kind HTTP500 before block1service; remainingoriginals retained. Newfullfreshcohort only,policies/thresholds/budgets unchanged,no originalserviceoutcomes inspected before confirmationfreeze; no automaticthirdcohort."
+}

@@ -3,6 +3,8 @@
 import hashlib
 import json
 import platform
+import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -16,8 +18,14 @@ KIND_HASHES = {
 
 
 def download(url):
-    with urllib.request.urlopen(url, timeout=120) as response:
-        return response.read()
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(url, timeout=120) as response:
+                return response.read()
+        except urllib.error.HTTPError as error:
+            if error.code not in (429, 500, 502, 503, 504) or attempt == 2:
+                raise
+            time.sleep(attempt + 1)
 
 
 def install(name, url, expected):
@@ -42,6 +50,9 @@ def main():
     host = f"{operating_system}-{architecture}"
     if host not in KIND_HASHES:
         raise RuntimeError(f"Unsupported platform: {host}")
+    expected = config.get(f"kubectl_{operating_system}_{architecture}_sha256")
+    if expected is None:
+        raise RuntimeError(f"kubectl: no pinned sha256 for {host}")
     (ROOT / ".tools").mkdir(exist_ok=True)
     install(
         "kind",
@@ -49,9 +60,6 @@ def main():
         KIND_HASHES[host],
     )
     kubectl_url = f"https://dl.k8s.io/release/{config['kubectl_version']}/bin/{operating_system}/{architecture}/kubectl"
-    expected = config.get(f"kubectl_{operating_system}_{architecture}_sha256")
-    if expected is None:
-        expected = download(kubectl_url + ".sha256").decode().strip()
     install("kubectl", kubectl_url, expected)
 
 
