@@ -13,7 +13,7 @@ PHASES = ('acquire', 'retention', 'changed', 'return')
 CONTEXTS = ('mode-a', 'mode-b')
 BLOCKS = 6
 BLOCK_SECONDS = 45 * 60
-DECLARATION = 'docs/validation/contextual-learning-v2/declaration.json'
+DECLARATION = 'docs/validation/contextual-learning-confirmation/declaration.json'
 GENERATED = 'docs/validation/generated-policy-v2/proposal.json'
 
 
@@ -41,7 +41,7 @@ def step(observation):
 
 def schedule(block):
     require(type(block) is int and 0 <= block < BLOCKS, 'Invalid block')
-    rng = random.Random(202609280100 + block)
+    rng = random.Random(202609280200 + block)
     phases = []
     # Eight visits per context per phase, in fresh shuffled runs of two visits.
     # Two labels disclose context identity, never the hidden capacity mapping.
@@ -67,12 +67,13 @@ def schedule(block):
 
 def plan():
     files = release_manifest({})['files']
-    names = ['docs/CONTEXTUAL_LEARNING.md', '.github/workflows/contextual-learning.yml',
+    names = ['docs/CONTEXTUAL_LEARNING.md', '.github/workflows/contextual-learning-confirmation.yml',
+             'scripts/bootstrap.py', 'tests/test_bootstrap.py',
              'tests/test_contextual_learning.py', 'experiments/__init__.py', GENERATED]
     for folder in ('experience_learning', 'generated_policy', 'contextual_learning'):
         names.extend(str(p.relative_to(ROOT)) for p in sorted((ROOT / 'experiments' / folder).glob('*.py')))
     files.update({n: hashlib.sha256((ROOT / n).read_bytes()).hexdigest() for n in names})
-    return {'version': 2, 'files': files, 'blocks': [schedule(b) for b in range(BLOCKS)],
+    return {'version': 3, 'files': files, 'blocks': [schedule(b) for b in range(BLOCKS)],
             'policy_sha256': {a: hashlib.sha256(source_for(a).encode()).hexdigest() for a in ARMS},
             'block_seconds': BLOCK_SECONDS, 'attempts': 1, 'model_calls': 0,
             'batch_size': 128, 'deadline_seconds': 1, 'database_read_delay_seconds': .05,

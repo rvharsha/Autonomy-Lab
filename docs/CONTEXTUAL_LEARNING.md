@@ -16,7 +16,30 @@ Unix-only initialization server for its final server. Version 2 requires TCP
 readiness and preserves the entire first declaration. It changes no schedule,
 policy, threshold, comparator or budget. No study workflow or service batch ran
 under version 1. This is a pre-execution correction, not a retry after outcomes.
-The current freeze is `docs/validation/contextual-learning-v2/declaration.json`.
+That pre-execution freeze is retained at `docs/validation/contextual-learning-v2/declaration.json`.
+
+## Infrastructure failure and one separate confirmation cohort
+
+The original study workflow `36380988227` passed its authored execution and pinned
+Postgres checks. Block 1 then failed during `scripts/bootstrap.py` with HTTP 500
+while downloading kind, before service execution. The original cohort is incomplete
+and cannot produce a benefit decision. All remaining original blocks and the missing
+block stay in its evidence; no cell is replaced and its workflow is not retried.
+
+One separate prospective confirmation cohort uses fresh schedule seeds and the
+exact same policy sources, comparators, thresholds, observation boundaries, batch
+counts and budgets. Its declaration is frozen before inspecting any original
+service results. Bootstrap downloads now retry only HTTP 429/500/502/503/504, at
+most three requests with one- and two-second delays. Checksum mismatches and other
+errors still stop immediately; no service request, policy execution or trial is
+retried. Official kubectl release hashes are now pinned for every supported platform;
+a missing pin fails before downloading anything. The toolchain file was already
+covered by the release manifest and remains frozen. Bootstrap source and its tests are now explicitly included in the freeze.
+
+The successor uses `docs/validation/contextual-learning-confirmation/declaration.json`
+and a separate one-use workflow. Both attempts count in the final cost and reliability
+accounting. This is the only additional cohort in this execution; another failure
+does not authorize an automatic third cohort or a relaxed benefit criterion.
 
 ## What learning means here
 

@@ -146,9 +146,31 @@
       "findings": "**Finding 1 \u2014 Block wall budget is arithmetically infeasible; a single overrun permanently voids the study**\n\n`experiments/contextual_learning/protocol.py:15` sets `BLOCK_SECONDS = 45*60`; `run.py:65` aborts with `'Block wall budget exhausted'` when fewer than 30 s remain before any batch.\n\nTrace of the minimum per-block cost from the frozen protocol itself: 8 arms \u00d7 64 batches = 512 batches (`run.py:41`). Each batch requires, at minimum, the 1 s admission window of `batch_requests` (plan `deadline_seconds: 1`), then awaiting all dispatched calls (at capacity 2 with a 50 ms view delay, up to 128 queued reads \u2248 3.2 s), then `drain` (bounded at 2.5 s), plus one `docker run` container lifecycle in `invoke` (\u22481\u20132 s startup+removal, measured intentionally). That is \u22485\u20138 s per batch \u21d2 43\u201368 min for batches alone, before adding kind provisioning (`run.py:48`), 7 \u00d7 `reset_application` (`run.py:56`), 7 \u00d7 `install_delay`, and \u22655 control measurements per arm. The 45 min budget is therefore exceeded in the expected case, not the tail.\n\nConsequence: `require` raises mid-arm, `ledger['status']` stays `'failed'` (`run.py:40,118`), and because `plan()['stop']` withholds all decisions on any invalid original, and the workflow refuses `run_attempt != 1` (`contextual-learning.yml:27,85`) and any second run (`yml:41`), one slow block irrevocably converts the whole six-block study into \"no decision\". Note also the GitHub step timeout is 50 min (`yml:97`), so the budget check is not protecting anything the runner wouldn't.\n\nMinimal fix: before freezing, size `BLOCK_SECONDS` from a measured pilot of one arm (or reduce `batch_size`/arms per block), and raise `timeout-minutes` accordingly; alternatively split arms across matrix jobs so each job carries \u22642 arms. Whatever is chosen must be frozen in `plan()` before traffic, per the protocol's own rule.\n\n**Finding 2 \u2014 Any unrelated label event on the PR permanently blocks the study**\n\n`.github/workflows/contextual-learning.yml:3-4` triggers on every `labeled` event. The `freeze` job's `if:` (lines 16-20) only skips the *job*; the *workflow run* is still created and recorded. The guard at line 40-41 then queries all `pull_request` runs of this workflow on `codex/contextual-learning` and asserts `total_count == 1`.\n\nReproduction: apply label `needs-review` to the PR (run #1 created, jobs skipped). Later apply `contextual-learning-v1` (run #2). The guard sees `total_count == 2` and fails with \"Earlier study execution exists\". Because the same guard forbids reruns and `cancel-in-progress: false` provides no reset path, the declared study can never execute from this PR; a new PR would need a different head ref, which the `if:` also forbids (line 19). Likewise `base.sha == 'f3de\u2026'` (line 20) fails as soon as the base branch receives any push, since the event's `base.sha` reflects the current base head.\n\nMinimal fix: filter the guard to runs that actually executed the study, e.g. include `&status=completed` plus exclude runs whose `conclusion == 'skipped'`, or gate the trigger with `if: github.event.label.name == 'contextual-learning-v1'` at the workflow level via a preliminary job and count only runs where that job ran (check `jobs` endpoint for a non-skipped `compare`). Also either drop the `base.sha` pin or document that it intentionally refuses execution after any base-branch movement.\n\nNo other defects in the supplied source were substantiated; earlier claims about `error.filename` and `PipeWriter` buffering remain disproved by the retained probes.",
       "error": null,
       "estimate_usd": 0.3382
+    },
+    {
+      "record": "20260928T051944.042367Z-broker.json",
+      "status": "completed",
+      "snapshot": {
+        "files": {
+          ".github/workflows/contextual-learning-confirmation.yml": "d79ea70a9e0a57ec8dbd4d063690a42d2f48143f159eab3ea96cadce2ca24def",
+          "docs/CONTEXTUAL_LEARNING.md": "4cd4062b5dd1744a0599aafdc038404283e5547d4c4d50b96c226f2ddd3bd48d",
+          "experiments/contextual_learning/protocol.py": "7a231a6d3cba2ab5bfff32204f079c01eef19973dd2f343fde977862631a7105",
+          "scripts/bootstrap.py": "e977a0920adb36c352c97502584034e3a4e3db59a39603a8d16ecd622e78f477",
+          "tests/test_bootstrap.py": "7eedb887ef287235dd90e20377f6782fbf6a91f2e2c55e3949a419234767a3fe"
+        },
+        "prompt_sha256": "7db2837e3e1b02f43badb9d37e5417ebb56d0d7dc5c4807b6c4132968db9f5dc",
+        "review_kind": "contextual_learning_confirmation",
+        "scope": "broker",
+        "snapshot_id": "29b0095711f4391e874de78a9392258315e96f25fb5fd25e0abb8849e4043d2f",
+        "source_bytes": 30155
+      },
+      "generation_attempts": 1,
+      "findings": "**Findings (1 substantiated defect; nothing else confirmed)**\n\n### 1. `scripts/bootstrap.py:60-63` \u2014 kubectl \"checksum verification\" is vacuous when the pinned hash is absent\n\n```python\nexpected = config.get(f\"kubectl_{operating_system}_{architecture}_sha256\")\nif expected is None:\n    expected = download(kubectl_url + \".sha256\").decode().strip()\ninstall(\"kubectl\", kubectl_url, expected)\n```\n\n**Trigger:** `infra/toolchain.json` lacks the `kubectl_<os>_<arch>_sha256` key for the runner platform (`linux-amd64` on `ubuntu-latest`), or the key is removed/renamed in a later commit.\n\n**Trace:** `config.get(...)` \u2192 `None` \u2192 the expected digest is fetched from `dl.k8s.io` \u2014 the same origin that serves the binary. `install()` then compares `sha256(binary)` against a value chosen by that origin. Any substituted binary paired with its own `.sha256` passes; the log still prints `kubectl: installed and checksum verified`. This contradicts the module docstring (line 1, \"checksum-verified\") and `docs/CONTEXTUAL_LEARNING.md:35` (\"Bootstrap source and its tests are now explicitly included in the freeze\"): freezing `bootstrap.py` and its tests does not freeze the kubectl expectation, because the expectation is either an unfrozen JSON value or a live network response. Note also that `protocol.plan()` (`protocol.py:70-75`) does not list `infra/toolchain.json`; unless `release_manifest({})['files']` includes it, `kind_version`/`kubectl_version`/the kubectl digest can change without breaking `d['plan'] == plan()` at `.github/workflows/...yml:66`. For kind this fails closed (hardcoded `KIND_HASHES`); for kubectl it fails open. The compare job runs `make setup` \u2192 this bootstrap \u2192 then executes the frozen experiment with an unverified `kubectl`, so cluster provisioning/cleanup evidence rests on an unpinned tool.\n\n**Minimal fix:**\n\n```python\n# scripts/bootstrap.py:60-63\nexpected = config.get(f\"kubectl_{operating_system}_{architecture}_sha256\")\nif expected is None:\n    raise RuntimeError(f\"kubectl: no pinned sha256 for {host} in infra/toolchain.json\")\ninstall(\"kubectl\", kubectl_url, expected)\n```\n\nand add `'infra/toolchain.json'` to `names` in `experiments/contextual_learning/protocol.py:70-72` so the tool versions and digests are part of the frozen declaration (this requires regenerating the declaration before the confirmation label is applied \u2014 it is still a pre-execution correction, no outcomes inspected).\n\nAdd a test to `tests/test_bootstrap.py` asserting `main()` raises when the key is missing and that `urlopen` is never called with a `.sha256` URL.\n\n---\n\n**Checked and not defective (brief):**\n- `download()` retry set/bounds/backoff (lines 21-28) match the declared behaviour; loop cannot fall through to `return None` because `attempt == 2` raises.\n- `install()` write \u2192 chmod \u2192 `replace` is atomic for the final path; wrong-hash download leaves no file.\n- `schedule()` produces 16 visits/phase (8 per context), 64 steps/arm, 512/block, 3,072 total = doc; rotation by 2 plus reversal gives every arm summed position 21 \u2014 \"same average position\" claim is correct.\n- Workflow one-use guard fails closed on concurrent/in-progress prior runs; `compare` is skipped if `freeze` fails; `reproduce` gated on `needs.freeze.result == 'success'`.\n- Non-`HTTPError` transport failures (`URLError`, timeout) are not retried \u2014 consistent with the declaration, so not flagged.",
+      "error": null,
+      "estimate_usd": 0.31053
     }
   ],
-  "estimated_cost_usd": 2.14281,
+  "estimated_cost_usd": 2.45334,
   "cost_is_invoice": false,
   "dispositions": [
     {
@@ -174,6 +196,10 @@
     {
       "issue": "Drain wait should be2.5s",
       "decision": "Reviewer conflated two bounds. Request dispatch duration<2.5s, zero-reader drain wait<5s in both live driver and independent auditor. Clarified docs and declaration without changing these limits."
+    },
+    {
+      "issue": "kubectl expectation fetched live when platform pin missing",
+      "decision": "Pinned official v1.35.8 hashes for all supported platforms and fail before network on missing pin. Regression check covers missing pins and unchanged checksum refusal. infra/toolchain.json was already frozen by release_manifest; confirmed directly."
     }
   ],
   "draft_change": "Before any freeze or service measurement, historical1.22pp observed context-selection headroom motivated declared50ms delay and fixed2/fixed8 comparators. Preliminary drafts and reviews retained privately.",
@@ -182,5 +208,6 @@
     "change": "Require TCP readiness before fixture DDL",
     "source": "https://github.com/docker-library/postgres/blob/master/docker-entrypoint.sh",
     "lineage": "Original published declaration retained; v2 before any study workflow or service batch; numerical contract unchanged"
-  }
+  },
+  "confirmation_review": "Original cohort incomplete due kind HTTP500 before block1service; remainingoriginals retained. Newfullfreshcohort only,policies/thresholds/budgets unchanged,no originalserviceoutcomes inspected before confirmationfreeze; no automaticthirdcohort."
 }
