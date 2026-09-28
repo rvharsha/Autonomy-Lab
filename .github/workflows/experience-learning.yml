@@ -1,0 +1,135 @@
+name: Retained experience learning comparison
+on:
+  pull_request:
+    types: [opened]
+    paths:
+      - experiments/experience_learning/**
+      - docs/EXPERIENCE_LEARNING.md
+      - .github/workflows/experience-learning.yml
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: experience-learning-fdb63a2
+  cancel-in-progress: false
+
+jobs:
+  freeze:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'codex/experience-learning' &&
+      github.event.pull_request.base.sha == 'fdb63a2ec78c9b55a2b506c04cdf7557060cf4de'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Refuse repeated live attempts
+        env:
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: test "$RUN_ATTEMPT" = 1
+      - name: Refuse another PR or workflow execution of this declared study
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURRENT_RUN: ${{ github.run_id }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os, subprocess
+          def get(path):
+              return json.loads(subprocess.check_output(['gh', 'api', path], text=True))
+          base = 'repos/' + os.environ['GITHUB_REPOSITORY'] + '/actions/'
+          current = int(os.environ['CURRENT_RUN'])
+          run = get(base + 'runs/' + str(current))
+          runs = get(base + 'workflows/' + str(run['workflow_id']) + '/runs?branch=codex%2Fexperience-learning&event=pull_request&per_page=100')
+          assert runs['total_count'] == 1 and [r['id'] for r in runs['workflow_runs']] == [current], 'Earlier study execution exists; automatic replacement refused'
+          PYTHON
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: uv sync --frozen
+      - run: .venv/bin/ruff check experiments/experience_learning
+      - name: Freeze source and the full comparison before execution
+        run: PYTHONPATH=src:. .venv/bin/python -m experiments.experience_learning.run freeze artifacts/experience-learning-plan/declaration.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: experience-learning-plan
+          path: artifacts/experience-learning-plan/declaration.json
+          if-no-files-found: error
+          retention-days: 14
+  compare:
+    needs: freeze
+    strategy:
+      fail-fast: false
+      matrix:
+        block: [0, 1, 2, 3]
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Refuse repeated live attempts
+        env:
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: test "$RUN_ATTEMPT" = 1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: make setup
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: experience-learning-plan
+          path: artifacts/experience-learning-plan
+      - name: Execute one persistent block once, preserving failures
+        timeout-minutes: 45
+        run: PYTHONPATH=src:. .venv/bin/python -m experiments.experience_learning.run run artifacts/experience-learning-plan/declaration.json ${{ matrix.block }} artifacts/experience-learning-block-${{ matrix.block }}
+      - name: Upload original and partial outcomes
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: experience-learning-block-${{ matrix.block }}
+          path: artifacts/experience-learning-block-${{ matrix.block }}/
+          if-no-files-found: error
+          retention-days: 14
+  reproduce:
+    needs: [freeze, compare]
+    if: always() && needs.freeze.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.9.3'
+      - run: uv sync --frozen
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: experience-learning-plan
+          path: artifacts/experience-learning-plan
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: experience-learning-block-*
+          path: artifacts/experience-learning-download
+      - name: Reconstruct every request and exercise copied-evidence corruptions
+        run: PYTHONPATH=src:. .venv/bin/python -m experiments.experience_learning.run reproduce artifacts/experience-learning-plan/declaration.json artifacts/experience-learning-download artifacts/experience-learning-reproduction
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: experience-learning-reproduction
+          path: artifacts/experience-learning-reproduction/reproduction.json
+          if-no-files-found: error
+          retention-days: 14

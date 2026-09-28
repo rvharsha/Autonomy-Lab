@@ -18,10 +18,21 @@ data even when executed again; the eight-program search remains closed.
 PR27 completed the known-configuration selection checkpoint: selected and maintained
 precise each yielded 45 healthy/18 failed sampled windows, versus legacy 39/24,
 with one execution per known context/arm. It did not establish experience value.
-The next [observer-outage comparison](OBSERVER_RECONCILIATION.md) qualifies ordinary
-fixed-intent reconciliation against the maintained procedure before investing in a
-proposer. A conventional recovery closes that opportunity to model-value claims;
-only a residual observable decision gap warrants an experience ablation.
+The [observer-outage comparison](OBSERVER_RECONCILIATION.md) then found conventional
+fixed-intent reconciliation healthy in 8/16 final windows versus 4/16 for the
+maintained procedure. It closed that routing opportunity to model-value claims.
+Its original evidence-export pipeline failed after all 32 trials; a separately
+reviewed scratch-reader correction reproduced the original rows without live
+retries. That recovery does not turn the original failed workflow into an unattended
+success.
+
+The next [experience ablation](EXPERIENCE_LEARNING.md) directly tests retained
+experience against erased experience on a bounded request-concurrency decision.
+It measures real service responses under declared capacity changes and includes
+fixed and conventional adaptive controls. It can establish bounded parameter
+learning, not novel procedure generation or LLM necessity. This disposable learning
+proof takes priority over additional deployment plumbing; no positive outcome is
+assumed, and no cloud mutation authority is added to the learner.
 
 The live deployment track still requires precise-contract admission and persistence
 across explicit durable grants. Neither requirement is waived by a successful
