@@ -4,7 +4,7 @@ on:
     types: [opened]
     paths:
       - experiments/generated_policy/**
-      - docs/validation/generated-policy/**
+      - docs/validation/generated-policy-v2/**
       - docs/GENERATED_POLICY.md
       - .github/workflows/generated-policy.yml
 
@@ -62,7 +62,7 @@ jobs:
           from experiments.experience_learning.evaluate import read
           from experiments.generated_policy.propose import digest, verify_proposal
           from experiments.generated_policy.protocol import plan
-          b = Path('docs/validation/generated-policy')
+          b = Path('docs/validation/generated-policy-v2')
           d = read(b / 'declaration.json')
           assert d['plan'] == plan()
           assert digest(read(b / 'request.json')) == d['request_sha256']
@@ -102,7 +102,7 @@ jobs:
       - run: make setup
       - name: Execute one persistent block once, preserving failures
         timeout-minutes: 45
-        run: PYTHONPATH=src:. .venv/bin/python -m experiments.generated_policy.run run docs/validation/generated-policy ${{ matrix.block }} artifacts/generated-policy-block-${{ matrix.block }}
+        run: PYTHONPATH=src:. .venv/bin/python -m experiments.generated_policy.run run docs/validation/generated-policy-v2 ${{ matrix.block }} artifacts/generated-policy-block-${{ matrix.block }}
       - name: Upload original and partial outcomes
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -132,7 +132,7 @@ jobs:
           pattern: generated-policy-block-*
           path: artifacts/generated-policy-download
       - name: Reconstruct every request and exercise copied-evidence corruptions
-        run: PYTHONPATH=src:. .venv/bin/python -m experiments.generated_policy.run reproduce docs/validation/generated-policy artifacts/generated-policy-download artifacts/generated-policy-reproduction
+        run: PYTHONPATH=src:. .venv/bin/python -m experiments.generated_policy.run reproduce docs/validation/generated-policy-v2 artifacts/generated-policy-download artifacts/generated-policy-reproduction
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:

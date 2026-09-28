@@ -47,6 +47,27 @@ def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, allow_nan=False).encode()).hexdigest()
 
 
+def pack_traces(data):
+    """Lossless context grouping; keep all original values and batch order."""
+    arms = sorted({row[3] for row in data['rows']})
+    groups = []
+    for row in data['rows']:
+        context = [row[0], row[1], row[4]]
+        if not groups or groups[-1]['context'] != context:
+            groups.append({'context': context, 'rows': []})
+        groups[-1]['rows'].append([row[2], arms.index(row[3]), *row[5:]])
+    packed = {'development_source': data['development_source'], 'arms': arms,
+              'context_columns': ['block', 'phase', 'capacity'],
+              'row_columns': ['round', 'arm_index', 'action', 'timely_correct', 'server_errors', 'dispatched', 'p90_dispatch_seconds'],
+              'groups': groups}
+    restored = []
+    for group in groups:
+        block, phase, capacity = group['context']
+        restored.extend([block, phase, row[0], arms[row[1]], capacity, *row[2:]] for row in group['rows'])
+    require(restored == data['rows'], 'Lossless input reconstruction failed')
+    return packed
+
+
 def freeze(development, destination):
     destination.mkdir(parents=True, exist_ok=False)
     old = read(development / 'experience-learning-plan/declaration.json')
@@ -66,11 +87,11 @@ def freeze(development, destination):
             'columns': ['block', 'phase', 'round', 'arm', 'capacity', 'action', 'timely_correct', 'server_errors', 'dispatched', 'p90_dispatch_seconds'],
             'rows': traces}
     # Hash inventories are retained with the packet but not sent as useless tokens.
-    prompt_data = {k: v for k, v in data.items() if k != 'raw_sha256'}
+    prompt_data = pack_traces(data)
     prompt = ('All 1280 development batches (not independent replicas), six cyclic Quote->Inventory->Postgres cases, '
               'four independent workloads with randomized sequential arms. Inventory opens a DB connection per request. '
               'Capacity is a DB connection limit. Each block used four phases of 10 rounds. Fixed4 was strongest pooled '
-              'control. Old learner source and full batch-level measured summaries follow.\n' +
+              'control. Old learner source and full batch-level measured summaries follow. Repeated block, phase and capacity values are group headers; arm_index resolves through arms. Groups and rows preserve original order and all numeric precision.\n' +
               (ROOT / 'experiments/experience_learning/policy.py').read_text() + '\n' +
               json.dumps(prompt_data, separators=(',', ':')))
     request = {'system_instruction': SYSTEM, 'contents': [{'role': 'user', 'parts': [{'text': prompt}]}], 'declarations': []}

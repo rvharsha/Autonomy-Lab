@@ -30,7 +30,7 @@ def audit_block(directory, declaration, block, image_id):
     proposal = read(raw / 'proposal.json')
     from .propose import verify_proposal
     verify_proposal(declaration, proposal)
-    require(proposal == read(ROOT / 'docs/validation/generated-policy/proposal.json'), 'Official proposal differs')
+    require(proposal == read(ROOT / 'docs/validation/generated-policy-v2/proposal.json'), 'Official proposal differs')
     expected = read(ROOT / 'fixtures/expectations.json')
     require(read(raw / 'expectations.json') == expected, 'Oracle changed')
     require(read(raw / 'cleanup.json')['status'] == 'deleted', 'Cleanup not confirmed')

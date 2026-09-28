@@ -33,12 +33,12 @@ def schedule(block):
 
 def plan():
     files = release_manifest({})['files']
-    names = ['docs/GENERATED_POLICY.md', '.github/workflows/generated-policy.yml',
+    names = ['docs/validation/generated-policy/proposal.json', 'docs/GENERATED_POLICY.md', '.github/workflows/generated-policy.yml',
              'experiments/__init__.py', 'tests/test_generated_policy.py']
     for folder in ('experience_learning', 'generated_policy'):
         names.extend(str(p.relative_to(ROOT)) for p in sorted((ROOT / 'experiments' / folder).glob('*.py')))
     files.update({n: hashlib.sha256((ROOT / n).read_bytes()).hexdigest() for n in names})
-    return {'version': 1, 'files': files, 'blocks': [schedule(b) for b in range(BLOCKS)],
+    return {'version': 2, 'files': files, 'blocks': [schedule(b) for b in range(BLOCKS)],
             'block_seconds': BLOCK_SECONDS, 'attempts': 1, 'model_calls': 1,
             'model': 'gemini-3.8-flash', 'input_tokens_max': 50000, 'output_tokens_max': 8192,
             'source_bytes_max': SOURCE_LIMIT, 'memory_bytes_max': MEMORY_LIMIT,

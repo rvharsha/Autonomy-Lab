@@ -5,6 +5,18 @@ are asserted here. The decision is whether one automatically generated policy ca
 beat fixed concurrency 4 and the unchanged online learner on fresh sequences.
 This is a bounded admission-concurrency policy, not new cloud-operation authority.
 
+## Retained preflight and successor declaration
+
+The original input preflight returned 57,149 tokens and was refused by its frozen
+50,000-token ceiling. It made zero generation calls and zero live study attempts.
+The original declaration, exact request and rejected record remain in
+`docs/validation/generated-policy/` at commit `7b64399`. They are not overwritten.
+Version 2 changes only the lossless input representation and binding paths. It
+keeps the same hidden schedules, thresholds, budgets, comparators and source
+semantics; there has been no candidate or evaluation feedback to tune against.
+Freeze the successor in `docs/validation/generated-policy-v2/` before its separate
+count/generation attempt. Both preflight records belong in the final accounting.
+
 ## Freeze and generation
 
 Freeze all runner, evaluator, loader, input, source, workflow, schedule, budget and
@@ -13,7 +25,9 @@ development data. Independently audit them, then provide all batch-level actions
 timely-correct counts, server errors, dispatched counts and p90 durations, with
 source hashes and the unchanged learner source. The proposer receives no fresh
 schedules, evaluator implementation, future capacities, or other evaluation arms.
-Hash inventories remain in the development packet and are omitted from model input.
+The successor packet groups repeated block/phase/capacity headers and indexes arm
+labels; its round-trip check preserves every original row, order and floating-point
+value. Hash inventories remain in the development packet and are omitted from model input.
 This tests a fresh sequence distribution of the same authored workload, not unseen
 applications or failure families.
 

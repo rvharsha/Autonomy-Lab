@@ -98,3 +98,17 @@ def test_memory_boundary_uses_same_compact_encoding_as_executor():
     value['memory']['padding'] += 'x'
     with pytest.raises(Refused):
         validate_result(value)
+
+
+def test_trace_compaction_preserves_every_value_and_original_interleaving():
+    from experiments.generated_policy.propose import pack_traces
+    original = [[0, 'acquire', 0, 'fixed-4', 2, 4, 91, 3, 98, .12345678901234567],
+                [0, 'acquire', 0, 'retained', 2, 1, 62, 0, 63, .07],
+                [0, 'retention', 0, 'retained', 2, 8, 80, 8, 90, .1]]
+    packed = pack_traces({'development_source': 'authored-unit-case', 'rows': original})
+    restored = []
+    for group in packed['groups']:
+        b, phase, capacity = group['context']
+        for row in group['rows']:
+            restored.append([b, phase, row[0], packed['arms'][row[1]], capacity, *row[2:]])
+    assert restored == original
